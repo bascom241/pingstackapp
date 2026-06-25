@@ -6,7 +6,6 @@ import {
     LayoutDashboard, 
     MessageSquare, 
     Terminal, 
-    Webhook, 
     CreditCard, 
     Settings, 
     ChevronDown, 
