@@ -5,7 +5,7 @@ import { ArrowRight, Loader2 } from 'lucide-react'
 import Input from "../../ui/Input"
 import Logo from "../../assets/Logo.png"
 import { useLogin } from '../../features/auth/hooks/useAuth'
-import { useLoginStore } from '../../features/store/useLoginStore'
+import { useLoginStore } from '../../features/auth/store/useLoginStore'
 import { useSnackbar } from 'notistack'
 import { saveAuthSession } from '../../../utils/authToken'
 import { useNavigate, useSearchParams } from 'react-router-dom'

@@ -1,16 +1,17 @@
 import  { useState } from 'react';
-import { Wallet as WalletIcon, Plus, CreditCard, Settings, Bell, ArrowUpRight } from 'lucide-react';
+import { Wallet as WalletIcon, Plus, CreditCard, Settings, Loader2 } from 'lucide-react';
 import TopUpModal from '../../components/dashboard/main/TopUpModal';
-
+import { useBalance } from '../../features/wallet/hooks/useBalance';
 const Wallet = () => {
-  // State control for opening/closing the modal safely
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const balance = "10";
+
+  const {data, isLoading} = useBalance();
+
+
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-6 font-sans">
-      
-      {/* 1. Header Section */}
+    <div className="w-full max-w-5xl mx-auto p-6 ">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h2 className="text-xl font-bold text-slate-900 tracking-tight">
@@ -30,9 +31,8 @@ const Wallet = () => {
 
       {/* 2. Primary Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
-        {/* Left Card: Account & Funds Container */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex flex-col justify-between min-h-[220px]">
+      
+        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex flex-col justify-between min-h-55">
           <div>
             <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold uppercase tracking-wider mb-3">
               <WalletIcon className="w-4 h-4 text-[#004aad]" />
@@ -40,8 +40,12 @@ const Wallet = () => {
             </div>
             
             <div className="flex items-baseline gap-1 mt-1 text-slate-900">
-              <span className="text-2xl font-bold select-none text-slate-700">₦</span>
-              <span className="text-4xl font-extrabold tracking-tight">{balance}</span>
+
+              {
+                isLoading ? <Loader2 className='animate-spin'/> : <><span className="text-2xl font-bold select-none text-slate-700">₦</span>
+              <span className="text-4xl font-extrabold tracking-tight">{data}</span></>
+              }
+              
             </div>
           </div>
 
@@ -63,7 +67,7 @@ const Wallet = () => {
         </div>
 
         {/* Right Card */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex flex-col min-h-[220px]">
+        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex flex-col min-h-55">
           <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold uppercase tracking-wider mb-4">
             <CreditCard className="w-4 h-4 text-slate-500" />
             <span>Auto Recharge</span>

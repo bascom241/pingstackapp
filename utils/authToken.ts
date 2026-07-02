@@ -1,6 +1,6 @@
 import { jwtDecode } from "jwt-decode";
 
-export type AuthRole = "ROLE_USER" | "ROLE_TEACHER" | "ROLE_ADMIN";
+export type AuthRole = "ROLE_USER" | "ROLE_ADMIN";
 
 type DecodedAccessToken = {
   exp?: number;

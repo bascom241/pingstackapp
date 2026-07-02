@@ -22,7 +22,7 @@ createRoot(document.getElementById('root')!).render(
           vertical: "top",
           horizontal: "right",
         }}
-          autoHideDuration={3000}
+        autoHideDuration={3000}
         TransitionComponent={SlowSlide}
         >
           <App />

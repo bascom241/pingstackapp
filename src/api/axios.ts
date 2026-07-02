@@ -82,7 +82,7 @@ axios.interceptors.response.use(
         }
 
         const res = await axios.post(`${baseURL}/auth/refresh`, {
-          refreshToken,
+          token: refreshToken,
         });
 
         const newAccessToken = res.data.data.accessToken;
