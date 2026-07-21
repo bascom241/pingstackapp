@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Send, Upload, HelpCircle, Wifi, Battery, Signal, Radio, ArrowUp } from "lucide-react";
+import { Send, Upload, HelpCircle, Wifi, Battery, Signal, Radio, ArrowUp, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useGetAllSenderIds, useGetApprovedIds } from "../../features/senderId/hooks/useSenderIds";
 
 export default function Sms() {
   const [senderId, setSenderId] = useState("Pingstack");
@@ -8,12 +9,19 @@ export default function Sms() {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAnimatingTransmission, setIsAnimatingTransmission] = useState(false);
-  
+
+  // 1. Stateful Pagination
+  const [page, setPage] = useState(0);
+  const size = 5;
+
+  // Passing the stateful page variable to your hook
+  const { data, isError, isPending } = useGetApprovedIds(page, size);
+  const approvedSenderIds = data?.content || [];
+  const totalPages = data?.totalPages || 1;
+
   const [previewFeed, setPreviewFeed] = useState<string[]>([
     "Welcome to Pingstack! Your developer node is now active.",
   ]);
-
-  const approvedSenderIds = ["Pingstack", "PingAlert", "AuthOTP"];
 
   const charCount = message.length;
   const smsPages = charCount <= 160 ? 1 : Math.ceil(charCount / 153);
@@ -21,23 +29,21 @@ export default function Sms() {
   const handleLaunchCampaign = (e: React.FormEvent) => {
     e.preventDefault();
     if (!senderId || !recipients || !message) return;
-    
+
     setIsSubmitting(true);
     setIsAnimatingTransmission(true);
-    
-    // Simulate pipeline propagation processing time
+
     setTimeout(() => {
-      // Commit message to feed after flight animation completes
       setPreviewFeed((prev) => [...prev, message]);
       setMessage("");
       setIsSubmitting(false);
       setIsAnimatingTransmission(false);
-    }, 2800); // Extended slightly to appreciate the premium flight visualizer
+    }, 2800);
   };
 
   return (
     <div className="w-full max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-      
+
       {/* Left/Main Form Box */}
       <form onSubmit={handleLaunchCampaign} className="lg:col-span-2 space-y-6">
         <div>
@@ -48,21 +54,59 @@ export default function Sms() {
         </div>
 
         <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-4">
+
           {/* Sender ID Selection */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1">
               Sender ID <HelpCircle size={12} className="text-gray-300" />
             </label>
+
             <select
               value={senderId}
               onChange={(e) => setSenderId(e.target.value)}
               className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-[#004aad]/20 focus:border-[#004aad] transition-all"
               required
             >
-              {approvedSenderIds.map((id) => (
-                <option key={id} value={id}>{id}</option>
-              ))}
+              {isPending && <option>Loading Sender IDs...</option>}
+              {isError && <option>Error loading Sender IDs</option>}
+              {!isPending && approvedSenderIds.length === 0 && <option>No approved Sender IDs found</option>}
+
+
+              {approvedSenderIds.map((item: any, index: number) => {
+                const unique = `${item}-${item.id || index}`
+                return (
+                  <option key={unique} value={item.senderId}>
+                    {item.senderId} ({item.companyName})
+                  </option>
+                )
+
+              })}
             </select>
+
+            {/* 2. Compact Select Pagination Bar */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-end gap-2 mt-1 px-1">
+                <span className="text-[10px] text-gray-400">
+                  Page {page + 1} of {totalPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={page === 0}
+                  onClick={() => setPage((prev) => Math.max(0, prev - 1))}
+                  className="p-1 text-gray-500 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-40 cursor-pointer"
+                >
+                  <ChevronLeft size={12} />
+                </button>
+                <button
+                  type="button"
+                  disabled={page >= totalPages - 1}
+                  onClick={() => setPage((prev) => prev + 1)}
+                  className="p-1 text-gray-500 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-40 cursor-pointer"
+                >
+                  <ChevronRight size={12} />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Destinations Mapping */}
@@ -71,7 +115,7 @@ export default function Sms() {
               <label className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
                 Recipients Phone Book
               </label>
-              <button 
+              <button
                 type="button"
                 className="text-[10px] font-bold text-[#004aad] flex items-center gap-1 hover:underline cursor-pointer"
               >
@@ -130,27 +174,26 @@ export default function Sms() {
         <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 self-start lg:self-center">
           Device Render View
         </span>
-        
+
         {/* Realistic Hardware Outer Shell */}
         <div className="relative border-[6px] border-gray-800 rounded-[46px] bg-black p-2.5 shadow-2xl max-w-[290px] w-full aspect-[9/18] flex flex-col overflow-hidden ring-4 ring-gray-100 ring-offset-2 select-none">
-          
+
           {/* Internal Display Frame */}
           <div className="flex-1 bg-slate-100 rounded-[36px] p-3 flex flex-col justify-between relative overflow-hidden text-gray-900">
-            
+
             {/* Immersive Transmission Transmission Overlay */}
             <AnimatePresence>
               {isAnimatingTransmission && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className="absolute inset-0 bg-slate-900/95 z-40 flex flex-col items-center justify-center px-4 text-center text-white"
                 >
-                  {/* Glowing Node Architecture */}
                   <div className="relative mb-6">
-                    <motion.div 
-                      animate={{ scale: [1, 1.4, 1] }} 
-                      transition={{ repeat: Infinity, duration: 2 }} 
+                    <motion.div
+                      animate={{ scale: [1, 1.4, 1] }}
+                      transition={{ repeat: Infinity, duration: 2 }}
                       className="absolute inset-0 bg-[#004aad]/40 rounded-full blur-md"
                     />
                     <div className="w-12 h-12 bg-[#004aad] rounded-full flex items-center justify-center border border-blue-400/30 shadow-lg relative z-10">
@@ -165,7 +208,6 @@ export default function Sms() {
                     Routing payload via Telco IP...
                   </p>
 
-                  {/* Flight Track Track Line */}
                   <div className="w-[1px] h-20 bg-gradient-to-b from-blue-500/0 via-blue-500/40 to-blue-500/0 relative my-4 flex items-center justify-center">
                     <motion.div
                       initial={{ y: 40, opacity: 0, scale: 0.8 }}
@@ -179,7 +221,7 @@ export default function Sms() {
                 </motion.div>
               )}
             </AnimatePresence>
-            
+
             {/* Top Hardware Overlay: Dynamic Island / StatusBar */}
             <div className="w-full flex justify-between items-center px-4 pt-1 z-20 text-[10px] font-bold text-gray-700">
               <span>9:41</span>
@@ -216,8 +258,7 @@ export default function Sms() {
                       {msg}
                     </motion.div>
                   ))}
-                  
-                  {/* Dynamic Typing / Intermediary Buffer Bubble */}
+
                   {message && !isAnimatingTransmission && (
                     <motion.div
                       key="live-buffer"
@@ -240,10 +281,10 @@ export default function Sms() {
                 ↑
               </div>
             </div>
-            
+
             {/* iOS Bottom Indicator Bar */}
             <div className="w-20 h-1 bg-gray-400 rounded-full mx-auto mt-1 shrink-0" />
-            
+
           </div>
         </div>
       </div>

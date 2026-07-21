@@ -1,17 +1,19 @@
 import { useState } from "react"
-import { Plus, CheckCircle2, Clock, XCircle } from "lucide-react"
-import { 
-    Table, 
-    TableBody, 
-    TableCell, 
-    TableContainer, 
-    TableHead, 
-    TableRow, 
+import { Plus, CheckCircle2, Clock, XCircle, ChevronRight, ChevronLeft } from "lucide-react"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
     Paper,
     Chip
 } from "@mui/material"
 import { AnimatePresence } from "framer-motion"
 import SenderIdModal from "../../ui/modals/SenderId";
+import { useGetAllSenderIds } from "../../features/senderId/hooks/useSenderIds";
+
 
 // Mock Data Structure
 const mockSenderIds = [
@@ -22,8 +24,10 @@ const mockSenderIds = [
 
 const SenderId = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    // Replace this with your actual API state later
-    const [senderIds] = useState(mockSenderIds); 
+    const [page, setPage] = useState(0);
+    const pageSize = 3;
+    const { data } = useGetAllSenderIds(page, pageSize)
+
 
     const handleOpenModal = () => setIsModalOpen(true);
     const handleCloseModal = () => setIsModalOpen(false);
@@ -42,9 +46,14 @@ const SenderId = () => {
         }
     };
 
+
+    const senderIds = data?.content || [];
+    const totalPages = data?.totalPages || 1;
+    const isFirstPage = data?.first ?? true;
+    const isLastPage = data?.last ?? true;
     return (
         <main className="flex flex-col w-full h-auto  p-6 max-w-6xl mx-auto gap-8">
-            
+
             {/* Top Bar / Header Action Section */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full border-b border-gray-100 pb-5">
                 <div>
@@ -82,9 +91,9 @@ const SenderId = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {senderIds.map((row) => (
-                                <TableRow 
-                                    key={row.id} 
+                            {senderIds.map((row: any) => (
+                                <TableRow
+                                    key={row.id}
                                     className="hover:bg-gray-50/50 transition-colors last:border-0"
                                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                 >
@@ -92,13 +101,13 @@ const SenderId = () => {
                                         {row.senderId}
                                     </TableCell>
                                     <TableCell className="text-gray-600" sx={{ fontSize: '0.875rem' }}>
-                                        {row.company}
+                                        {row.companyName}
                                     </TableCell>
                                     <TableCell className="text-gray-500 max-w-[200px] truncate" sx={{ fontSize: '0.875rem' }}>
-                                        {row.useCase}
+                                        {row.useCaseSample}
                                     </TableCell>
                                     <TableCell className="text-gray-500" sx={{ fontSize: '0.875rem' }}>
-                                        {row.date}
+                                        {row.createdAt}
                                     </TableCell>
                                     <TableCell align="right">
                                         {getStatusChip(row.status)}
@@ -107,6 +116,30 @@ const SenderId = () => {
                             ))}
                         </TableBody>
                     </Table>
+
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-between border-t border-gray-100 pt-3 px-4 pb-4 mt-4">
+                            <span className="text-xs text-gray-400">
+                                Page {page + 1} of {totalPages}
+                            </span>
+                            <div className="flex items-center gap-1">
+                                <button
+                                    onClick={() => setPage(prev => Math.max(0, prev - 1))}
+                                    disabled={isFirstPage}
+                                    className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={() => setPage(prev => prev + 1)}
+                                    disabled={isLastPage}
+                                    className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+                                >
+                                    <ChevronRight className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </TableContainer>
             )}
 
