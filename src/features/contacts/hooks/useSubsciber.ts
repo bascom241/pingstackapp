@@ -1,4 +1,4 @@
-import { createSubscriber, getAllSubscribers } from "../api/subscriber";
+import { createSubscriber, getAllSubscribers , uploadSubscribers} from "../api/subscriber";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 export const SUBSCIBERS_QUERY_KEY = ["subscibers"]
@@ -18,6 +18,14 @@ export const useGetAllSubscibers = (listId: string , query: string, page: number
         enabled: Boolean(listId)
     })
 }
+
+
+export const uploadCSVSubscibers = () => {
+    return useMutation({
+        mutationFn: uploadSubscribers
+    })
+}
+
 
 
 

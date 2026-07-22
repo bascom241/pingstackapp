@@ -1,12 +1,35 @@
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
 import FileUploader from "../../components/utils/FileUploader";
+import { useSnackbar } from "notistack";
+import { useGetSingleAudience } from "../../features/contacts/hooks/useAudience";
+import { useEffect } from "react";
 
 interface ModalState {
     setIsUploadModaOpen: (isOpen: boolean) => void;
+    selectedId: string
 }
 
-const Upload = ({ setIsUploadModaOpen }: ModalState) => {
+const Upload = ({ setIsUploadModaOpen, selectedId }: ModalState) => {
+    const { data, isPending } = useGetSingleAudience(selectedId);
+
+    console.log(data)
+
+    let name; 
+    let id;
+    if (data !== undefined) {
+        name = data.name
+        id = data.id 
+    }
+    // const {name} = data; 
+    const { enqueueSnackbar } = useSnackbar();
+    if (!selectedId) {
+        return enqueueSnackbar("Audence not selected", { variant: "error" })
+    }
+
+
+
+
     return (
         /* Backdrop overlay */
         <div className="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4">
@@ -34,7 +57,10 @@ const Upload = ({ setIsUploadModaOpen }: ModalState) => {
 
                 {/* Main Content (With top padding so it doesn't overlap the close button) */}
                 <div className="pt-2">
-                    <FileUploader />
+                    <FileUploader
+                    audience ={name}
+                    id= {id}
+                    />
                 </div>
 
             </motion.div>

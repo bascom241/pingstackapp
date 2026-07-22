@@ -1,4 +1,4 @@
-export interface UploadFileRequest<T extends Record<string, unknown> = {}> { 
+export interface UploadFileRequest { 
     file: File
-    fields: T 
+    listId:string 
 }

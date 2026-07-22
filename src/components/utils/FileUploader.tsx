@@ -1,14 +1,24 @@
 import { useState, type ChangeEvent, type DragEvent } from "react";
 import { UploadCloud, FileText, X } from "lucide-react";
-
+import { useUploadCsv } from "../../features/contacts/hooks/useUploadSubscriberCsv";
+import { useSnackbar } from "notistack";
+import { getApiErrorMessage } from "../../utils/apiError";
+import { useQueryClient } from "@tanstack/react-query";
+import { SUBSCIBERS_QUERY_KEY } from "../../features/contacts/hooks/useSubsciber";
+import { AUDIENCE_QUERY_KEY } from "../../features/contacts/hooks/useAudience";
 type UploadStatus = "idle" | "uploading" | "success" | "fail";
-
-const FileUploader = () => {
+interface FileUploadProps {
+    audience: string
+    id: string
+}
+const FileUploader = ({ audience, id }: FileUploadProps) => {
     const [file, setFile] = useState<File | null>(null);
     const [isDragActive, setIsDragActive] = useState<boolean>(false);
     // Added a simulated upload function for demonstration
     const [status, setStatus] = useState<UploadStatus>("idle");
-
+    const { mutate, isPending: uploadingCsv } = useUploadCsv();
+    const { enqueueSnackbar } = useSnackbar();
+    const queryClient = useQueryClient()
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setFile(e.target.files[0]);
@@ -48,7 +58,28 @@ const FileUploader = () => {
 
         const formData = new FormData();
         formData.append("file", file);
-        console.log(formData)
+        if (id) {
+            formData.append("listId", id)
+                
+        }
+        mutate(formData, {
+            onSuccess: (data) => {
+                console.log(data)
+                enqueueSnackbar("File Uploaded", { variant: "success" });
+                queryClient.invalidateQueries({
+                    queryKey: SUBSCIBERS_QUERY_KEY,
+                });
+
+                queryClient.invalidateQueries({
+                    queryKey: AUDIENCE_QUERY_KEY,
+                });
+            }, onError: (error) => {
+                const errorMessage = getApiErrorMessage(error, "Something went wrong");
+                enqueueSnackbar(errorMessage || "Failed to create", {
+                    variant: "error",
+                });
+            }
+        })
     };
 
     return (
@@ -57,6 +88,8 @@ const FileUploader = () => {
             <label className="text-xs font-mono font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 Upload Subscribers List
             </label>
+
+            <p className="text-gray-500">Selected Audience:<span className="text-green-500 font-bold">{audience}</span> </p>
 
             {!file ? (
                 /* Drag & Drop Zone */
@@ -75,7 +108,7 @@ const FileUploader = () => {
                     <input
                         type="file"
                         onChange={handleChange}
-                        accept=".pdf,.png,.jpg,.jpeg" // Good practice to add accept attribute
+                        accept=".csv" // Good practice to add accept attribute
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     />
 
@@ -89,7 +122,7 @@ const FileUploader = () => {
                             Click to upload or drag and drop
                         </p>
                         <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                            PDF, PNG, or JPG (max. 10MB)
+                            CSV (max. 10MB)
                         </p>
                     </div>
                 </div>

@@ -13,7 +13,12 @@ export const getAllAudience = async (): Promise<AudienceResponseDto[]> => {
     return response.data; 
 }
 
-export const uploadAudienceSubscribersCsv = async ( data: UploadFileRequest) => {
+export const getSingleAudience = async (listId: string) => {
+    const res = await axiosInstance.get(`/audience/${listId}`);
+    return res.data;
+};
+
+export const uploadAudienceSubscribersCsv = async ( data: FormData) => {
     const res = await axiosInstance.post ("/audience/upload", data);
     return res.data;
 }

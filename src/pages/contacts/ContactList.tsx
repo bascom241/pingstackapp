@@ -11,12 +11,6 @@ import { useSnackbar } from "notistack";
 import { getApiErrorMessage } from "../../utils/apiError";
 import UploadSingleSubsciber from "../../ui/modals/UploadSingleSubsciber";
 
-type ContactList = {
-  id: string;
-  name: string;
-  createdAt: string
-  updatedAt: string;
-};
 
 type Contact = {
   orderId: string;
@@ -33,7 +27,7 @@ type Contact = {
 
 export default function Contacts() {
   const [activeList, setActiveList] = useState<string>();
-  const [idToFetch, setIdToFetch] = useState<string>();
+  const [idToFetch, setIdToFetch] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isNewListModalOpen, setIsNewListModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModaOpen] = useState(false);
@@ -46,19 +40,7 @@ export default function Contacts() {
   const queryClient = useQueryClient()
 
 
-  // Mock Subscribers Database Map
-  const contactsData: Record<string, Contact[]> = {
-    l1: [
-      { id: "c1", name: "Abdulwahab O.", phone: "+234 803 111 2222", status: "Subscribed", joinedDate: "Jul 01, 2026" },
-      { id: "c2", name: "Chidi Benson", phone: "+234 812 345 6789", status: "Subscribed", joinedDate: "Jun 28, 2026" },
-      { id: "c3", name: "Fatima Aliyu", phone: "+234 905 999 8888", status: "Bounced", joinedDate: "Jun 24, 2026" },
-      { id: "c4", name: "Efe Michael", phone: "+234 703 444 5555", status: "Unsubscribed", joinedDate: "Jun 15, 2026" },
-    ],
-    l2: [
-      { id: "c5", name: "Dev Node Sandbox", phone: "+234 809 000 0000", status: "Subscribed", joinedDate: "Today" },
-      { id: "c6", name: "Test Pipeline B", phone: "+234 811 222 3333", status: "Subscribed", joinedDate: "Yesterday" },
-    ],
-  };
+
 
   console.log(idToFetch)
 const { data: subscriberData, isPending: loadingContent } = useGetAllSubscibers(
@@ -338,6 +320,7 @@ const { data: subscriberData, isPending: loadingContent } = useGetAllSubscibers(
           isUploadModalOpen && (
             <UploadCsv
               setIsUploadModaOpen={setIsUploadModaOpen}
+              selectedId={idToFetch}
             />
           )
         }
@@ -348,6 +331,7 @@ const { data: subscriberData, isPending: loadingContent } = useGetAllSubscibers(
           isAddMemberOpen && (
             <UploadSingleSubsciber
               setAdd={setIsAddMemberOpen}
+              selectedId={idToFetch}
             />
           )
         }

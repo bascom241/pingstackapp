@@ -1,8 +1,9 @@
 import { axiosInstance } from "../../../api/axios";
 import type { CreateSubscriber } from "../../../types/contacts/contactTypes";
+import type { UploadFileRequest } from "../../../types/upload/uploadFileTypes";
 
 export const createSubscriber = async (data: CreateSubscriber) => {
-    const res = await axiosInstance.post("/audience/subcriber", data);
+    const res = await axiosInstance.post("/audience/subscriber", data);
     return res.data;
 }
 
@@ -17,4 +18,11 @@ export const getAllSubscribers = async (listId: string , query: string, page: nu
     });
     return res.data;
 }
+
+
+export const uploadSubscribers = async (data: UploadFileRequest) => {
+    const res = await axiosInstance.post("/audience/upload", data); 
+    return res.data;
+}
+
 
