@@ -1,5 +1,5 @@
 import { axiosInstance } from "../../../api/axios";
-import type { CreateSubscriber } from "../../../types/contacts/contactTypes";
+import type { CreateSubscriber, UpdateSubscriber, DeleteRequest } from "../../../types/contacts/contactTypes";
 import type { UploadFileRequest } from "../../../types/upload/uploadFileTypes";
 
 export const createSubscriber = async (data: CreateSubscriber) => {
@@ -25,4 +25,23 @@ export const uploadSubscribers = async (data: UploadFileRequest) => {
     return res.data;
 }
 
+
+export const updateSubscriber = async (data: UpdateSubscriber) => {
+    const res = await axiosInstance.put("/audience/subscriber", data); 
+    return res.data; 
+}
+
+export const getSingleSubscriber = async (subscriberId : string ) => {
+    const res = await axiosInstance.get(`/audience/subscriber/${subscriberId}`);
+    return res.data; 
+}
+
+export const deleteSubscriber = async (subscriberId: string, audienceId: string) => {
+    await axiosInstance.delete('/audience/subscriber', {
+        params: {
+            subscriberId, 
+            audienceId
+        }
+    });
+}
 

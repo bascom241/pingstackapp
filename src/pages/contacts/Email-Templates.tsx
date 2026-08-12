@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { FileText, Plus, Search, Eye, Edit2, Code, Layout, Layers, Tag, Copy, Check } from "lucide-react";
+import  { useState } from "react";
+import {  Plus, Search, Eye, Edit2, Code, Copy, Check } from "lucide-react";
 
 type Template = {
   id: string;
