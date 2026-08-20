@@ -20,12 +20,10 @@ const DeleteDomainModal: React.FC<DeleteDomainModalProps> = ({
 }) => {
   const [confirmationInput, setConfirmationInput] = useState("");
 
-  // Reset confirmation input whenever modal opens or closes
   useEffect(() => {
     if (!isOpen) setConfirmationInput("");
   }, [isOpen]);
 
-  // Handle ESC key press
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !isDeleting) onClose();
@@ -36,7 +34,7 @@ const DeleteDomainModal: React.FC<DeleteDomainModalProps> = ({
 
   if (!isOpen) return null;
 
-  const isMatched = confirmationInput.trim() === domainName.trim();
+  const isMatched = confirmationInput.trim().toLowerCase() === domainName.trim().toLowerCase();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

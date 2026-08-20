@@ -5,7 +5,6 @@ import {
   Plus,
   Server,
   Star,
-  SearchCheck,
   Trash2,
   ChevronRight,
   Loader2,
@@ -70,18 +69,36 @@ export const DomainList: React.FC<DomainListProps> = ({
   };
 
   const handleConfirmDelete = () => {
-    if (!domainToDelete) return;
+    if (!domainToDelete?.id) {
+      enqueueSnackbar("No domain selected for deletion", { variant: "error" });
+      return;
+    }
+
+    if (isDeletingDomain) {
+      return;
+    }
 
     deleteDomain(domainToDelete.id, {
       onSuccess: async () => {
-        enqueueSnackbar(`Domain "${domainToDelete.domain_name}" deleted successfully`, {
-          variant: "success",
-        });
+        enqueueSnackbar(
+          `Domain "${domainToDelete.domain_name}" deleted successfully`,
+          { variant: "success" }
+        );
         setDomainToDelete(null);
-        await onRefetchDomains();
+
+        try {
+          await onRefetchDomains();
+        } catch (error) {
+          console.error("Failed to refetch domains:", error);
+        }
       },
       onError: (error) => {
-        const errorMessage = getApiErrorMessage(error, "Failed to delete domain");
+        setDomainToDelete(null);
+        console.error("Delete domain error:", error);
+        const errorMessage = getApiErrorMessage(
+          error,
+          "Failed to delete domain"
+        );
         enqueueSnackbar(errorMessage, { variant: "error" });
       },
     });
@@ -206,16 +223,6 @@ export const DomainList: React.FC<DomainListProps> = ({
                       ) : (
                         "Make Primary"
                       )}
-                    </button>
-                  )}
-
-                  {!domain.verified && (
-                    <button
-                      type="button"
-                      className="text-[11px] font-semibold text-[#004aad] bg-blue-50 hover:bg-blue-100/80 px-2.5 py-1 rounded-lg transition-colors cursor-pointer flex items-center gap-1 disabled:opacity-50"
-                    >
-                      <SearchCheck size={12} />
-                      <span>Verify</span>
                     </button>
                   )}
 

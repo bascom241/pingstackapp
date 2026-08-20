@@ -57,3 +57,8 @@ export interface BrevoDomainDto {
 }
 
 
+
+export interface VerifyDomainRequest {
+  domainName?:string
+  domainId?: string
+}

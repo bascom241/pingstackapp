@@ -1,4 +1,4 @@
-import type{ UpdateDomainRequest, BrevoDomainDto } from "../../../../types/email/EmailConfigDto";
+import type{ UpdateDomainRequest, BrevoDomainDto, VerifyDomainRequest } from "../../../../types/email/EmailConfigDto";
 import { axiosInstance } from "../../../../api/axios";
 
 
@@ -27,3 +27,8 @@ export const makePrimary = async (domainId:string ): Promise<BrevoDomainDto>=> {
 export const deleteDomain = async (domainId: string): Promise<void> => {
   await axiosInstance.delete(`/email-config/domain/${domainId}`);
 };
+
+export const verifyDomain = async (data: VerifyDomainRequest) => {
+    const response = await axiosInstance.put("/email-config/verify", data); 
+    return response.data; 
+}

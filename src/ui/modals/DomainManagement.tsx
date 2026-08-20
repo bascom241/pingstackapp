@@ -11,7 +11,6 @@ import { useSnackbar } from "notistack";
 import { getApiErrorMessage } from "../../utils/apiError";
 
 const DomainManagement = () => {
-  // Extract refetch and isRefetching directly from the domains query
   const {
     data: domains = [],
     isPending: isInitialLoading,
@@ -21,7 +20,6 @@ const DomainManagement = () => {
 
   const [selectedDomain, setSelectedDomain] = useState<BrevoDomainDto | null>(null);
   const [newDomainInput, setNewDomainInput] = useState<string>("");
-  const [isVerifying, setIsVerifying] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const { mutate: createDomain, isPending: isAddingDomain } = useCreateDomain();
@@ -42,7 +40,6 @@ const DomainManagement = () => {
         onSuccess: async () => {
           enqueueSnackbar("Domain created successfully", { variant: "success" });
           setNewDomainInput("");
-          // Refetch domains explicitly after adding
           await refetchDomains();
         },
         onError: (error) => {
@@ -51,6 +48,12 @@ const DomainManagement = () => {
         },
       }
     );
+  };
+
+  // Callback executed after the modal completes setting primary status
+  const handlePrimarySetSuccess = async () => {
+    await refetchDomains();
+    setSelectedDomain(null);
   };
 
   return (
@@ -62,14 +65,13 @@ const DomainManagement = () => {
         onAddDomain={addDomain}
         onSelectDomain={setSelectedDomain}
         isAddingDomain={isAddingDomain}
-        // Shows full list loading/spinner whenever initial loading OR refetching is happening
         isFetchingDomains={isInitialLoading || isRefetching}
         onRefetchDomains={refetchDomains}
       />
 
       <DomainDetailsModal
         selectedDomain={selectedDomain}
-        isVerifying={isVerifying === selectedDomain?.id}
+        onSetPrimarySuccess={handlePrimarySetSuccess}
         copiedKey={copiedKey}
         onClose={() => setSelectedDomain(null)}
         onCopy={handleCopy}
