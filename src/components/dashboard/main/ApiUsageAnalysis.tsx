@@ -9,6 +9,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { TrendingUp } from "lucide-react";
+import { useOrderChat } from "../../../features/wallet/hooks/useChart";
 
 // 1. Temporary Mock Data
 const mockApiData = [
@@ -22,9 +23,11 @@ const mockApiData = [
 ];
 
 export default function AnalyticsChart({
-  data = mockApiData,
+ 
   title = "Transaction Volume",
 }) {
+
+  const {data} = useOrderChat()
   // Helper to format API dates dynamically (e.g., '2026-06-25...' becomes 'Jun 25')
   const formatDate = (isoString: any) => {
     try {
@@ -37,6 +40,8 @@ export default function AnalyticsChart({
       return isoString;
     }
   };
+
+  
 
   return (
     <div className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-6 shadow-sm w-full mt-4 sm:mt-8">

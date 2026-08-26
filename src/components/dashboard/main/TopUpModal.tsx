@@ -1,31 +1,60 @@
-import React, { useState } from 'react';
-import { X, HelpCircle } from 'lucide-react';
-
-const TopUpModal = ({ isOpen, onClose }: any ) => {
+import { useState } from 'react';
+import { X, HelpCircle, Loader2 } from 'lucide-react';
+import { useTopUpWallet } from '../../../features/wallet/hooks/useTopUpWallet';
+import type { WalletTopUpRequest } from '../../../types/wallet/walletType';
+import { useSnackbar } from 'notistack';
+import { getApiErrorMessage } from '../../../utils/apiError';
+import { useQueryClient } from '@tanstack/react-query';
+const TopUpModal = ({ isOpen, onClose }: any) => {
   const [gateway, setGateway] = useState('');
   const [amount, setAmount] = useState('');
+  const { mutate, isPending } = useTopUpWallet()
+  const queryClient = useQueryClient()
+  const { enqueueSnackbar } = useSnackbar()
 
-  if (!isOpen) return null;
-
-  const handleSubmit = (e: any ) => {
+  const handleSubmit = (e: any) => {
     e.preventDefault();
-    // Handle top-up logic here with API later
+    const dataToSend: WalletTopUpRequest = {
+      amount
+    }
+    mutate(dataToSend, {
+      onSuccess: (data) => {
+        console.log(data);
+        const { authUrl } = data;
+        if (authUrl) {
+             queryClient.invalidateQueries({
+         queryKey: ["balance"]
+      });
+          window.location.href = authUrl;
+          enqueueSnackbar("redirecting to paystack page", { variant: "success" })
+        } else {
+          enqueueSnackbar("Failed to get payment url", { variant: "error" })
+        }
+      },
+      onError: (error) => {
+        const errorMessage = getApiErrorMessage(error, "Something went wrong");
+        enqueueSnackbar(errorMessage || "Login failed!", {
+          variant: "error"
+        })
+      }
+    })
+
     console.log({ gateway, amount });
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className={`${isOpen ? 'flex' : 'hidden'} fixed inset-0 z-50 flex items-center justify-center p-4`}>
       {/* Dark Blur Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal Container Container */}
       <div className="bg-white rounded-2xl w-full max-w-lg p-6 sm:p-8 shadow-2xl relative z-10 animate-in fade-in zoom-in-95 duration-200">
-        
+
         {/* Close Button Button */}
-        <button 
+        <button
           onClick={onClose}
           className="absolute right-5 top-5 p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all cursor-pointer"
         >
@@ -34,7 +63,7 @@ const TopUpModal = ({ isOpen, onClose }: any ) => {
 
         {/* Content Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          
+
           {/* Header Typography */}
           <div>
             <h3 className="text-xl font-bold text-[#004aad] tracking-tight">
@@ -62,7 +91,7 @@ const TopUpModal = ({ isOpen, onClose }: any ) => {
               >
                 <option value="" disabled hidden>Select payment method</option>
                 <option value="paystack">Paystack (Card, Transfer, USSD)</option>
-                <option value="flutterwave">Flutterwave (Card, Bank Transfer)</option>
+                <option disabled={true} value="flutterwave">Flutterwave (Card, Bank Transfer)</option>
               </select>
               {/* Custom styled select caret dropdown icon */}
               <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 border-l border-slate-100 pl-2">
@@ -107,9 +136,12 @@ const TopUpModal = ({ isOpen, onClose }: any ) => {
           {/* Submit Action Action */}
           <button
             type="submit"
-            className="w-full bg-slate-400 hover:bg-[#004aad] text-white font-bold text-sm py-3 px-4 rounded-full transition-all tracking-wide shadow-sm transform active:scale-[0.99] cursor-pointer"
+            className="w-full bg-slate-400 hover:bg-[#004aad] text-white font-bold text-sm py-3 px-4 rounded-full flex items-center justify-center transition-all tracking-wide shadow-sm transform active:scale-[0.99] cursor-pointer"
           >
-            Top up wallet
+            {
+              isPending ?<Loader2 className='animate-spin'/> : "Top up wallet"
+            }
+           
           </button>
 
         </form>

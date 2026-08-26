@@ -22,8 +22,10 @@ export const useLoginStore = create<AuthStore>((set) => ({
     password: "",
   },
 
+
   token: null,
   isAuthenticated: false,
+  
 
   setFormData: (data) =>
     set((state) => ({

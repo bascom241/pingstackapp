@@ -1,9 +1,12 @@
-import { Wallet, ArrowRight, LineChart } from "lucide-react";
+import { Wallet, ArrowRight, LineChart, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
+import { useBalance } from "../../../features/wallet/hooks/useBalance";
 const WelcomeMessageSection = () => {
-
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
+  const { data, isLoading, error } = useBalance();
+  console.log("balance:", data);
+  console.log("loading:", isLoading);
+  console.log("error:", error);
   return (
     <div className="flex flex-col gap-4 w-full bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
       {/* 1. Header Row */}
@@ -15,11 +18,14 @@ const WelcomeMessageSection = () => {
       {/* 2. Balance & Action Row (Stacks vertically on small phones, side-by-side on larger screens) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100 sm:bg-transparent sm:p-0 sm:border-none">
         <div className="flex items-baseline gap-1 text-slate-900">
-          <span className="text-xl font-bold text-slate-700 select-none">₦</span>
-          <span className="text-4xl font-extrabold tracking-tight">1,000</span>
+
+          {
+            isLoading ? <Loader2 className="animate-spin" /> : <><span className="text-xl font-bold text-slate-700 select-none">₦</span> <span className="text-4xl font-extrabold tracking-tight">{data}</span></>
+          }
+
         </div>
-        
-        <button onClick={()=> navigate("/dashboard/billing")} className="w-full sm:w-fit bg-[#004aad] hover:bg-blue-700 text-white font-semibold text-sm py-2.5 px-4 rounded-xl sm:rounded-full transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-2 group cursor-pointer">
+
+        <button onClick={() => navigate("/dashboard/billing")} className="w-full sm:w-fit bg-[#004aad] hover:bg-blue-700 text-white font-semibold text-sm py-2.5 px-4 rounded-xl sm:rounded-full transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-2 group cursor-pointer">
           <Wallet size={16} className="shrink-0" />
           <span>Fund wallet</span>
           <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform shrink-0" />

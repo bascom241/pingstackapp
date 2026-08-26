@@ -35,10 +35,12 @@ type SidebarItem = {
 type DashboardLayoutProps = {
     children: React.ReactNode
 }
+import { useBalance } from "../../features/wallet/hooks/useBalance"
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const location = useLocation()
     const navigate = useNavigate()
+    const { data, isLoading, error } = useBalance();
     
     // UI Layout States
     const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({ "Engage": true })
@@ -199,7 +201,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     )
 
     return (
-        <div className="w-full min-h-screen bg-[#f8fafc] text-[#1e293b] flex antialiased font-sans relative">
+        <div className="w-full min-h-screen bg-[#f8fafc] text-[#1e293b] flex antialiased relative">
             
             {/* DESKTOP SIDEBAR VIEWPORT (Hidden on Mobile) */}
             <aside className="hidden md:flex w-64 bg-white border-r border-[#e2e8f0] flex-col justify-between z-20 flex-shrink-0">
@@ -238,7 +240,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                         <div className="flex items-center gap-2 bg-[#f8fafc] border border-[#e2e8f0] px-2.5 py-1.5 rounded-xl">
                             <span className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-wider hidden sm:inline">Balance:</span>
-                            <span className="text-xs font-black text-[#1e293b] font-mono">₦0.00</span>
+                            <span className="text-xs font-black text-[#1e293b] font-mono">₦{data}</span>
                             <button 
                                 onClick={() => navigate("/dashboard/billing")}
                                 className="ml-0.5 bg-[#004aad] text-white px-1.5 py-0.5 rounded-md text-[10px] font-bold hover:bg-[#003680] transition-colors flex items-center gap-0.5 cursor-pointer"
@@ -274,7 +276,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             )}
                         </div>
 
-                        {/* Send Message Button - Collapses icon-only on mobile grids to save room */}
+                        {/* Send Message Button */}
                         <button 
                             onClick={() => navigate("/dashboard/sms")}
                             className="bg-[#004aad] text-white px-2.5 sm:px-4 py-1.5 rounded-xl text-xs font-bold hover:bg-[#003680] transition-all flex items-center gap-1.5 cursor-pointer shadow-sm shadow-[#004aad]/10"
@@ -297,7 +299,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     {children}
                 </main>
             </div>
-
         </div>
     )
 }
