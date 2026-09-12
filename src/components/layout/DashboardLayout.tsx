@@ -62,6 +62,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { label: "Email Templates", path: "/dashboard/email-templates" },
                 { label: "KYC Verification", path: "/dashboard/kyc" },
                 { label: "OTP Guide Docs", path: "/dashboard/otp-guide" },
+                
             ]
         },
         {

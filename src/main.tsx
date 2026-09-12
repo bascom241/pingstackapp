@@ -7,7 +7,6 @@ import { ThemeProvider } from '@emotion/react'
 import { CssBaseline } from '@mui/material'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SnackbarProvider } from "notistack"
-import {Fade, Grow, Slide} from '@mui/material'
 import { SlowSlide } from './ui/Slide.tsx'
 const queryClient = new QueryClient();
 

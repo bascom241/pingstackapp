@@ -14,6 +14,7 @@ import EmailTemplates from "./pages/contacts/Email-Templates";
 import KycVerification from "./pages/kyc/KycUpload";
 import WebhooksConfig from "./pages/webhook/Webhook";
 import ApiKeysPlayground from "./pages/settings/ApiKey";
+import SingleEmailTemplateEdit from "./pages/contacts/SingleEmailTemplateEdit";
 const App = () => {
   return (
     <Routes>
@@ -36,6 +37,7 @@ const App = () => {
           <Route path="email-templates" element={<EmailTemplates />} />
           <Route path="sender-id" element={<SenderId />} />
           <Route path="billing" element={<Wallet />} />
+          <Route path="email-templates/:id" element={<SingleEmailTemplateEdit/>} />
           <Route path="settings" element={<div>Settings Screen</div>} />
         </Route>
       </Route>
