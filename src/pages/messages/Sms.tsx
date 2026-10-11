@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Send,
   Upload,
@@ -18,73 +18,72 @@ import {
   Search,
   Check,
   X,
-  Code,
-  Sparkles
+  Sparkles,
+  Maximize2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGetApprovedIds } from "../../features/senderId/hooks/useSenderIds";
+import {
+  useGetSingleTemplate,
+  useGetTemplateForUser,
+} from "../../features/templates/hooks/useTemplate";
+import { useGetAllDomains } from "../../features/email/config/hooks/useDomain";
+import { useGetEmailConfig } from "../../features/email/config/hooks/useEmailConfig";
+import { useGetAllAudience } from "../../features/contacts/hooks/useAudience";
+import { useGetAllSubscibers } from "../../features/contacts/hooks/useSubsciber";
+import UploadCsv from "../../ui/modals/Upload";
 
 type Template = {
-  id: string;
+  templateId: string;
   name: string;
   category: "Transactional" | "Marketing" | "Lifecycle";
-  lastModified: string;
-  usageMetric: string;
+  description?: string;
+  updatedAt?: string;
   subject?: string;
-  body: string;
+  htmlContent?: string;
 };
 
-const DUMMY_TEMPLATES: Template[] = [
-  {
-    id: "t1",
-    name: "Secure Magic Login Link",
-    category: "Transactional",
-    lastModified: "3 hrs ago",
-    usageMetric: "42.8k hits",
-    subject: "Your Secure Login Link for Pingstack",
-    body: "Hello {{user.firstName}}, click here to log in securely: {{action.secureUrl}}. This link expires in 15 minutes."
-  },
-  {
-    id: "t2",
-    name: "Corporate Invoice Manifest",
-    category: "Transactional",
-    lastModified: "1 day ago",
-    usageMetric: "129.1k hits",
-    subject: "Invoice Generated - {{billing.amount}}",
-    body: "Hi {{user.firstName}}, your latest invoice for {{billing.amount}} is ready. Download it here: {{action.secureUrl}}"
-  },
-  {
-    id: "t3",
-    name: "User Milestone Engagement",
-    category: "Lifecycle",
-    lastModified: "4 days ago",
-    usageMetric: "8.9k hits",
-    subject: "Congrats on reaching a new milestone!",
-    body: "Great job {{user.firstName}}! You've achieved a new milestone on your account. Log in to claim your reward."
-  },
-  {
-    id: "t4",
-    name: "Q3 Premium Feature Rollout",
-    category: "Marketing",
-    lastModified: "1 week ago",
-    usageMetric: "410.5k hits",
-    subject: "Discover Our Newest Features!",
-    body: "Hey {{user.firstName}}, check out our Q3 feature upgrades and power up your workflow today."
-  },
-];
+type TemplateApiItem = {
+  templateId: string;
+  name: string;
+  category: "TRANSACTIONAL" | "MARKETING" | "LIFECYCLE";
+  description?: string;
+  updatedAt?: string;
+};
 
-const DYNAMIC_TOKENS = [
-  { token: "{{user.firstName}}", desc: "First Name" },
-  { token: "{{action.secureUrl}}", desc: "Target Link" },
-  { token: "{{billing.amount}}", desc: "Currency Value" }
-];
+type TemplateDetails = {
+  subject: string;
+  htmlContent: string;
+};
+
+type SubscriberApiItem = {
+  name?: string;
+  destinationNumber?: string;
+  orderCreator?: string;
+  transactionNumber?: string;
+};
+
+const categoryLabels: Record<TemplateApiItem["category"], Template["category"]> = {
+  TRANSACTIONAL: "Transactional",
+  MARKETING: "Marketing",
+  LIFECYCLE: "Lifecycle",
+};
+
+const formatTemplateDate = (date?: string) => {
+  if (!date) return "Not recently updated";
+
+  const parsedDate = new Date(date);
+  return Number.isNaN(parsedDate.getTime())
+    ? "Not recently updated"
+    : `Updated ${parsedDate.toLocaleDateString()}`;
+};
 
 export default function Sms() {
   const [channel, setChannel] = useState<"sms" | "email">("sms");
 
   // Form States
   const [senderId, setSenderId] = useState("Pingstack");
-  const [senderEmail, setSenderEmail] = useState("noreply@app.pingstack.com");
+  const [senderEmail, setSenderEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [recipients, setRecipients] = useState("");
   const [message, setMessage] = useState("");
@@ -93,11 +92,12 @@ export default function Sms() {
 
   // Template Modal States (Email Only)
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [isEmailPreviewOpen, setIsEmailPreviewOpen] = useState(false);
+  const [isContactUploadOpen, setIsContactUploadOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [templateSearch, setTemplateSearch] = useState("");
   const [templateCategoryTab, setTemplateCategoryTab] = useState<"all" | "Transactional" | "Marketing" | "Lifecycle">("all");
-
-  const messageTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [selectedAudienceId, setSelectedAudienceId] = useState("");
 
   // Pagination for Approved Sender IDs (SMS)
   const [page, setPage] = useState(0);
@@ -106,6 +106,64 @@ export default function Sms() {
   const { data, isError, isPending } = useGetApprovedIds(page, size);
   const approvedSenderIds = data?.content || [];
   const totalPages = data?.totalPages || 1;
+
+  const { data: templateData, isPending: isTemplatesPending, isError: isTemplatesError } =
+    useGetTemplateForUser();
+  const { data: selectedTemplateDetails, isPending: isTemplateDetailsPending } =
+    useGetSingleTemplate(selectedTemplate?.templateId ?? "");
+  const { data: emailConfig } = useGetEmailConfig();
+  const { data: domains = [] } = useGetAllDomains();
+  const { data: audiences = [], isPending: isAudiencesPending } = useGetAllAudience();
+  const {
+    data: subscriberData,
+    isPending: isSubscribersPending,
+    isError: isSubscribersError,
+  } = useGetAllSubscibers(
+    selectedAudienceId,
+    "",
+    0,
+    20,
+    channel === "sms",
+  );
+
+  const subscribers = (subscriberData?.content ?? []) as SubscriberApiItem[];
+  const selectedAudience = audiences.find((audience) => audience.id === selectedAudienceId);
+
+  const templates: Template[] = ((templateData as TemplateApiItem[] | undefined) ?? []).map(
+    (template) => ({
+      templateId: template.templateId,
+      name: template.name,
+      category: categoryLabels[template.category],
+      description: template.description,
+      updatedAt: template.updatedAt,
+    }),
+  );
+
+  useEffect(() => {
+    if (senderEmail) return;
+
+    const primaryDomain = domains.find((domain) => domain.primary && domain.verified);
+    const configuredDomain = emailConfig?.customDomain || primaryDomain?.domain_name;
+
+    if (configuredDomain) {
+      setSenderEmail(`noreply@${configuredDomain}`);
+    }
+  }, [domains, emailConfig?.customDomain, senderEmail]);
+
+  useEffect(() => {
+    const details = selectedTemplateDetails as TemplateDetails | undefined;
+
+    if (!details) return;
+
+    setMessage(details.htmlContent ?? "");
+    setSubject(details.subject ?? "");
+  }, [selectedTemplateDetails]);
+
+  useEffect(() => {
+    if (!selectedAudienceId && audiences.length > 0) {
+      setSelectedAudienceId(audiences[0].id);
+    }
+  }, [audiences, selectedAudienceId]);
 
   // Real-time Feeds for Previews
   const [smsPreviewFeed, setSmsPreviewFeed] = useState<string[]>([
@@ -118,27 +176,15 @@ export default function Sms() {
   // Apply selected template (Email Channel)
   const handleSelectTemplate = (tpl: Template) => {
     setSelectedTemplate(tpl);
-    setMessage(tpl.body);
-    if (tpl.subject) setSubject(tpl.subject);
     setIsTemplateModalOpen(false);
   };
 
-  // Inject token variable into email textarea
-  const injectToken = (token: string) => {
-    if (!messageTextareaRef.current) {
-      setMessage((prev) => prev + token);
-      return;
-    }
-    const input = messageTextareaRef.current;
-    const start = input.selectionStart;
-    const end = input.selectionEnd;
-    const newText = message.substring(0, start) + token + message.substring(end);
-    setMessage(newText);
+  const handleUseAudience = () => {
+    const phoneNumbers = subscribers
+      .map((subscriber) => subscriber.destinationNumber ?? subscriber.transactionNumber)
+      .filter((phoneNumber): phoneNumber is string => Boolean(phoneNumber));
 
-    setTimeout(() => {
-      input.focus();
-      input.setSelectionRange(start + token.length, start + token.length);
-    }, 0);
+    setRecipients(phoneNumbers.join(", "));
   };
 
   const handleLaunchCampaign = (e: React.FormEvent) => {
@@ -161,7 +207,7 @@ export default function Sms() {
     }, 2800);
   };
 
-  const filteredTemplates = DUMMY_TEMPLATES.filter((t) => {
+  const filteredTemplates = templates.filter((t) => {
     const matchCategory = templateCategoryTab === "all" || t.category === templateCategoryTab;
     const matchSearch = t.name.toLowerCase().includes(templateSearch.toLowerCase());
     return matchCategory && matchSearch;
@@ -226,7 +272,9 @@ export default function Sms() {
                   </p>
                   <p className="text-[10px] text-gray-500 truncate">
                     {selectedTemplate
-                      ? `Category: ${selectedTemplate.category}`
+                      ? isTemplateDetailsPending
+                        ? "Loading current template version..."
+                        : `Category: ${selectedTemplate.category}`
                       : "Use a pre-designed blueprint template to autofill layout"}
                   </p>
                 </div>
@@ -331,12 +379,64 @@ export default function Sms() {
 
           {/* Recipients Box */}
           <div className="flex flex-col gap-1.5">
+            {channel === "sms" && (
+              <div className="flex flex-col gap-1.5 rounded-xl border border-blue-100 bg-blue-50/50 p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                    Contact Audience
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setIsContactUploadOpen(true)}
+                    disabled={!selectedAudienceId}
+                    className="text-[10px] font-bold text-[#004aad] hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Import CSV
+                  </button>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <select
+                    value={selectedAudienceId}
+                    onChange={(event) => setSelectedAudienceId(event.target.value)}
+                    disabled={isAudiencesPending || audiences.length === 0}
+                    className="min-w-0 flex-1 rounded-lg border border-blue-100 bg-white px-3 py-2 text-xs font-semibold text-gray-700 outline-none focus:border-[#004aad] focus:ring-2 focus:ring-[#004aad]/20"
+                  >
+                    {isAudiencesPending && <option>Loading audiences...</option>}
+                    {!isAudiencesPending && audiences.length === 0 && (
+                      <option>No contact audiences found</option>
+                    )}
+                    {audiences.map((audience) => (
+                      <option key={audience.id} value={audience.id}>
+                        {audience.name} ({audience.totalCount.toLocaleString()})
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={handleUseAudience}
+                    disabled={!selectedAudienceId || isSubscribersPending || subscribers.length === 0}
+                    className="rounded-lg bg-[#004aad] px-3 py-2 text-[11px] font-bold text-white transition hover:bg-[#003985] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {isSubscribersPending ? "Loading..." : "Use audience"}
+                  </button>
+                </div>
+                <p className="text-[10px] text-gray-500">
+                  {isSubscribersError
+                    ? "Unable to load subscribers for this audience."
+                    : selectedAudience
+                    ? `${subscribers.length} subscriber${subscribers.length === 1 ? "" : "s"} loaded from ${selectedAudience.name}.`
+                    : "Select an audience to load subscribers."}
+                </p>
+              </div>
+            )}
+
             <div className="flex justify-between items-end">
               <label className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
                 {channel === "sms" ? "Recipients Phone Book" : "Recipient Email Addresses"}
               </label>
               <button
                 type="button"
+                onClick={() => channel === "sms" && setIsContactUploadOpen(true)}
                 className="text-[10px] font-bold text-[#004aad] flex items-center gap-1 hover:underline cursor-pointer"
               >
                 <Upload size={12} /> Import CSV list
@@ -355,25 +455,10 @@ export default function Sms() {
             />
           </div>
 
-          {/* Dynamic Variables Injection Quick-Pills (EMAIL ONLY) */}
+          {/* Email content is authored in Unlayer. */}
           {channel === "email" && (
-            <div className="space-y-1.5 pt-1">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1">
-                <Code size={11} /> Quick Insert Variables
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                {DYNAMIC_TOKENS.map((tokenObj) => (
-                  <button
-                    type="button"
-                    key={tokenObj.token}
-                    onClick={() => injectToken(tokenObj.token)}
-                    className="bg-gray-100 hover:bg-[#004aad]/10 hover:text-[#004aad] border border-gray-200 px-2 py-1 rounded-lg text-[10px] font-mono font-semibold text-gray-700 transition-colors cursor-pointer flex items-center gap-1"
-                  >
-                    <span>{tokenObj.token}</span>
-                    <span className="text-[9px] text-gray-400 font-sans">({tokenObj.desc})</span>
-                  </button>
-                ))}
-              </div>
+            <div className="rounded-xl border border-purple-100 bg-purple-50/50 px-3 py-2.5 text-[11px] text-purple-700">
+              Email content is managed in Unlayer. Choose a template to load its rendered version.
             </div>
           )}
 
@@ -381,7 +466,7 @@ export default function Sms() {
           <div className="flex flex-col gap-1.5">
             <div className="flex justify-between items-end">
               <label className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                {channel === "sms" ? "SMS Message Body" : "Email HTML / Text Body"}
+                {channel === "sms" ? "SMS Message Body" : "Email Template Content"}
               </label>
               {channel === "sms" && (
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${charCount > 160 ? 'bg-amber-50 text-amber-600' : 'bg-gray-50 text-gray-400'}`}>
@@ -389,15 +474,22 @@ export default function Sms() {
                 </span>
               )}
             </div>
-            <textarea
-              ref={messageTextareaRef}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder={channel === "sms" ? "Type your SMS content here..." : "Type your email message or choose a template..."}
-              maxLength={channel === "sms" ? 1000 : 50000}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3.5 text-xs text-gray-700 h-32 outline-none focus:ring-2 focus:ring-[#004aad]/20 focus:border-[#004aad] transition-all resize-none"
-              required
-            />
+            {channel === "sms" ? (
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Type your SMS content here..."
+                maxLength={1000}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3.5 text-xs text-gray-700 h-32 outline-none focus:ring-2 focus:ring-[#004aad]/20 focus:border-[#004aad] transition-all resize-none"
+                required
+              />
+            ) : (
+              <div className="flex h-32 items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 text-center text-xs text-gray-500">
+                {selectedTemplate
+                  ? "Rendered template content is available in the Email Client Render preview."
+                  : "Choose an email template to continue."}
+              </div>
+            )}
           </div>
         </div>
 
@@ -420,9 +512,21 @@ export default function Sms() {
 
       {/* Real-Time Live Preview Display */}
       <div className="flex flex-col items-center gap-3 lg:mt-12 w-full">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 self-start lg:self-center">
-          {channel === "sms" ? "Device Phone Render" : "Email Client Render"}
-        </span>
+        <div className="flex w-full items-center justify-between lg:justify-center gap-3">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+            {channel === "sms" ? "Device Phone Render" : "Email Client Render"}
+          </span>
+          {channel === "email" && message && (
+            <button
+              type="button"
+              onClick={() => setIsEmailPreviewOpen(true)}
+              className="inline-flex items-center gap-1 text-[10px] font-bold text-[#004aad] hover:underline"
+            >
+              <Maximize2 size={11} />
+              Preview
+            </button>
+          )}
+        </div>
 
         {channel === "sms" ? (
           /* Phone Hardware View for SMS */
@@ -557,8 +661,15 @@ export default function Sms() {
             </div>
 
             {/* Email Body Content */}
-            <div className="p-4 bg-gray-50/50 min-h-[180px] text-xs text-gray-700 leading-relaxed font-sans whitespace-pre-wrap">
-              {message || (
+            <div className="bg-gray-50/50 min-h-[180px] text-xs text-gray-700 leading-relaxed font-sans">
+              {message ? (
+                <iframe
+                  title="Email template preview"
+                  srcDoc={message}
+                  sandbox=""
+                  className="block h-[260px] w-full border-0 bg-white"
+                />
+              ) : (
                 <span className="text-gray-300 italic text-[11px]">
                   Your email preview content will render live here...
                 </span>
@@ -627,12 +738,30 @@ export default function Sms() {
 
               {/* Template Cards Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                {isTemplatesPending && (
+                  <p className="sm:col-span-2 py-8 text-center text-xs text-gray-500">
+                    Loading email templates...
+                  </p>
+                )}
+
+                {isTemplatesError && (
+                  <p className="sm:col-span-2 py-8 text-center text-xs text-red-500">
+                    Unable to load email templates. Please try again.
+                  </p>
+                )}
+
+                {!isTemplatesPending && !isTemplatesError && filteredTemplates.length === 0 && (
+                  <p className="sm:col-span-2 py-8 text-center text-xs text-gray-500">
+                    No email templates match your filters.
+                  </p>
+                )}
+
                 {filteredTemplates.map((tpl) => (
                   <div
-                    key={tpl.id}
+                    key={tpl.templateId}
                     onClick={() => handleSelectTemplate(tpl)}
                     className={`border rounded-xl p-4 cursor-pointer transition-all flex flex-col justify-between gap-3 hover:border-[#004aad] hover:shadow-md ${
-                      selectedTemplate?.id === tpl.id
+                      selectedTemplate?.templateId === tpl.templateId
                         ? "border-[#004aad] bg-blue-50/20"
                         : "border-gray-200 bg-white"
                     }`}
@@ -650,14 +779,18 @@ export default function Sms() {
                         >
                           {tpl.category}
                         </span>
-                        <span className="text-[10px] font-mono text-gray-400">{tpl.usageMetric}</span>
+                        <span className="text-[10px] font-mono text-gray-400">
+                          {tpl.updatedAt ? formatTemplateDate(tpl.updatedAt) : "Email template"}
+                        </span>
                       </div>
                       <h4 className="text-xs font-bold text-gray-900 pt-1">{tpl.name}</h4>
-                      <p className="text-[10px] text-gray-500 line-clamp-2">{tpl.body}</p>
+                      <p className="text-[10px] text-gray-500 line-clamp-2">
+                        {tpl.description || "Select to load the current template version."}
+                      </p>
                     </div>
 
                     <div className="flex items-center justify-between border-t border-gray-100 pt-2 text-[10px]">
-                      <span className="text-gray-400">Updated {tpl.lastModified}</span>
+                      <span className="text-gray-400">{formatTemplateDate(tpl.updatedAt)}</span>
                       <span className="text-[#004aad] font-bold flex items-center gap-0.5">
                         Apply Blueprint <Check size={12} />
                       </span>
@@ -667,6 +800,55 @@ export default function Sms() {
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isEmailPreviewOpen && channel === "email" && message && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+            >
+              <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900">
+                    {selectedTemplate?.name || "Email preview"}
+                  </h3>
+                  <p className="mt-0.5 text-[11px] text-gray-500">
+                    This is the rendered content from the selected Unlayer template.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsEmailPreviewOpen(false)}
+                  className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
+                  aria-label="Close email preview"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="min-h-0 flex-1 overflow-auto bg-gray-100 p-4 sm:p-8">
+                <iframe
+                  title="Full email template preview"
+                  srcDoc={message}
+                  sandbox=""
+                  className="mx-auto min-h-[520px] w-full max-w-[680px] border-0 bg-white shadow-sm"
+                />
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isContactUploadOpen && channel === "sms" && selectedAudienceId && (
+          <UploadCsv
+            setIsUploadModaOpen={setIsContactUploadOpen}
+            selectedId={selectedAudienceId}
+          />
         )}
       </AnimatePresence>
 

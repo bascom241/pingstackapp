@@ -1,12 +1,10 @@
 import { Wallet, ArrowRight, LineChart, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useBalance } from "../../../features/wallet/hooks/useBalance";
+import { formatNaira } from "../../../utils/currency";
 const WelcomeMessageSection = () => {
   const navigate = useNavigate();
   const { data, isLoading, error } = useBalance();
-  console.log("balance:", data);
-  console.log("loading:", isLoading);
-  console.log("error:", error);
   return (
     <div className="flex flex-col gap-4 w-full bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
       {/* 1. Header Row */}
@@ -20,7 +18,7 @@ const WelcomeMessageSection = () => {
         <div className="flex items-baseline gap-1 text-slate-900">
 
           {
-            isLoading ? <Loader2 className="animate-spin" /> : <><span className="text-xl font-bold text-slate-700 select-none">₦</span> <span className="text-4xl font-extrabold tracking-tight">{data}</span></>
+            isLoading ? <Loader2 className="animate-spin text-emerald-600" /> : <><span className="relative -top-2 text-sm font-extrabold text-emerald-600 select-none">₦</span> <span className="text-4xl font-extrabold tracking-tight text-emerald-600">{error ? "--" : formatNaira(data)}</span></>
           }
 
         </div>

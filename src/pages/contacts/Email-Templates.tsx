@@ -1,162 +1,670 @@
 import { useState } from "react";
-import { Plus, Search, Eye, Edit2,  Layers } from "lucide-react";
-
-import { useGetTemplateForUser } from "../../features/templates/hooks/useTemplate";
+import {
+    Plus,
+    Search,
+    Eye,
+    Edit2,
+    Mail,
+    MoreHorizontal,
+    Clock3,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
-// Matches your backend EmailTemplate response structure
+import {EMPTY_EMAIL_HTML, EMPTY_EMAIL_DESIGN} from "../../utils/templates/EmptyEmailDesign"
+import {
+    useGetTemplateForUser,
+    useCreateTemplate,
+} from "../../features/templates/hooks/useTemplate";
+
+import CreateEmailTemplateModal from "../../ui/modals/CreateTemplateModal"
+import { getApiErrorMessage } from "../../utils/apiError";
+
+
 type Template = {
-  templateId: string;
-  name: string;
-  category: "TRANSACTIONAL" | "MARKETING" | "LIFECYCLE";
-  description: string;
-  slug: string;
-  status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
-  currentVersion: number;
-  updatedAt: string;
+    templateId: string;
+    name: string;
+    category: "TRANSACTIONAL" | "MARKETING" | "LIFECYCLE";
+    description: string;
+    slug: string;
+    status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+    currentVersion: number;
+    createdAt: string;
+    updatedAt: string;
+    createdBy: string;
 };
 
+const categoryLabels = {
+    TRANSACTIONAL: "Transactional",
+    MARKETING: "Marketing",
+    LIFECYCLE: "Lifecycle",
+};
+
+const categoryStyles = {
+    TRANSACTIONAL: "bg-blue-50 text-blue-700 border-blue-100",
+    MARKETING: "bg-amber-50 text-amber-700 border-amber-100",
+    LIFECYCLE: "bg-purple-50 text-purple-700 border-purple-100",
+};
+
+const statusStyles = {
+    DRAFT: "bg-gray-100 text-gray-600",
+    PUBLISHED: "bg-emerald-50 text-emerald-700",
+    ARCHIVED: "bg-red-50 text-red-600",
+};
+
+const statusLabels = {
+    DRAFT: "Draft",
+    PUBLISHED: "Published",
+    ARCHIVED: "Archived",
+};
+
+function formatDate(date: string) {
+    if (!date) return "";
+
+    return new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+    }).format(new Date(date));
+}
+
 export default function EmailTemplates() {
-  const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"all" | "TRANSACTIONAL" | "MARKETING" | "LIFECYCLE">("all");
-  const [copiedVar, setCopiedVar] = useState<string | null>(null);
-  const { data: templates = [], isLoading } = useGetTemplateForUser() as { data: Template[] | undefined, isLoading: boolean };
-  console.log(templates)
+    const [search, setSearch] = useState("");
 
+    const [activeTab, setActiveTab] = useState<
+        "all" | "TRANSACTIONAL" | "MARKETING" | "LIFECYCLE"
+    >("all");
 
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  const navigate = useNavigate();
-  const handleCopyVar = (variable: string) => {
-    navigator.clipboard.writeText(variable);
-    setCopiedVar(variable);
-    setTimeout(() => setCopiedVar(null), 1500);
-  };
+    const navigate = useNavigate();
 
-  const filtered = templates.filter(t => {
-    const matchTab = activeTab === "all" || t.category === activeTab;
-    const matchSearch = t.name?.toLowerCase().includes(search.toLowerCase());
-    return matchTab && matchSearch;
-  });
+    const {
+        data: templates = [],
+        isLoading,
+    } = useGetTemplateForUser() as {
+        data: Template[] | undefined;
+        isLoading: boolean;
+    };
 
+    const createTemplateMutation = useCreateTemplate();
 
-  
-  const handleTemplateCreation = (destination: string) => {
-      navigate(destination)
-  }
+    const filtered = templates.filter((template) => {
+        const matchesCategory =
+            activeTab === "all" || template.category === activeTab;
 
+        const searchValue = search.toLowerCase().trim();
 
-  
+        const matchesSearch =
+            !searchValue ||
+            template.name?.toLowerCase().includes(searchValue) ||
+            template.description?.toLowerCase().includes(searchValue);
 
-  return (
-    <div className="w-full max-w-5xl mx-auto space-y-6">
+        return matchesCategory && matchesSearch;
+    });
 
-      {/* Top Deck Core Controls */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900 tracking-tight">Email Blueprint Templates</h1>
-          <p className="text-xs text-gray-500 mt-0.5">
-            Construct dynamic components using variable arrays or sync custom HTML injections seamlessly.
-          </p>
-        </div>
+    /*
+     * Open create modal
+     */
+    const handleCreateTemplate = () => {
+        setIsCreateModalOpen(true);
+    };
 
-        <button className="bg-[#004aad] hover:bg-[#003985] text-white font-semibold text-xs px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-sm shadow-[#004aad]/10"
-         
-        >
-          <Plus size={14} />
-          <span>New Template</span>
-        </button>
-      </div>
+    /*
+     * Create template
+     *
+     * We create the template as a DRAFT first.
+     * After successful creation, we take the user
+     * directly to the Unlayer editor.
+     */
+   const handleCreate = (data: {
+    name: string;
+    slug: string;
+    category: "TRANSACTIONAL" | "MARKETING" | "LIFECYCLE";
+    description: string;
+    subject: string;
+}) => {
+    const payload = {
+        name: data.name,
+        slug: data.slug,
+        category: data.category,
+        description: data.description,
+        status: "DRAFT" as const,
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+        version: {
+            subject: data.subject,
+            htmlContent: EMPTY_EMAIL_HTML,
+            designJson: JSON.stringify(EMPTY_EMAIL_DESIGN),
+        },
+    };
 
-       
+    createTemplateMutation.mutate(payload, {
+        onSuccess: (createdTemplate) => {
+            setIsCreateModalOpen(false);
 
-        {/* Main Workspace Canvas (Right) */}
-        <div className="lg:col-span-3 space-y-4">
+            navigate(
+                `/dashboard/email-templates/${createdTemplate.templateId}/edit`
+            );
+        },
 
-          {/* Functional Filters Row */}
-          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-            <div className="flex bg-white border border-gray-100 p-0.5 rounded-xl shadow-sm max-w-sm overflow-x-auto">
-              {(["all", "TRANSACTIONAL", "MARKETING", "LIFECYCLE"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-3 py-1.5 rounded-lg text-[11px] font-bold capitalize transition-all cursor-pointer whitespace-nowrap ${
-                    activeTab === tab ? "bg-[#004aad]/5 text-[#004aad]" : "text-gray-500 hover:text-gray-800"
-                  }`}
-                >
-                  {tab.toLowerCase()}
-                </button>
-              ))}
-            </div>
+        onError: (error) => {
+            console.error("Error creating template:", error);
 
-            <div className="relative w-full sm:w-48">
-              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search templates..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-white border border-gray-200 rounded-xl pl-8 pr-3 py-1.5 text-xs text-gray-700 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#004aad]/10"
-              />
-            </div>
-          </div>
+            getApiErrorMessage(
+                error,
+                "Failed to create template"
+            );
+        },
+    });
+};
 
-          {/* Grid Layout Generation Mapping */}
-          {isLoading ? (
-            <div className="bg-white border border-gray-100 rounded-2xl p-12 text-center text-xs text-gray-400 shadow-sm">
-              Loading templates from server...
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="bg-white border border-gray-100 rounded-2xl p-12 text-center space-y-2 shadow-sm">
-              <p className="text-xs font-bold text-gray-700">No templates found</p>
-              <p className="text-[11px] text-gray-400">Get started by creating your first email blueprint template.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {filtered.map((tpl) => (
-                <div key={tpl.templateId} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4 group relative">
+    const handleEditTemplate = (templateId: string) => {
+        navigate(`/dashboard/email-templates/${templateId}/edit`);
+    };
 
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className={`text-[9px] font-black tracking-wide uppercase px-2 py-0.5 rounded-md ${
-                        tpl.category === "TRANSACTIONAL" ? "bg-blue-50 text-blue-700 border border-blue-100" :
-                        tpl.category === "MARKETING" ? "bg-amber-50 text-amber-700 border border-amber-100" :
-                        "bg-purple-50 text-purple-700 border border-purple-100"
-                      }`}>
-                        {tpl.category}
-                      </span>
-                      <span className="text-[10px] font-mono text-gray-400 font-semibold flex items-center gap-1">
-                        <Layers size={10} /> v{tpl.currentVersion}
-                      </span>
+    const handlePreviewTemplate = (templateId: string) => {
+        navigate(`/dashboard/email-templates/${templateId}`);
+    };
+
+    return (
+        <>
+            <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6">
+
+                {/* Header */}
+                <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+                    <div>
+                        <div className="mb-1 flex items-center gap-2">
+                            <Mail
+                                size={18}
+                                className="text-[#004aad]"
+                            />
+
+                            <h1 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
+                                Email Templates
+                            </h1>
+                        </div>
+
+                        <p className="max-w-xl text-sm text-gray-500">
+                            Create and manage the emails you send to your
+                            customers and users.
+                        </p>
                     </div>
 
-                    <h3 className="text-xs font-bold text-gray-800 tracking-tight group-hover:text-[#004aad] transition-colors pt-1">
-                      {tpl.name}
-                    </h3>
-                    <p className="text-[10px] text-gray-400 line-clamp-2">{tpl.description}</p>
-                  </div>
-
-                  {/* Micro Action Bar Layout */}
-                  <div className="flex items-center gap-1.5 border-t border-gray-50 pt-3">
-                    <button className="flex-1 bg-gray-50 border border-gray-200 hover:bg-[#004aad]/5 hover:border-[#004aad]/20 hover:text-[#004aad] text-gray-600 font-bold text-[10px] py-1.5 rounded-lg flex items-center justify-center gap-1 cursor-pointer transition-all"
-                    onClick={() => navigate(`/dashboard/email-templates/${tpl.templateId}`)}
+                    <button
+                        type="button"
+                        onClick={handleCreateTemplate}
+                        className="
+                            inline-flex
+                            w-full
+                            cursor-pointer
+                            items-center
+                            justify-center
+                            gap-2
+                            rounded-xl
+                            bg-[#004aad]
+                            px-4
+                            py-2.5
+                            text-sm
+                            font-semibold
+                            text-white
+                            shadow-sm
+                            transition-all
+                            hover:bg-[#003985]
+                            sm:w-auto
+                        "
                     >
-                      <Eye size={12} /> Preview
+                        <Plus size={16} />
+                        Create email
                     </button>
-                    <button className="flex-1 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700 font-bold text-[10px] py-1.5 rounded-lg flex items-center justify-center gap-1 cursor-pointer transition-all">
-                      <Edit2 size={12} /> Blueprint
-                    </button>
-                  </div>
-
                 </div>
-              ))}
+
+                {/* Toolbar */}
+                <div className="mb-5 rounded-2xl border border-gray-100 bg-white p-3 shadow-sm sm:p-4">
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+
+                        {/* Categories */}
+                        <div className="flex items-center gap-1 overflow-x-auto rounded-xl bg-gray-50 p-1">
+
+                            {[
+                                {
+                                    value: "all",
+                                    label: "All emails",
+                                },
+                                {
+                                    value: "TRANSACTIONAL",
+                                    label: "Transactional",
+                                },
+                                {
+                                    value: "MARKETING",
+                                    label: "Marketing",
+                                },
+                                {
+                                    value: "LIFECYCLE",
+                                    label: "Lifecycle",
+                                },
+                            ].map((tab) => (
+                                <button
+                                    key={tab.value}
+                                    type="button"
+                                    onClick={() =>
+                                        setActiveTab(
+                                            tab.value as
+                                                | "all"
+                                                | "TRANSACTIONAL"
+                                                | "MARKETING"
+                                                | "LIFECYCLE"
+                                        )
+                                    }
+                                    className={`
+                                        whitespace-nowrap
+                                        rounded-lg
+                                        px-3
+                                        py-2
+                                        text-xs
+                                        font-semibold
+                                        transition-all
+                                        ${
+                                            activeTab === tab.value
+                                                ? "bg-white text-[#004aad] shadow-sm"
+                                                : "text-gray-500 hover:text-gray-800"
+                                        }
+                                    `}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Search */}
+                        <div className="relative w-full lg:w-64">
+                            <Search
+                                size={15}
+                                className="
+                                    absolute
+                                    left-3
+                                    top-1/2
+                                    -translate-y-1/2
+                                    text-gray-400
+                                "
+                            />
+
+                            <input
+                                type="text"
+                                placeholder="Search emails..."
+                                value={search}
+                                onChange={(e) =>
+                                    setSearch(e.target.value)
+                                }
+                                className="
+                                    w-full
+                                    rounded-xl
+                                    border
+                                    border-gray-200
+                                    bg-gray-50
+                                    py-2
+                                    pl-9
+                                    pr-3
+                                    text-sm
+                                    text-gray-700
+                                    outline-none
+                                    transition-all
+                                    placeholder:text-gray-400
+                                    focus:border-[#004aad]/30
+                                    focus:bg-white
+                                    focus:ring-2
+                                    focus:ring-[#004aad]/10
+                                "
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Loading */}
+                {isLoading && (
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        {[1, 2, 3, 4].map((item) => (
+                            <div
+                                key={item}
+                                className="
+                                    animate-pulse
+                                    rounded-2xl
+                                    border
+                                    border-gray-100
+                                    bg-white
+                                    p-5
+                                "
+                            >
+                                <div className="mb-5 h-5 w-24 rounded bg-gray-100" />
+
+                                <div className="mb-3 h-5 w-2/3 rounded bg-gray-100" />
+
+                                <div className="mb-2 h-4 w-full rounded bg-gray-100" />
+
+                                <div className="mb-7 h-4 w-4/5 rounded bg-gray-100" />
+
+                                <div className="h-9 rounded-xl bg-gray-100" />
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Empty */}
+                {!isLoading && filtered.length === 0 && (
+                    <div
+                        className="
+                            rounded-2xl
+                            border
+                            border-gray-100
+                            bg-white
+                            px-6
+                            py-16
+                            text-center
+                            shadow-sm
+                        "
+                    >
+                        <div
+                            className="
+                                mx-auto
+                                mb-4
+                                flex
+                                h-12
+                                w-12
+                                items-center
+                                justify-center
+                                rounded-full
+                                bg-blue-50
+                            "
+                        >
+                            <Mail
+                                size={21}
+                                className="text-[#004aad]"
+                            />
+                        </div>
+
+                        <h3 className="text-sm font-bold text-gray-900">
+                            {search
+                                ? "No emails found"
+                                : "You haven't created any emails yet"}
+                        </h3>
+
+                        <p className="mx-auto mt-1 max-w-sm text-sm text-gray-500">
+                            {search
+                                ? "Try searching with a different name or description."
+                                : "Create your first email template to start communicating with your customers."}
+                        </p>
+
+                        {!search && (
+                            <button
+                                type="button"
+                                onClick={handleCreateTemplate}
+                                className="
+                                    mt-5
+                                    inline-flex
+                                    cursor-pointer
+                                    items-center
+                                    gap-2
+                                    rounded-xl
+                                    bg-[#004aad]
+                                    px-4
+                                    py-2.5
+                                    text-sm
+                                    font-semibold
+                                    text-white
+                                    transition-all
+                                    hover:bg-[#003985]
+                                "
+                            >
+                                <Plus size={16} />
+                                Create your first email
+                            </button>
+                        )}
+                    </div>
+                )}
+
+                {/* Templates */}
+                {!isLoading && filtered.length > 0 && (
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+                        {filtered.map((template) => (
+                            <div
+                                key={template.templateId}
+                                className="
+                                    group
+                                    rounded-2xl
+                                    border
+                                    border-gray-100
+                                    bg-white
+                                    p-5
+                                    shadow-sm
+                                    transition-all
+                                    duration-200
+                                    hover:border-gray-200
+                                    hover:shadow-md
+                                "
+                            >
+                                {/* Top */}
+                                <div className="flex items-start justify-between gap-3">
+
+                                    <span
+                                        className={`
+                                            inline-flex
+                                            items-center
+                                            rounded-lg
+                                            border
+                                            px-2.5
+                                            py-1
+                                            text-[10px]
+                                            font-bold
+                                            ${categoryStyles[template.category]}
+                                        `}
+                                    >
+                                        {categoryLabels[template.category]}
+                                    </span>
+
+                                    <button
+                                        type="button"
+                                        className="
+                                            flex
+                                            h-7
+                                            w-7
+                                            cursor-pointer
+                                            items-center
+                                            justify-center
+                                            rounded-lg
+                                            text-gray-400
+                                            transition
+                                            hover:bg-gray-50
+                                            hover:text-gray-700
+                                        "
+                                        aria-label="More options"
+                                    >
+                                        <MoreHorizontal size={16} />
+                                    </button>
+                                </div>
+
+                                {/* Content */}
+                                <div className="mt-4">
+
+                                    <h3
+                                        className="
+                                            text-base
+                                            font-bold
+                                            tracking-tight
+                                            text-gray-900
+                                            transition-colors
+                                            group-hover:text-[#004aad]
+                                        "
+                                    >
+                                        {template.name}
+                                    </h3>
+
+                                    <p
+                                        className="
+                                            mt-1.5
+                                            min-h-[40px]
+                                            line-clamp-2
+                                            text-sm
+                                            leading-relaxed
+                                            text-gray-500
+                                        "
+                                    >
+                                        {template.description}
+                                    </p>
+                                </div>
+
+                                {/* Metadata */}
+                                <div
+                                    className="
+                                        mt-5
+                                        flex
+                                        flex-wrap
+                                        items-center
+                                        gap-x-4
+                                        gap-y-2
+                                        border-t
+                                        border-gray-100
+                                        pt-4
+                                    "
+                                >
+                                    {/* Status */}
+                                    <span
+                                        className={`
+                                            inline-flex
+                                            items-center
+                                            gap-1.5
+                                            rounded-md
+                                            px-2
+                                            py-1
+                                            text-[10px]
+                                            font-bold
+                                            ${statusStyles[template.status]}
+                                        `}
+                                    >
+                                        <span
+                                            className={`
+                                                h-1.5
+                                                w-1.5
+                                                rounded-full
+                                                ${
+                                                    template.status ===
+                                                    "PUBLISHED"
+                                                        ? "bg-emerald-500"
+                                                        : template.status ===
+                                                          "ARCHIVED"
+                                                        ? "bg-red-500"
+                                                        : "bg-gray-400"
+                                                }
+                                            `}
+                                        />
+
+                                        {statusLabels[template.status]}
+                                    </span>
+
+                                    {/* Updated */}
+                                    <span
+                                        className="
+                                            flex
+                                            items-center
+                                            gap-1.5
+                                            text-[11px]
+                                            text-gray-400
+                                        "
+                                    >
+                                        <Clock3 size={12} />
+
+                                        Updated{" "}
+                                        {formatDate(template.updatedAt)}
+                                    </span>
+                                </div>
+
+                                {/* Actions */}
+                                <div className="mt-4 flex items-center gap-2">
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            handlePreviewTemplate(
+                                                template.templateId
+                                            )
+                                        }
+                                        className="
+                                            flex-1
+                                            cursor-pointer
+                                            inline-flex
+                                            items-center
+                                            justify-center
+                                            gap-1.5
+                                            rounded-xl
+                                            border
+                                            border-gray-200
+                                            bg-gray-50
+                                            py-2.5
+                                            text-xs
+                                            font-semibold
+                                            text-gray-700
+                                            transition-all
+                                            hover:bg-gray-100
+                                        "
+                                    >
+                                        <Eye size={14} />
+                                        Preview
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            handleEditTemplate(
+                                                template.templateId
+                                            )
+                                        }
+                                        className="
+                                            flex-1
+                                            cursor-pointer
+                                            inline-flex
+                                            items-center
+                                            justify-center
+                                            gap-1.5
+                                            rounded-xl
+                                            bg-[#004aad]
+                                            py-2.5
+                                            text-xs
+                                            font-semibold
+                                            text-white
+                                            transition-all
+                                            hover:bg-[#003985]
+                                        "
+                                    >
+                                        <Edit2 size={14} />
+                                        Edit email
+                                    </button>
+
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Count */}
+                {!isLoading && templates.length > 0 && (
+                    <div className="pt-2 text-center">
+                        <p className="text-[11px] text-gray-400">
+                            Showing {filtered.length} of{" "}
+                            {templates.length} emails
+                        </p>
+                    </div>
+                )}
             </div>
-          )}
 
-        </div>
-
-      </div>
-
-    </div>
-  );
+            {/* Create Email Modal */}
+            <CreateEmailTemplateModal
+                open={isCreateModalOpen}
+                isCreating={createTemplateMutation.isPending}
+                onClose={() => {
+                    if (!createTemplateMutation.isPending) {
+                        setIsCreateModalOpen(false);
+                    }
+                }}
+                onCreate={handleCreate}
+            />
+        </>
+    );
 }

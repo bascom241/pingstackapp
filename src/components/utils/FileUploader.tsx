@@ -16,7 +16,7 @@ const FileUploader = ({ audience, id }: FileUploadProps) => {
     const [isDragActive, setIsDragActive] = useState<boolean>(false);
     // Added a simulated upload function for demonstration
     const [status, setStatus] = useState<UploadStatus>("idle");
-    const { mutate, isPending: uploadingCsv } = useUploadCsv();
+    const { mutate } = useUploadCsv();
     const { enqueueSnackbar } = useSnackbar();
     const queryClient = useQueryClient()
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -62,9 +62,11 @@ const FileUploader = ({ audience, id }: FileUploadProps) => {
             formData.append("listId", id)
                 
         }
+        setStatus("uploading");
         mutate(formData, {
             onSuccess: (data) => {
                 console.log(data)
+            setStatus("success");
                 enqueueSnackbar("File Uploaded", { variant: "success" });
                 queryClient.invalidateQueries({
                     queryKey: SUBSCIBERS_QUERY_KEY,
@@ -74,6 +76,7 @@ const FileUploader = ({ audience, id }: FileUploadProps) => {
                     queryKey: AUDIENCE_QUERY_KEY,
                 });
             }, onError: (error) => {
+                setStatus("fail");
                 const errorMessage = getApiErrorMessage(error, "Something went wrong");
                 enqueueSnackbar(errorMessage || "Failed to create", {
                     variant: "error",

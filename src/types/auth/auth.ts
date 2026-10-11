@@ -15,3 +15,12 @@ export interface RegisterType {
   source: "";
    countryCode: ""
 }
+
+export interface ForgotPassword {
+  email: ""
+}
+
+export interface ResetPassword {
+  token: string
+  newPassword: string
+}

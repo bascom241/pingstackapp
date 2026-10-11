@@ -14,6 +14,7 @@ import { useSnackbar } from 'notistack'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getApiErrorMessage } from '../../utils/apiError'
 import { Loader2 } from 'lucide-react'
+import AuthSideSection from '../../ui/modals/AuthSideSection'
 
 const Register: React.FC = () => {
     const { formData, setFormData } = useRegisterStore();
@@ -50,46 +51,7 @@ const Register: React.FC = () => {
         <main className="w-full min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-white overflow-hidden">
 
             {/* LEFT ROW LAYER: Telemetry Side Panel */}
-            <section className="hidden lg:flex flex-col justify-between p-12 bg-[#004aad] relative overflow-hidden">
-                <div
-                    className="absolute inset-0 opacity-[0.04] pointer-events-none"
-                    style={{
-                        backgroundImage: 'radial-gradient(white 1.5px, transparent 1.5px)',
-                        backgroundSize: '24px 24px'
-                    }}
-                />
-
-                <div className="relative z-10 flex items-center gap-2">
-                    <span className="font-mono text-xs font-bold text-blue-200 tracking-widest uppercase">
-                        // INITIALIZE PROVISIONING SEQUENCE
-                    </span>
-                </div>
-
-                <div className="relative z-10 flex flex-col gap-3 max-w-md my-auto">
-                    <h2 className="text-3xl font-black text-white tracking-tight leading-tight">
-                        Build on live channels. <br />
-                        <span className="text-blue-200 underline decoration-2 decoration-blue-300/40 underline-offset-4">Deploy instantly.</span>
-                    </h2>
-                    <p className="text-xs text-blue-100/80 leading-relaxed font-medium">
-                        Provision your developer account to instantly generate sandbox API keys, register custom corporate alphanumeric sender IDs, and connect high-throughput routing triggers.
-                    </p>
-                </div>
-
-                <div className="relative z-10 grid grid-cols-3 gap-4 border-t border-blue-400/30 pt-6 font-mono">
-                    <div className="flex flex-col">
-                        <span className="text-lg font-black text-white tracking-tight">&lt; 3s</span>
-                        <span className="text-[9px] text-blue-200 font-bold uppercase tracking-wider mt-0.5">OTP Latency</span>
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-lg font-black text-white tracking-tight">004</span>
-                        <span className="text-[9px] text-blue-200 font-bold uppercase tracking-wider mt-0.5">Telco Trunks</span>
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-lg font-black text-white tracking-tight">₦0.00</span>
-                        <span className="text-[9px] text-blue-200 font-bold uppercase tracking-wider mt-0.5">Test Credits</span>
-                    </div>
-                </div>
-            </section>
+            <AuthSideSection variant='register'/>
 
             {/* RIGHT ROW LAYER: Compact Form Canvas */}
             <section className="w-full flex flex-col justify-center px-6 py-6 sm:px-12 lg:px-16 bg-white self-center">

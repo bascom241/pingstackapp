@@ -14,7 +14,12 @@ import EmailTemplates from "./pages/contacts/Email-Templates";
 import KycVerification from "./pages/kyc/KycUpload";
 import WebhooksConfig from "./pages/webhook/Webhook";
 import ApiKeysPlayground from "./pages/settings/ApiKey";
-import SingleEmailTemplateEdit from "./pages/contacts/SingleEmailTemplateEdit";
+import SingleTemplate from "./pages/contacts/SingleTemplate";
+import EmailTemplateEditor from "./pages/contacts/EmailTemlateEditor";
+import Campaigns from "./pages/marketing/Campaigns";
+import CreateCampaignPage from "./pages/marketing/CreateCampaignPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 const App = () => {
   return (
     <Routes>
@@ -22,6 +27,8 @@ const App = () => {
       <Route path="/" element={<Login />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
+      <Route path="/reset-password" element={<ResetPassword/>}/>
 
       {/* Protected SME Dashboard Routes */}
       <Route path="/dashboard/*" element={<ProtectedRoute />}>
@@ -37,8 +44,11 @@ const App = () => {
           <Route path="email-templates" element={<EmailTemplates />} />
           <Route path="sender-id" element={<SenderId />} />
           <Route path="billing" element={<Wallet />} />
-          <Route path="email-templates/:id" element={<SingleEmailTemplateEdit/>} />
+          <Route path="email-templates/:templateId/edit" element={<EmailTemplateEditor />} />
           <Route path="settings" element={<div>Settings Screen</div>} />
+          <Route path="email-templates/:templateId" element={<SingleTemplate/>} />
+          <Route path="campaigns" element={<Campaigns/>}/>
+          <Route path="campaigns/create" element={<CreateCampaignPage />} />
         </Route>
       </Route>
     </Routes>

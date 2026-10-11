@@ -1,7 +1,7 @@
 "use client"
 
-import React from 'react'
-import { ArrowRight, Loader2 } from 'lucide-react'
+import React, { useState } from 'react'
+import { ArrowRight, Loader2, EyeIcon, EyeClosed } from 'lucide-react'
 import Input from "../../ui/Input"
 import Logo from "../../assets/Logo.png"
 import { useLogin } from '../../features/auth/hooks/useAuth'
@@ -10,6 +10,8 @@ import { useSnackbar } from 'notistack'
 import { saveAuthSession } from '../../../utils/authToken'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getApiErrorMessage } from '../../utils/apiError'
+import AuthSideSection from '../../ui/modals/AuthSideSection'
+
 const Login: React.FC = () => {
 
     const { mutate, isError, isPending } = useLogin()
@@ -17,11 +19,14 @@ const Login: React.FC = () => {
     const { enqueueSnackbar } = useSnackbar()
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+
+    // State for password visibility toggle
+    const [showPassword, setShowPassword] = useState(false);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData({ [name]: value })
     }
-
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -31,7 +36,6 @@ const Login: React.FC = () => {
                 const token = data?.accessToken;
                 const refreshToken = data?.refreshToken;
 
-                // Fix 2: Access the roles array from the root and grab the first item (e.g., "ROLE_User")
                 const role = data?.roles?.[0];
 
                 if (token) {
@@ -51,61 +55,16 @@ const Login: React.FC = () => {
         })
     }
 
-
     return (
         /* The container forces a clean full-height layout, splitting 50/50 via grid on large viewports */
         <main className="w-full min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-white transition-colors duration-200">
 
             {/* LEFT ROW LAYER: Deep Technical Telemetry Panel (Hidden on Mobile) */}
-            <section className="hidden lg:flex flex-col justify-between p-16 bg-[#004aad] relative overflow-hidden">
-
-                {/* Subtle structural canvas pattern to match the engineering aesthetic */}
-                <div
-                    className="absolute inset-0 opacity-[0.04] pointer-events-none"
-                    style={{
-                        backgroundImage: 'radial-gradient(white 1.5px, transparent 1.5px)',
-                        backgroundSize: '24px 24px'
-                    }}
-                />
-
-                {/* Top Corner: Brand Heading Indicator */}
-                <div className="relative z-10 flex items-center gap-2">
-                    <span className="font-mono text-xs font-bold text-blue-200 tracking-widest uppercase">
-                        // CORE INTERCONNECT NODE
-                    </span>
-                </div>
-
-                {/* Middle Content: Intentional Value Proposition */}
-                <div className="relative z-10 flex flex-col gap-4 max-w-md my-auto">
-                    <h2 className="text-4xl font-black text-white tracking-tight leading-none">
-                        Every execution. <br />
-                        <span className="text-blue-200 underline decoration-2 decoration-blue-300/40 underline-offset-4">Signal guaranteed.</span>
-                    </h2>
-                    <p className="text-sm text-blue-100/80 leading-relaxed font-medium">
-                        Log into your structural routing dashboard to manage live direct carrier lanes, audit transactional token payloads, and handle SME fallback scripts.
-                    </p>
-                </div>
-
-                {/* Bottom Footer: Real Hard Telemetry Counters */}
-                <div className="relative z-10 grid grid-cols-3 gap-4 border-t border-blue-400/30 pt-8 font-mono">
-                    <div className="flex flex-col">
-                        <span className="text-xl font-black text-white tracking-tight">500M+</span>
-                        <span className="text-[10px] text-blue-200 font-bold uppercase tracking-wider mt-0.5">Transactions</span>
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-xl font-black text-white tracking-tight">99.97%</span>
-                        <span className="text-[10px] text-blue-200 font-bold uppercase tracking-wider mt-0.5">Uptime SLA</span>
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-xl font-black text-white tracking-tight">4 Nodes</span>
-                        <span className="text-[10px] text-blue-200 font-bold uppercase tracking-wider mt-0.5">Local Telcos</span>
-                    </div>
-                </div>
-            </section>
+            <AuthSideSection variant='login'/>
 
             {/* RIGHT ROW LAYER: Minimalist, Spaced Forms Controller Canvas */}
-            <section className="w-full flex flex-col justify-center px-6 py-12 sm:px-16 lg:px-24 bg-white  transition-colors duration-200">
-                <div className='flex flex-col gap-2  items-center justify-center'>
+            <section className="w-full flex flex-col justify-center px-6 py-12 sm:px-16 lg:px-24 bg-white transition-colors duration-200">
+                <div className='flex flex-col gap-2 items-center justify-center'>
                     <img
                         src={Logo}
                         className='w-15 h-15 rounded-full items-center'
@@ -140,15 +99,36 @@ const Login: React.FC = () => {
                             />
 
                             <div className="w-full flex flex-col gap-2">
-                                <Input
-                                    label="Account Security Password"
-                                    type="password"
-                                    placeholder="••••••••••••"
-                                    className="w-full"
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                />
+                                {/* Isolated label to ensure the relative wrapper aligns directly with the input box */}
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Account Security Password
+                                </label>
+                                
+                                <div className="relative w-full flex items-center">
+                                    <Input
+                                        // Omitted internal label prop from custom Input to manage positioning cleanly
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="••••••••••••"
+                                        className="w-full pr-10"
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                    />
+                                    {/* Properly centered eye toggle icon button */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword((prev) => !prev)}
+                                        className="absolute right-3 inset-y-0 my-auto h-fit text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none cursor-pointer"
+                                        aria-label={showPassword ? "Hide password" : "Show password"}
+                                    >
+                                        {showPassword ? (
+                                            <EyeClosed className="w-5 h-5" />
+                                        ) : (
+                                            <EyeIcon className="w-5 h-5" />
+                                        )}
+                                    </button>
+                                </div>
+
                                 <div className="flex justify-end">
                                     <a href="#" className="text-xs font-mono font-bold text-[#004aad] dark:text-blue-400 hover:underline">
                                         Forgot Matrix Password?
@@ -165,18 +145,24 @@ const Login: React.FC = () => {
                             {
                                 isPending ? <Loader2 className='animate-spin' /> : <> <span>Authenticate Credentials</span>  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" /></>
                             }
-
-
                         </button>
                     </form>
 
                     {/* Bottom Utility Footnote Layout Link */}
-                    <p className="text-center text-xs font-medium text-gray-400 dark:text-gray-500">
-                        Don't have an infrastructure node account?{' '}
-                        <a href="/register" className="text-[#004aad] dark:text-blue-400 font-bold hover:underline">
-                            Provision a new account here
-                        </a>
-                    </p>
+                    <div className="flex flex-col gap-2 text-center text-xs font-medium text-gray-400 dark:text-gray-500">
+                        <p>
+                            Forgot your password?{' '}
+                            <a href="/forgot-password" className="text-[#004aad] dark:text-blue-400 font-bold hover:underline">
+                                Reset it here
+                            </a>
+                        </p>
+                        <p>
+                            Don&apos;t have an account?{' '}
+                            <a href="/register" className="text-[#004aad] dark:text-blue-400 font-bold hover:underline">
+                                Sign up here
+                            </a>
+                        </p>
+                    </div>
 
                 </div>
             </section>

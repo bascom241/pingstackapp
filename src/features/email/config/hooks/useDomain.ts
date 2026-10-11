@@ -34,8 +34,8 @@ export const useMakeDomainPrimary = () => {
   return useMutation({
     mutationFn: (domainId: string) => makePrimary(domainId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [DOMAIN_QUERY_KEY] });
-      queryClient.invalidateQueries({queryKey: [EMAIL_CONFIG_QUERY]})
+      queryClient.invalidateQueries({ queryKey: DOMAIN_QUERY_KEY });
+      queryClient.invalidateQueries({queryKey: EMAIL_CONFIG_QUERY})
     },
   });
 };
@@ -67,7 +67,7 @@ export const useDeleteDomain = () => {
     onSettled: () => {
 
       queryClient.invalidateQueries({ queryKey: DOMAIN_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: [EMAIL_CONFIG_QUERY] });
+      queryClient.invalidateQueries({ queryKey: EMAIL_CONFIG_QUERY });
     },
   });
 };

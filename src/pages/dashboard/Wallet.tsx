@@ -2,11 +2,12 @@ import  { useState } from 'react';
 import { Wallet as WalletIcon, Plus, CreditCard, Settings, Loader2 } from 'lucide-react';
 import TopUpModal from '../../components/dashboard/main/TopUpModal';
 import { useBalance } from '../../features/wallet/hooks/useBalance';
+import { formatNaira } from '../../utils/currency';
 const Wallet = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const {data, isLoading} = useBalance();
+  const {data, isLoading, error} = useBalance();
 
 
 
@@ -42,8 +43,8 @@ const Wallet = () => {
             <div className="flex items-baseline gap-1 mt-1 text-slate-900">
 
               {
-                isLoading ? <Loader2 className='animate-spin'/> : <><span className="text-2xl font-bold select-none text-slate-700">₦</span>
-              <span className="text-4xl font-extrabold tracking-tight">{data}</span></>
+                isLoading ? <Loader2 className='animate-spin text-emerald-600'/> : <><span className="relative -top-2 text-sm font-extrabold select-none text-emerald-600">₦</span>
+              <span className="text-4xl font-extrabold tracking-tight text-emerald-600">{error ? "--" : formatNaira(data)}</span></>
               }
               
             </div>

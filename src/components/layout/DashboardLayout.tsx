@@ -2,13 +2,13 @@
 
 import React, { useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
-import { 
-    LayoutDashboard, 
-    MessageSquare, 
-    Terminal, 
-    CreditCard, 
-    Settings, 
-    ChevronDown, 
+import {
+    LayoutDashboard,
+    MessageSquare,
+    Terminal,
+    CreditCard,
+    Settings,
+    ChevronDown,
     ChevronUp,
     Bell,
     Send,
@@ -17,7 +17,8 @@ import {
     Plus,
     Zap,
     Menu,
-    X
+    X,
+
 } from "lucide-react"
 
 type SidebarSubItem = {
@@ -41,13 +42,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const location = useLocation()
     const navigate = useNavigate()
     const { data, isLoading, error } = useBalance();
-    
+
     // UI Layout States
     const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({ "Engage": true })
     const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false)
     const [isQuickMenuOpen, setIsQuickMenuOpen] = useState(false)
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
-    
+
     const currentPath = location.pathname
 
     const navigationConfig: SidebarItem[] = [
@@ -59,10 +60,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 { label: "Send Messages", path: "/dashboard/sms" },
                 { label: "Contacts & Lists", path: "/dashboard/contacts" },
                 { label: "Email Configuration", path: "/dashboard/email-config" },
-                { label: "Email Templates", path: "/dashboard/email-templates" },
                 { label: "KYC Verification", path: "/dashboard/kyc" },
                 { label: "OTP Guide Docs", path: "/dashboard/otp-guide" },
-                
+
+            ]
+        },
+
+        {
+            label: "Marketing",
+            icon: Send,
+            subItems: [
+                { label: "Campaigns", path: "/dashboard/campaigns" },
+                { label: "Templates", path: "/dashboard/email-templates" }
             ]
         },
         {
@@ -106,7 +115,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                 {/* Clean Workspace Selector Dropdown */}
                 <div className="px-4 py-3 border-b border-[#f1f5f9] relative">
-                    <button 
+                    <button
                         onClick={() => setIsOrgDropdownOpen(!isOrgDropdownOpen)}
                         className="w-full flex items-center justify-between p-2 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] hover:border-[#cbd5e1] transition-all cursor-pointer text-left"
                     >
@@ -146,11 +155,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             <div key={item.label} className="w-full flex flex-col">
                                 <button
                                     onClick={() => hasSubItems ? setExpandedMenus(prev => ({ ...prev, [item.label]: !prev[item.label] })) : item.path && handleNavigation(item.path)}
-                                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
-                                        isDirectActive 
-                                            ? "bg-[#004aad] text-white" 
+                                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${isDirectActive
+                                            ? "bg-[#004aad] text-white"
                                             : "text-[#64748b] hover:text-[#0f172a] hover:bg-[#f1f5f9]"
-                                    }`}
+                                        }`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <Icon size={16} className={isDirectActive ? "text-white" : "text-[#94a3b8]"} />
@@ -169,11 +177,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                                 <button
                                                     key={subItem.path}
                                                     onClick={() => handleNavigation(subItem.path)}
-                                                    className={`w-full text-left px-3 py-1.5 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
-                                                        isChildActive
+                                                    className={`w-full text-left px-3 py-1.5 rounded-md text-[11px] font-medium transition-all cursor-pointer ${isChildActive
                                                             ? "text-[#004aad] font-bold bg-[#004aad]/5"
                                                             : "text-[#64748b] hover:text-[#0f172a] hover:bg-[#f8fafc]"
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {subItem.label}
                                                 </button>
@@ -203,7 +210,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
     return (
         <div className="w-full min-h-screen bg-[#f8fafc] text-[#1e293b] flex antialiased relative">
-            
+
             {/* DESKTOP SIDEBAR VIEWPORT (Hidden on Mobile) */}
             <aside className="hidden md:flex w-64 bg-white border-r border-[#e2e8f0] flex-col justify-between z-20 flex-shrink-0">
                 <SidebarContent />
@@ -213,7 +220,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {isMobileSidebarOpen && (
                 <div className="md:hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 transition-opacity">
                     <div className="w-64 h-full bg-white relative animate-slide-in">
-                        <button 
+                        <button
                             onClick={() => setIsMobileSidebarOpen(false)}
                             className="absolute right-4 top-4 text-[#64748b] hover:text-[#0f172a] p-1 rounded-lg"
                         >
@@ -226,13 +233,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
             {/* MAIN APP REGION WRAPPER */}
             <div className="flex-1 flex flex-col min-w-0">
-                
+
                 {/* STABLE RESPONSIVE NAVBAR */}
                 <header className="h-16 bg-white border-b border-[#e2e8f0] px-4 sm:px-8 flex items-center justify-between sticky top-0 z-10 select-none">
-                    
+
                     {/* Left side actions: Drawer toggler & Financial Display */}
                     <div className="flex items-center gap-3">
-                        <button 
+                        <button
                             onClick={() => setIsMobileSidebarOpen(true)}
                             className="md:hidden text-[#475569] hover:bg-[#f1f5f9] p-1.5 rounded-xl transition-all cursor-pointer"
                         >
@@ -242,7 +249,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         <div className="flex items-center gap-2 bg-[#f8fafc] border border-[#e2e8f0] px-2.5 py-1.5 rounded-xl">
                             <span className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-wider hidden sm:inline">Balance:</span>
                             <span className="text-xs font-black text-[#1e293b] font-mono">₦{data}</span>
-                            <button 
+                            <button
                                 onClick={() => navigate("/dashboard/billing")}
                                 className="ml-0.5 bg-[#004aad] text-white px-1.5 py-0.5 rounded-md text-[10px] font-bold hover:bg-[#003680] transition-colors flex items-center gap-0.5 cursor-pointer"
                             >
@@ -253,10 +260,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                     {/* Right side actions: Launch control utilities */}
                     <div className="flex items-center gap-2 sm:gap-4">
-                        
+
                         {/* Dropdown Utilities Element */}
                         <div className="relative">
-                            <button 
+                            <button
                                 onClick={() => setIsQuickMenuOpen(!isQuickMenuOpen)}
                                 className="bg-white border border-[#e2e8f0] hover:border-[#cbd5e1] text-[#334155] px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer transition-all shadow-sm"
                             >
@@ -278,16 +285,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         </div>
 
                         {/* Send Message Button */}
-                        <button 
+                        <button
                             onClick={() => navigate("/dashboard/sms")}
                             className="bg-[#004aad] text-white px-2.5 sm:px-4 py-1.5 rounded-xl text-xs font-bold hover:bg-[#003680] transition-all flex items-center gap-1.5 cursor-pointer shadow-sm shadow-[#004aad]/10"
                         >
                             <Send size={13} />
                             <span className="hidden sm:inline">Send Message</span>
                         </button>
-                        
+
                         <div className="w-px h-5 bg-[#e2e8f0] hidden sm:block" />
-                        
+
                         <button className="text-[#94a3b8] hover:text-[#475569] relative p-1.5 rounded-full hover:bg-[#f1f5f9] cursor-pointer hidden sm:block">
                             <Bell size={18} />
                             <span className="w-1.5 h-1.5 bg-[#004aad] rounded-full absolute top-1.5 right-1.5" />

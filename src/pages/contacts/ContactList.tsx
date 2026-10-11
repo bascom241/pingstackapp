@@ -275,7 +275,17 @@ export default function Contacts() {
 
           {/* Core Table Viewport Framework */}
           <div className="flex-1 overflow-x-auto">
-            {loadingContent ? (
+            {!idToFetch ? (
+              <div className="h-full py-20 flex flex-col items-center justify-center text-center px-4">
+                <div className="p-3 bg-slate-50 rounded-2xl text-gray-300 mb-3 border border-gray-100">
+                  <Users size={24} />
+                </div>
+                <p className="text-xs font-bold text-gray-700">Select an audience list</p>
+                <p className="text-[11px] text-gray-400 mt-0.5 max-w-[240px]">
+                  Create or select an audience list to view its subscribers.
+                </p>
+              </div>
+            ) : loadingContent ? (
               <div className="h-full py-20 flex flex-col items-center justify-center text-center">
                 <Loader2 className="animate-spin text-gray-400 mb-2" size={32} />
                 <p className="text-xs text-gray-500">Loading subscribers...</p>

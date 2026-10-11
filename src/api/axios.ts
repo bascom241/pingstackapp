@@ -6,12 +6,12 @@ import {
   saveAuthSession,
 } from "../../utils/authToken";
 
-const baseURL = "http://localhost:5000/api/v1";
+const baseURL = "http://localhost:3000/api/v1";
 export const axiosInstance = axios.create({
   baseURL,
 });
 
-const publicUrls = ["/auth/login", "/auth/register", "/auth/refresh"];
+const publicUrls = ["/auth/login", "/auth/register", "/auth/refresh", "/auth/forgot-password", "/auth/reset-password"];
 axiosInstance.interceptors.request.use(
   (config) => {
     const isPublic = publicUrls.some((url) => config.url?.includes(url));

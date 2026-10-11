@@ -10,12 +10,18 @@ export const useCreateSubcriber = () => {
     })
 }
 
-export const useGetAllSubscibers = (listId: string , query: string, page: number, size: number) => {
+export const useGetAllSubscibers = (
+    listId: string,
+    query: string,
+    page: number,
+    size: number,
+    enabled = true,
+) => {
     return useQuery({
         queryKey:[...SUBSCIBERS_QUERY_KEY, listId,query, page,size ] , 
         queryFn: () => getAllSubscribers(listId, query,page, size), 
         placeholderData: (previousData) => previousData,
-        enabled: Boolean(listId)
+        enabled: enabled && Boolean(listId),
     })
 }
 

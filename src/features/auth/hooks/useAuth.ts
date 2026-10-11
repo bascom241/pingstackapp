@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { login, register } from "../api/login";
+import { login, register , forgotPasword, resetPassword} from "../api/auth";
 
 
 export const useLogin = () => {
@@ -11,5 +11,17 @@ export const useLogin = () => {
 export const useRegister = () => {
     return useMutation({
         mutationFn: register
+    })
+}
+
+export const useForgotPasword = () => {
+    return useMutation({
+        mutationFn: forgotPasword
+    })
+}
+
+export const useResetPassword = () => {
+    return useMutation({
+        mutationFn:resetPassword
     })
 }

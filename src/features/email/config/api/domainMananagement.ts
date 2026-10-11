@@ -13,14 +13,13 @@ export const getAllDomains = async (): Promise<BrevoDomainDto []> => {
     return res.data; 
 }
 export const getSingleDomain = async (domainId: string | undefined   ):  Promise<BrevoDomainDto>  => { 
-    const response = await axiosInstance.get(`email-config/domain/${domainId}`);
+    const response = await axiosInstance.get(`/email-config/domain/${domainId}`);
     return response.data; 
 
 }
 
 export const makePrimary = async (domainId:string ): Promise<BrevoDomainDto>=> {
-    console.log(domainId)
-    const response = await axiosInstance.put(`email-config/domain/${domainId}`)
+    const response = await axiosInstance.put(`/email-config/domain/${domainId}`)
     return response.data;
 }
 
