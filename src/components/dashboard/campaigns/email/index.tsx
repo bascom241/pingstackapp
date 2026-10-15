@@ -23,6 +23,8 @@ const Index = () => {
       name: formData.name,
       subject: formData.subject
     }
+
+    setCurrentStep(2);
     mutate(detail, {
 
      
