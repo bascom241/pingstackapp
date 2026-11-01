@@ -18,6 +18,7 @@ import SingleTemplate from "./pages/contacts/SingleTemplate";
 import EmailTemplateEditor from "./pages/contacts/EmailTemlateEditor";
 import Campaigns from "./pages/marketing/Campaigns";
 import CreateCampaignPage from "./pages/marketing/CreateCampaignPage";
+import CampaignDetailPage from "./pages/marketing/CampaignDetailPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 const App = () => {
@@ -49,6 +50,7 @@ const App = () => {
           <Route path="email-templates/:templateId" element={<SingleTemplate/>} />
           <Route path="campaigns" element={<Campaigns/>}/>
           <Route path="campaigns/create" element={<CreateCampaignPage />} />
+          <Route path="campaigns/:campaignId" element={<CampaignDetailPage />} />
         </Route>
       </Route>
     </Routes>

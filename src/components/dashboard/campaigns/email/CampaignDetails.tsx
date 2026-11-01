@@ -1,25 +1,23 @@
 import { ArrowRight, Mail, Loader2 } from "lucide-react";
 import { useCreateCampaignStore } from "../../../../features/campaigns/store/createCampaignStore";
-
+import { useNavigate } from "react-router-dom";
 interface CampaignDetailsProps {
-  onSubmit?: () => void;
+ 
   isPending?: boolean;
 }
 
-const CampaignDetails = ({ onSubmit, isPending = false }: CampaignDetailsProps) => {
-  const { formData, setFormData } = useCreateCampaignStore();
+const CampaignDetails = ({ isPending = false }: CampaignDetailsProps) => {
+  const { formData, setFormData, goToNextStep } = useCreateCampaignStore();
   console.log(formData)
   const canContinue = Boolean(
-    formData.name?.trim() && formData.subject?.trim()
+    formData.name?.trim() 
   );
+
+ 
 
   const handleContinue = () => {
     if (!canContinue || isPending) return;
-
-    if (onSubmit) {
-      
-      onSubmit();
-    }
+      goToNextStep()
   };
 
   return (
@@ -99,20 +97,7 @@ const CampaignDetails = ({ onSubmit, isPending = false }: CampaignDetailsProps) 
               </p>
             </div>
 
-            {/* Live Subject Line Inbox Preview Box */}
-            {formData.subject?.trim() && (
-              <div className="mt-3 rounded-xl border border-blue-100 bg-gradient-to-r from-blue-50/60 to-sky-50/40 p-3.5">
-                <div className="flex items-center gap-2 mb-1">
-                  <Mail size={14} className="text-[#004aad]" />
-                  <span className="text-[10px] font-bold text-[#004aad] uppercase tracking-wider">
-                    Inbox Preview
-                  </span>
-                </div>
-                <p className="text-xs font-semibold text-slate-800 break-words leading-snug">
-                  {formData.subject}
-                </p>
-              </div>
-            )}
+        
           </div>
         </div>
 

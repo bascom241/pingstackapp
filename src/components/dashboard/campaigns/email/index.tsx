@@ -6,38 +6,26 @@ import { useCreateCampaign } from "../../../../features/campaigns/hooks/useEmail
 import { useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
 import { getApiErrorMessage } from "../../../../utils/apiError";
-
+import FinalCampaignDetail from "./FinalCampaignDetail";
 const Index = () => {
-  // Extract setCurrentStep from the store to handle step transitions
-  const { currentStep, setCurrentStep, formData } = useCreateCampaignStore();
+  const { currentStep, formData, resetCampaignFlow } = useCreateCampaignStore();
   const { mutate, isPending } = useCreateCampaign();
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
 
   if (currentStep <= 0) return null;
-  console.log(formData)
+
   const createCampaignDetail = () => {
-
-
-    const detail = {
-      name: formData.name,
-      subject: formData.subject
-    }
-
-    setCurrentStep(2);
-    mutate(detail, {
-
-     
+    mutate(formData, {
       onSuccess: (data) => {
-        enqueueSnackbar(data?.message || "Campaign details saved successfully!", {
+        enqueueSnackbar(data?.message?.trim() || "Campaign created successfully.", {
           variant: "success",
         });
-        
-        // Advance to Step 2 (CampaignTemplate) on success
-        setCurrentStep(2);
+        resetCampaignFlow();
+        navigate("/dashboard/campaigns");
       },
       onError: (error: unknown) => {
-        const errorMessage = getApiErrorMessage(error, "Failed to save campaign details");
+        const errorMessage = getApiErrorMessage(error, "Failed to create campaign.");
         enqueueSnackbar(errorMessage, {
           variant: "error",
         });
@@ -47,15 +35,17 @@ const Index = () => {
 
   return (
     <>
-      {/* Pass createCampaignDetail and isPending as props to Step 1 if submitting happens there */}
       {currentStep === 1 && (
         <CampaignDetails
-          onSubmit={createCampaignDetail}
           isPending={isPending}
         />
       )}
       {currentStep === 2 && <CampaignTemplate />}
       {currentStep === 3 && <CampaignRecipients />}
+      {currentStep === 4 && <FinalCampaignDetail
+        onSubmit={createCampaignDetail}
+        isPending={isPending}
+      />}
     </>
   );
 };

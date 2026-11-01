@@ -26,6 +26,7 @@ const templateOptions = [
 const CampaignTemplate = () => {
   const { formData, setTemplateId, currentStep, setCurrentStep, goToPreviousStep } = useCreateCampaignStore();
   const { data: templates = [] } = useGetTemplateForUser();
+  console.log(templates)
 
   const selectedTemplate = templates.find((template) => template.templateId === formData.templateId);
   const hasTemplate = Boolean(formData.templateId || selectedTemplate);
@@ -38,8 +39,8 @@ const CampaignTemplate = () => {
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-4 sm:px-6">
       <div className="mb-6 space-y-2 text-center sm:text-left">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-[#5b4dd7]/20 bg-[#5b4dd7]/5 px-3 py-1 text-xs font-semibold text-[#5b4dd7]">
-          <Sparkles size={13} />
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-[#5b4dd7]/20 bg-[#5b4dd7]/5 px-3 py-1 text-xs font-semibold text-[#2517a3]">
+        
           <span>Step 2 of 3 · Template</span>
         </div>
 
@@ -54,29 +55,27 @@ const CampaignTemplate = () => {
 
       <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-6">
         <div className="grid gap-4 md:grid-cols-3">
-          {templateOptions.map((template) => {
-            const isSelected = formData.templateId === template.id || selectedTemplate?.templateId === template.id;
+          {templates.map((template) => {
+            const isSelected = formData.templateId === template.templateId || selectedTemplate?.templateId === template.templateId;
 
             return (
               <button
-                key={template.id}
+                key={template.templateId}
                 type="button"
-                onClick={() => setTemplateId(template.id)}
+                onClick={() => setTemplateId(template.templateId)}
                 className={`group rounded-2xl border p-4 text-left transition-all duration-200 ${
                   isSelected
-                    ? "border-[#5b4dd7] bg-[#f5f3ff] shadow-[0_14px_30px_rgba(91,77,215,0.12)]"
+                    ? "border-[#2517a3] bg-[#f5f3ff] shadow-[0_14px_30px_rgba(91,77,215,0.12)]"
                     : "border-slate-200 bg-slate-50 hover:border-[#c7c2ff] hover:bg-white"
                 }`}
               >
-                <div className={`mb-4 h-28 rounded-xl bg-linear-to-br ${template.accent}`} />
+              
                 <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="rounded-lg bg-white p-2 text-[#5b4dd7] shadow-sm">
-                      <LayoutTemplate size={16} />
-                    </div>
-                    <span className="text-sm font-semibold text-slate-800">{template.name}</span>
+                   
+                    <span className="text-xl sm:text-2xl font-semibold text-slate-800">{template.name}</span>
                   </div>
-                  {isSelected && <Check size={16} className="text-[#5b4dd7]" />}
+                  {isSelected && <Check size={16} className="text-[#2517a3]" />}
                 </div>
                 <p className="text-sm leading-relaxed text-slate-500">{template.description}</p>
               </button>
@@ -98,7 +97,7 @@ const CampaignTemplate = () => {
             type="button"
             onClick={handleContinue}
             disabled={!hasTemplate}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#5b4dd7] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(91,77,215,0.28)] transition hover:bg-[#4b3fc8] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2517a3] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(91,77,215,0.28)] transition hover:bg-[#4b3fc8] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
           >
             Continue
             <ArrowRight size={16} />

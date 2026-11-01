@@ -4,10 +4,11 @@ import type { CreateCampaignRequest } from "../types/campaign";
 
 export const TEMPLATE_KEY = ["email-campaign"];
 
-export const useCampaign = (page: number, size: number) => {
+export const useCampaign = (page: number, size: number, enabled = true) => {
   return useQuery({
     queryKey: [...TEMPLATE_KEY, page, size],
     queryFn: () => getCampaigns(page, size),
+    enabled,
   });
 };
 
