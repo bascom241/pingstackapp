@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createCampaign, getCampaigns } from "../api/emailCampaignService";
-import type { CreateCampaignRequest } from "../types/campaign";
+import { addRecipients, createCampaign, getCampaign, getCampaigns } from "../api/emailCampaignService";
+import type { AddRecipientRequest, CreateCampaignRequest } from "../types/campaign";
 
 export const TEMPLATE_KEY = ["email-campaign"];
 
@@ -12,6 +12,13 @@ export const useCampaign = (page: number, size: number, enabled = true) => {
   });
 };
 
+export const useSingleCampaign  = (campaign: string) => {
+  return useQuery({
+    queryKey: [... TEMPLATE_KEY, campaign], 
+    queryFn: () => getCampaign(campaign)
+  })
+}
+
 export const useCreateCampaign = () => {
   const queryClient = useQueryClient();
 
@@ -22,3 +29,13 @@ export const useCreateCampaign = () => {
     },
   });
 };
+
+export const useAddRecipient = () => {
+  const queryClient = useQueryClient(); 
+  return useMutation({
+    mutationFn: (data: AddRecipientRequest) => addRecipients(data), 
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: TEMPLATE_KEY})
+    } 
+  })
+}

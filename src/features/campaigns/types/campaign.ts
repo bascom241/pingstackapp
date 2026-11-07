@@ -3,6 +3,12 @@ export interface EmailRecipientRequest {
   name: string;
 }
 
+
+export interface AddRecipientRequest {
+  campaignId: string, 
+  recipient: EmailRecipientRequest[]
+}
+
 export interface CreateCampaignRequest {
   name: string;
   templateId?: string;

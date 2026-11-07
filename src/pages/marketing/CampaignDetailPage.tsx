@@ -2,7 +2,6 @@ import { useState, type ChangeEvent } from "react";
 import {
   ArrowLeft,
   CalendarDays,
-  FileJson2,
   FileText,
   Loader2,
   Mail,
@@ -12,17 +11,19 @@ import {
 } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useSnackbar } from "notistack";
-import { useCampaign } from "../../features/campaigns/hooks/useEmailCampaign";
+import { useAddRecipient, useCampaign, useSingleCampaign } from "../../features/campaigns/hooks/useEmailCampaign";
 import type {
   CampaignSummary,
   EmailRecipientRequest,
 } from "../../features/campaigns/types/campaign";
 import ErrorCampaign from "../../../utils/ErrorUI";
+import { getApiErrorMessage } from "../../utils/apiError";
 
 const isEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 const normalizeRecipients = (value: unknown): EmailRecipientRequest[] => {
   const entries = Array.isArray(value) ? value : [value];
+
   if (entries.length === 0) {
     throw new Error("Provide at least one recipient.");
   }
@@ -87,7 +88,6 @@ const formatDate = (value: string | null) => {
   if (!value) return "Not started";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Unavailable";
-
   return new Intl.DateTimeFormat("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -99,48 +99,97 @@ const CampaignDetailPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
+
   const [recipients, setRecipients] = useState<EmailRecipientRequest[]>([]);
-  const [jsonInput, setJsonInput] = useState("");
+  const [recipientName, setRecipientName] = useState("");
+  const [recipientEmail, setRecipientEmail] = useState("");
 
   const stateCampaign = (location.state as { campaign?: CampaignSummary } | null)?.campaign;
+
   const campaignFromState =
     stateCampaign?.campaignId === campaignId ? stateCampaign : undefined;
-  const {
-    data,
-    isPending,
-    isError,
-  } = useCampaign(0, 100, !campaignFromState);
-  const campaign = campaignFromState ?? data?.content.find(
-    (item) => item.campaignId === campaignId,
-  );
+
+ 
+
+
+  const {data: campaign, isPending, isError} = useSingleCampaign(campaignId);
+
+
+  console.log(campaign)
+
+  const { mutate, isPending: addingRecipient} = useAddRecipient()
+
+
+
+  console.log(campaign)
 
   const addRecipients = (newRecipients: EmailRecipientRequest[]) => {
+    console.log(recipients)
     setRecipients((current) => [...current, ...newRecipients]);
+
+    console.log(recipients)
     enqueueSnackbar(
       `${newRecipients.length} recipient${newRecipients.length === 1 ? "" : "s"} added locally. No changes were sent to the server.`,
       { variant: "success" },
     );
   };
 
-  const handleJsonImport = () => {
-    try {
-      addRecipients(normalizeRecipients(JSON.parse(jsonInput)));
-      setJsonInput("");
-    } catch (error) {
-      enqueueSnackbar(
-        error instanceof SyntaxError
-          ? "Enter valid JSON containing recipient objects."
-          : error instanceof Error
-            ? error.message
-            : "Unable to read recipient JSON.",
-        { variant: "error" },
-      );
+  const handleAddRecipient = () => {
+    const name = recipientName.trim();
+    const email = recipientEmail.trim();
+
+
+   
+    if (!name || !email) {
+      enqueueSnackbar("Please provide both name and email.", {
+        variant: "error",
+      });
+      return;
     }
+
+    if (!isEmail(email)) {
+      enqueueSnackbar("Please enter a valid email address.", {
+        variant: "error",
+      });
+      return;
+    }
+
+
+    const dataToSubmit = {
+      campaignId,
+      recipient: [
+        {
+          name,
+          email
+        }
+      ]
+    }
+
+
+    console.log(dataToSubmit)
+
+    mutate(dataToSubmit, {
+      onSuccess: () => {
+        setRecipientName("")
+        setRecipientEmail("")
+        enqueueSnackbar("Recipients added successfully", {
+          variant: "success"
+        })
+      },
+      onError: (error: any) => {
+        const errorMessage = getApiErrorMessage(error, "Something went wrong");
+        enqueueSnackbar(errorMessage || "Failed to add recipient!", {
+          variant: "error"
+        })
+      }
+    })
+
   };
 
   const handleCsvImport = async (event: ChangeEvent<HTMLInputElement>) => {
     const input = event.currentTarget;
     const file = input.files?.[0];
+
     if (!file) return;
 
     try {
@@ -148,6 +197,7 @@ const CampaignDetailPage = () => {
       const headers = rows.shift()?.map((header, index) =>
         (index === 0 ? header.replace(/^\uFEFF/, "") : header).toLowerCase(),
       );
+
       const emailIndex = headers?.indexOf("email") ?? -1;
       const nameIndex = headers?.indexOf("name") ?? -1;
 
@@ -159,6 +209,7 @@ const CampaignDetailPage = () => {
         email: row[emailIndex] ?? "",
         name: nameIndex < 0 ? "" : row[nameIndex] ?? "",
       }));
+
       addRecipients(normalizeRecipients(imported));
     } catch (error) {
       enqueueSnackbar(
@@ -316,55 +367,95 @@ const CampaignDetailPage = () => {
               <div>
                 <h2 className="font-bold text-gray-900">Add recipients</h2>
                 <p className="text-xs text-gray-500">
-                  Import recipients with JSON or a CSV file. Imports are local only for now.
+                  Add recipients individually or import multiple recipients with a CSV file. Changes are local only for now.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="grid gap-6 p-6 sm:grid-cols-2 sm:p-8">
-            <div className="space-y-3">
-              <label
-                htmlFor="campaign-recipient-json"
-                className="flex items-center gap-2 text-sm font-bold text-gray-800"
-              >
-                <FileJson2 size={17} className="text-[#004aad]" />
-                Paste recipient JSON
-              </label>
-              <p className="text-xs text-gray-500">
-                Use one recipient or an array with <code>name</code> and <code>email</code> fields.
-              </p>
-              <textarea
-                id="campaign-recipient-json"
-                value={jsonInput}
-                onChange={(event) => setJsonInput(event.target.value)}
-                placeholder={'[{"name":"Jane Smith","email":"jane@example.com"}]'}
-                rows={5}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-3 font-mono text-xs text-gray-800 outline-none transition focus:border-[#004aad] focus:bg-white focus:ring-4 focus:ring-[#004aad]/10"
-              />
-              <button
-                type="button"
-                onClick={handleJsonImport}
-                disabled={!jsonInput.trim()}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#004aad] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <Users size={15} />
-                Add JSON recipients
-              </button>
+          <div className="grid grid-cols-1 gap-8 p-6 sm:p-8 lg:grid-cols-2">
+            {/* Manual recipient input */}
+            <div className="space-y-5">
+              <div>
+                <h3 className="text-sm font-bold text-gray-800">
+                  Add recipient manually
+                </h3>
+                <p className="mt-1 text-xs text-gray-500">
+                  Enter the recipient's name and email address.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label
+                    htmlFor="recipient-name"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Full name
+                  </label>
+                  <input
+                    id="recipient-name"
+                    type="text"
+                    value={recipientName}
+                    onChange={(event) => setRecipientName(event.target.value)}
+                    placeholder="e.g. John Doe"
+                    autoComplete="name"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-[#004aad] focus:bg-white focus:ring-4 focus:ring-[#004aad]/10"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label
+                    htmlFor="recipient-email"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Email address
+                  </label>
+                  <input
+                    id="recipient-email"
+                    type="email"
+                    value={recipientEmail}
+                    onChange={(event) => setRecipientEmail(event.target.value)}
+                    placeholder="john@example.com"
+                    autoComplete="email"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-[#004aad] focus:bg-white focus:ring-4 focus:ring-[#004aad]/10"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAddRecipient}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#004aad] px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+                >
+
+                  {
+                    addingRecipient ? <Loader2 className="animate-spin"/> : <><Users size={16} /> Add recipient</>
+                  }
+                  
+                </button>
+              </div>
             </div>
 
-            <div className="space-y-3">
-              <p className="flex items-center gap-2 text-sm font-bold text-gray-800">
-                <Upload size={17} className="text-[#004aad]" />
-                Upload CSV
-              </p>
-              <p className="text-xs text-gray-500">
-                Include an <code>email</code> column. A <code>name</code> column is optional.
-              </p>
-              <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 text-center transition hover:border-[#004aad] hover:bg-blue-50/40">
-                <Upload size={20} className="text-[#004aad]" />
-                <span className="text-sm font-semibold text-gray-700">Choose a CSV file</span>
-                <span className="text-xs text-gray-400">CSV files are read in this browser only</span>
+            {/* CSV upload */}
+            <div className="space-y-4">
+              <div>
+                <p className="flex items-center gap-2 text-sm font-bold text-gray-800">
+                  <Upload size={17} className="text-[#004aad]" />
+                  Upload CSV
+                </p>
+                <p className="mt-1 text-xs text-gray-500">
+                  Import multiple recipients using a CSV file.
+                </p>
+              </div>
+
+              <label className="flex min-h-48 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 text-center transition hover:border-[#004aad] hover:bg-blue-50/40">
+                <Upload size={24} className="text-[#004aad]" />
+                <span className="text-sm font-semibold text-gray-700">
+                  Choose a CSV file
+                </span>
+                <span className="text-xs text-gray-400">
+                  CSV must contain an email column and optionally a name column.
+                </span>
                 <input
                   type="file"
                   accept=".csv,text/csv"
@@ -383,6 +474,7 @@ const CampaignDetailPage = () => {
                   {recipients.length} recipient{recipients.length === 1 ? "" : "s"}
                 </span>
               </div>
+
               <div className="space-y-2">
                 {recipients.map((recipient, index) => (
                   <div
@@ -395,6 +487,7 @@ const CampaignDetailPage = () => {
                       </p>
                       <p className="truncate text-xs text-gray-500">{recipient.email}</p>
                     </div>
+
                     <button
                       type="button"
                       onClick={() =>
