@@ -1,7 +1,7 @@
 // src/components/email/DeleteDomainModal.tsx
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useEffect, useState } from "react";
-import { AlertTriangle, Loader2, Trash2 } from "lucide-react";
+import { AlertTriangle, Loader2, Trash2 } from "../icons";
 
 interface DeleteDomainModalProps {
   isOpen: boolean;

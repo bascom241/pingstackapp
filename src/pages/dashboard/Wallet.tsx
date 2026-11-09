@@ -1,5 +1,6 @@
+import { InlineSkeleton } from "../../ui/Skeleton";
 import  { useState } from 'react';
-import { Wallet as WalletIcon, Plus, CreditCard, Settings, Loader2 } from 'lucide-react';
+import { Wallet as WalletIcon, Plus, CreditCard, Settings } from "../../ui/icons";
 import TopUpModal from '../../components/dashboard/main/TopUpModal';
 import { useBalance } from '../../features/wallet/hooks/useBalance';
 import { formatNaira } from '../../utils/currency';
@@ -43,7 +44,7 @@ const Wallet = () => {
             <div className="flex items-baseline gap-1 mt-1 text-slate-900">
 
               {
-                isLoading ? <Loader2 className='animate-spin text-emerald-600'/> : <><span className="relative -top-2 text-sm font-extrabold select-none text-emerald-600">₦</span>
+                isLoading ? <InlineSkeleton width={190} height={44} label="Loading wallet balance" /> : <><span className="relative -top-2 text-sm font-extrabold select-none text-emerald-600">₦</span>
               <span className="text-4xl font-extrabold tracking-tight text-emerald-600">{error ? "--" : formatNaira(data)}</span></>
               }
               

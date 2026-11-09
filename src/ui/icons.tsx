@@ -1,0 +1,101 @@
+import { forwardRef } from "react";
+import { HugeiconsIcon, type HugeiconsIconProps } from "@hugeicons/react";
+import { Activity01Icon, Alert02Icon, AlertCircleIcon, ArrowDown01Icon, ArrowLeft01Icon, ArrowLeft02Icon, ArrowRight01Icon, ArrowRight02Icon, ArrowUp01Icon, ArrowUp02Icon, ArrowUpRight01Icon, AtIcon, BatteryIcon, Building03Icon, Calendar01Icon, Calendar03Icon, Call02Icon, Cancel01Icon, CancelCircleIcon, ChartLineData01Icon, CheckmarkCircle02Icon, Clock01Icon, Clock03Icon, CloudUploadIcon, CodeIcon, CopyIcon, CpuIcon, CreditCardIcon, DashboardSquare01Icon, Delete02Icon, Edit02Icon, Edit03Icon, EyeIcon as EyeSvg, InformationCircleIcon, EyeOffIcon, File02Icon, FileScriptIcon, FilterIcon, FlashIcon, Globe02Icon, HelpCircleIcon, HistoryIcon, InboxIcon, Key01Icon, Key02Icon, Layers01Icon, Link01Icon, Loading03Icon, Mail01Icon, Maximize01Icon, Menu01Icon, Message01Icon, MoreHorizontalIcon, MoreVerticalIcon, Notification03Icon, PlayIcon, PlusIcon, Radio01Icon, RefreshIcon, SaveIcon, Search01Icon, SearchVisualIcon, SendHorizontalIcon, SendIcon, ServerStack01Icon, Settings01Icon, ShieldAlertIcon, ShieldCheckIcon, SignalIcon, SparklesIcon, StarIcon, Tag01Icon, TerminalIcon, Tick02Icon, ToggleLeftIcon, ToggleRightIcon, TradeUpIcon, Upload01Icon, UserAdd01Icon, UserGroupIcon, UserIcon, Wallet01Icon, Wifi01Icon } from "@hugeicons/core-free-icons";
+
+export type IconProps = Omit<HugeiconsIconProps, "icon">;
+
+// Shared rounded outline family with sizing and ref support.
+function createIcon(icon: HugeiconsIconProps["icon"], name: string) {
+  const Icon = forwardRef<SVGSVGElement, IconProps>((props, ref) => (
+    <HugeiconsIcon ref={ref} icon={icon} size={20} strokeWidth={1.7} aria-hidden="true" {...props} />
+  ));
+  Icon.displayName = name;
+  return Icon;
+}
+
+export const Activity = createIcon(Activity01Icon, "Activity");
+export const AlertCircle = createIcon(AlertCircleIcon, "AlertCircle");
+export const AlertTriangle = createIcon(Alert02Icon, "AlertTriangle");
+export const ArrowLeft = createIcon(ArrowLeft02Icon, "ArrowLeft");
+export const ArrowRight = createIcon(ArrowRight02Icon, "ArrowRight");
+export const ArrowUp = createIcon(ArrowUp02Icon, "ArrowUp");
+export const ArrowUpRight = createIcon(ArrowUpRight01Icon, "ArrowUpRight");
+export const AtSign = createIcon(AtIcon, "AtSign");
+export const Battery = createIcon(BatteryIcon, "Battery");
+export const Bell = createIcon(Notification03Icon, "Bell");
+export const Building2 = createIcon(Building03Icon, "Building2");
+export const Calendar = createIcon(Calendar01Icon, "Calendar");
+export const CalendarDays = createIcon(Calendar03Icon, "CalendarDays");
+export const Check = createIcon(Tick02Icon, "Check");
+export const CheckCircle2 = createIcon(CheckmarkCircle02Icon, "CheckCircle2");
+export const ChevronDown = createIcon(ArrowDown01Icon, "ChevronDown");
+export const ChevronLeft = createIcon(ArrowLeft01Icon, "ChevronLeft");
+export const ChevronRight = createIcon(ArrowRight01Icon, "ChevronRight");
+export const ChevronUp = createIcon(ArrowUp01Icon, "ChevronUp");
+export const Clock = createIcon(Clock01Icon, "Clock");
+export const Clock3 = createIcon(Clock03Icon, "Clock3");
+export const Code2 = createIcon(CodeIcon, "Code2");
+export const Copy = createIcon(CopyIcon, "Copy");
+export const Cpu = createIcon(CpuIcon, "Cpu");
+export const CreditCard = createIcon(CreditCardIcon, "CreditCard");
+export const Edit2 = createIcon(Edit02Icon, "Edit2");
+export const Edit3 = createIcon(Edit03Icon, "Edit3");
+export const Eye = createIcon(EyeSvg, "Eye");
+export const EyeClosed = createIcon(EyeOffIcon, "EyeClosed");
+export const EyeIcon = createIcon(EyeSvg, "EyeIcon");
+export const EyeOff = createIcon(EyeOffIcon, "EyeOff");
+export const FileJson = createIcon(FileScriptIcon, "FileJson");
+export const FileText = createIcon(File02Icon, "FileText");
+export const Filter = createIcon(FilterIcon, "Filter");
+export const Globe = createIcon(Globe02Icon, "Globe");
+export const HelpCircle = createIcon(HelpCircleIcon, "HelpCircle");
+export const History = createIcon(HistoryIcon, "History");
+export const Inbox = createIcon(InboxIcon, "Inbox");
+export const Key = createIcon(Key01Icon, "Key");
+export const KeyRound = createIcon(Key02Icon, "KeyRound");
+export const Layers = createIcon(Layers01Icon, "Layers");
+export const LayoutDashboard = createIcon(DashboardSquare01Icon, "LayoutDashboard");
+export const LineChart = createIcon(ChartLineData01Icon, "LineChart");
+export const Link = createIcon(Link01Icon, "Link");
+export const Loader2 = createIcon(Loading03Icon, "Loader2");
+export const Mail = createIcon(Mail01Icon, "Mail");
+export const Maximize2 = createIcon(Maximize01Icon, "Maximize2");
+export const Menu = createIcon(Menu01Icon, "Menu");
+export const MessageSquare = createIcon(Message01Icon, "MessageSquare");
+export const MoreHorizontal = createIcon(MoreHorizontalIcon, "MoreHorizontal");
+export const MoreVertical = createIcon(MoreVerticalIcon, "MoreVertical");
+export const PhoneCall = createIcon(Call02Icon, "PhoneCall");
+export const Play = createIcon(PlayIcon, "Play");
+export const Plus = createIcon(PlusIcon, "Plus");
+export const Radio = createIcon(Radio01Icon, "Radio");
+export const RefreshCw = createIcon(RefreshIcon, "RefreshCw");
+export const Save = createIcon(SaveIcon, "Save");
+export const Search = createIcon(Search01Icon, "Search");
+export const SearchCheck = createIcon(SearchVisualIcon, "SearchCheck");
+export const Send = createIcon(SendIcon, "Send");
+export const SendHorizontal = createIcon(SendHorizontalIcon, "SendHorizontal");
+export const Server = createIcon(ServerStack01Icon, "Server");
+export const Settings = createIcon(Settings01Icon, "Settings");
+export const ShieldAlert = createIcon(ShieldAlertIcon, "ShieldAlert");
+export const ShieldCheck = createIcon(ShieldCheckIcon, "ShieldCheck");
+export const Signal = createIcon(SignalIcon, "Signal");
+export const Sparkles = createIcon(SparklesIcon, "Sparkles");
+export const Star = createIcon(StarIcon, "Star");
+export const Tag = createIcon(Tag01Icon, "Tag");
+export const Terminal = createIcon(TerminalIcon, "Terminal");
+export const ToggleLeft = createIcon(ToggleLeftIcon, "ToggleLeft");
+export const ToggleRight = createIcon(ToggleRightIcon, "ToggleRight");
+export const Trash2 = createIcon(Delete02Icon, "Trash2");
+export const TrendingUp = createIcon(TradeUpIcon, "TrendingUp");
+export const Upload = createIcon(Upload01Icon, "Upload");
+export const UploadCloud = createIcon(CloudUploadIcon, "UploadCloud");
+export const User = createIcon(UserIcon, "User");
+export const UserPlus = createIcon(UserAdd01Icon, "UserPlus");
+export const Users = createIcon(UserGroupIcon, "Users");
+export const Wallet = createIcon(Wallet01Icon, "Wallet");
+export const Wifi = createIcon(Wifi01Icon, "Wifi");
+export const X = createIcon(Cancel01Icon, "X");
+export const XCircle = createIcon(CancelCircleIcon, "XCircle");
+export const Zap = createIcon(FlashIcon, "Zap");
+
+export const Info = createIcon(InformationCircleIcon, "Info");

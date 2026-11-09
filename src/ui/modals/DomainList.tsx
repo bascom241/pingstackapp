@@ -1,14 +1,8 @@
+import { DataSkeleton, InlineSkeleton } from "../Skeleton";
 // src/components/email/DomainList.tsx
 import React, { useState } from "react";
-import {
-  Globe,
-  Plus,
-  Server,
-  Star,
-  Trash2,
-  ChevronRight,
-  Loader2,
-} from "lucide-react";
+import { Globe, Plus, Star, Trash2, ArrowRight, Loader2 } from "../icons";
+import { EmailSectionHeading, StatusMark } from "../../components/messaging/EmailConfigElements";
 
 import type { BrevoDomainDto } from "../../types/email/EmailConfigDto";
 import {
@@ -27,6 +21,7 @@ interface DomainListProps {
   onSelectDomain: (domain: BrevoDomainDto) => void;
   isAddingDomain: boolean;
   isFetchingDomains: boolean;
+  isDomainError: boolean;
   onRefetchDomains: () => void;
 }
 
@@ -38,6 +33,7 @@ export const DomainList: React.FC<DomainListProps> = ({
   onSelectDomain,
   isAddingDomain,
   isFetchingDomains,
+  isDomainError,
   onRefetchDomains,
 }) => {
   const [targetDomainId, setTargetDomainId] = useState<string | null>(null);
@@ -106,145 +102,41 @@ export const DomainList: React.FC<DomainListProps> = ({
 
   return (
     <>
-      <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center pb-3 border-b border-gray-50">
-          <div className="flex items-center gap-2.5">
-            <div className="p-1.5 bg-amber-50 text-amber-600 rounded-lg">
-              <Globe size={16} />
+      <section className="email-settings-card" aria-label="Sending domains">
+        <EmailSectionHeading icon={<Globe size={23} />} title="Sending domains" description="Send from an address your audience recognizes. Connect your domain and verify its DNS records." />
+        <div className="email-section-body">
+          <form className="email-domain-form" onSubmit={(event) => { event.preventDefault(); if (newDomainInput.trim() && !isAddingDomain && !isFetchingDomains) onAddDomain() }}>
+            <label htmlFor="new-sending-domain" className="email-field-label">Connect a domain</label>
+            <div className="email-domain-form-row">
+              <input id="new-sending-domain" type="text" autoComplete="off" autoCapitalize="none" spellCheck={false} required value={newDomainInput} disabled={isAddingDomain} onChange={(event) => onInputChange(event.target.value)} placeholder="mail.yourcompany.com" className="email-input" aria-describedby="sending-domain-help" />
+              <button type="submit" disabled={!newDomainInput.trim() || isAddingDomain || isFetchingDomains} className="email-button is-primary">{isAddingDomain ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}{isAddingDomain ? 'Connecting…' : 'Connect domain'}</button>
             </div>
-            <div>
-              <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wide">
-                Sending Domains
-              </h2>
-              <p className="text-[11px] text-gray-400">
-                Manage custom sending identities and DNS verifications.
-              </p>
-            </div>
+            <p id="sending-domain-help" className="email-helper">Use a domain you own. We’ll provide the DNS records to add with your domain provider.</p>
+          </form>
+          <div className="email-domains-label">Your domains <span className="email-count">{isFetchingDomains && !domains.length ? <InlineSkeleton width={16} height={12} label="Loading domain count" /> : domains.length}</span></div>
+          <div className="email-domain-stack" aria-busy={isFetchingDomains}>
+            {isDomainError ? <div className="email-empty" role="alert"><h3>Couldn’t refresh your domains</h3><p>Please try again to see your current sending domains.</p><button type="button" className="email-button" onClick={onRefetchDomains}>Try again</button></div> : isFetchingDomains && domains.length === 0 ? <DataSkeleton layout="list" rows={2} label="Loading sending domains" /> : domains.length === 0 ? <div className="email-empty"><span className="email-section-icon"><Globe size={25} /></span><h3>Your brand starts with your domain</h3><p>Connect your first domain above.<br />We’ll walk you through the DNS setup next.</p></div> : domains.map(domain => (
+              <article key={domain.id} className="email-domain-card">
+                <div className="email-domain-top">
+                  <span className="email-domain-globe"><Globe size={22} /></span>
+                  <div className="email-domain-info">
+                    <div className="email-domain-name"><h3>{domain.domain_name}</h3>{domain.primary && <span className="email-primary-badge"><Star size={12} />Primary</span>}</div>
+                    <div className="email-domain-meta"><span className={`email-status-label ${domain.verified ? '' : 'is-pending'}`}><StatusMark verified={domain.verified} />{domain.verified ? 'Verified' : 'Needs verification'}</span>{domain.domain_provider && <span>{domain.domain_provider}</span>}</div>
+                  </div>
+                  <button type="button" aria-label={`Delete ${domain.domain_name}`} disabled={isDeletingDomain || isFetchingDomains} onClick={() => handleOpenDeleteModal(domain)} className="email-delete-button"><Trash2 size={18} /></button>
+                </div>
+                <div className="email-domain-footer">
+                  <p>{domain.verified ? domain.primary ? 'Your default domain for outgoing emails.' : 'DNS verified. Your domain is ready to send.' : 'Add your DNS records to authenticate this domain.'}</p>
+                  <div className="email-domain-actions">
+                    {!domain.primary && <button type="button" disabled={isFetchingDomains || isSettingPrimary} onClick={() => handleMakeDomainPrimary(domain.id)} className="email-button">{isSettingPrimary && targetDomainId === domain.id ? <Loader2 size={16} className="animate-spin" /> : null}Make primary</button>}
+                    <button type="button" onClick={() => onSelectDomain(domain)} className="email-button">{domain.verified ? 'View DNS records' : 'Complete setup'}<ArrowRight size={16} /></button>
+                  </div>
+                </div>
+              </article>
+            ))}
           </div>
         </div>
-
-        {/* Domain Registration Form */}
-        <div className="flex flex-col sm:flex-row gap-2">
-          <input
-            type="text"
-            value={newDomainInput}
-            disabled={isFetchingDomains || isAddingDomain}
-            onChange={(e) => onInputChange(e.target.value)}
-            placeholder="e.g. email.yourdomain.com"
-            className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-mono text-gray-700 outline-none focus:ring-2 focus:ring-[#004aad]/10 focus:border-[#004aad] disabled:opacity-50"
-          />
-          <button
-            type="button"
-            onClick={onAddDomain}
-            disabled={!newDomainInput.trim() || isAddingDomain || isFetchingDomains}
-            className="bg-gray-900 hover:bg-black text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer shrink-0 flex items-center justify-center gap-1.5 disabled:opacity-50"
-          >
-            {isAddingDomain ? (
-              <Loader2 className="animate-spin" size={14} />
-            ) : (
-              <>
-                <Plus size={14} /> <span>Add Domain</span>
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* Domain List Container */}
-        <div className="space-y-3">
-          {isFetchingDomains ? (
-            <div className="p-12 text-center border border-dashed border-gray-200 rounded-xl text-gray-400 text-xs flex flex-col items-center justify-center gap-2 bg-gray-50/50">
-              <Loader2 className="animate-spin text-[#004aad]" size={28} />
-              <p className="font-medium text-gray-600">Updating domain list...</p>
-            </div>
-          ) : domains.length === 0 ? (
-            <div className="p-8 text-center border border-dashed border-gray-200 rounded-xl text-gray-400 text-xs">
-              No sending domains configured. Add a domain above to start sending emails.
-            </div>
-          ) : (
-            domains.map((domain) => (
-              <div
-                key={domain.id}
-                onClick={() => !isFetchingDomains && onSelectDomain(domain)}
-                className="bg-gray-50/70 hover:bg-gray-50 border border-gray-200/80 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all cursor-pointer group"
-              >
-                {/* Domain Info */}
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`p-2 rounded-lg shrink-0 ${
-                      domain.verified
-                        ? "bg-emerald-100/70 text-emerald-700"
-                        : "bg-amber-100/70 text-amber-700"
-                    }`}
-                  >
-                    <Server size={16} />
-                  </div>
-
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-gray-900 text-sm group-hover:text-[#004aad] transition-colors">
-                        {domain.domain_name}
-                      </span>
-                      {domain.primary && (
-                        <span className="bg-amber-100 text-amber-800 text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <Star size={9} className="fill-amber-800" /> Primary
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-0.5">
-                      <span>{domain.domain_provider}</span>
-                      <span>•</span>
-                      <span
-                        className={`font-semibold ${
-                          domain.verified ? "text-emerald-600" : "text-amber-600"
-                        }`}
-                      >
-                        {domain.verified ? "Verified" : "Pending Records"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div
-                  className="flex items-center gap-2.5 self-end sm:self-auto"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {!domain.primary && (
-                    <button
-                      type="button"
-                      disabled={isFetchingDomains || (isSettingPrimary && targetDomainId === domain.id)}
-                      onClick={() => handleMakeDomainPrimary(domain.id)}
-                      className="text-[11px] font-medium text-gray-500 hover:text-amber-600 px-2.5 py-1 rounded-lg border border-gray-200 bg-white hover:bg-amber-50/50 transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1"
-                    >
-                      {isSettingPrimary && targetDomainId === domain.id ? (
-                        <Loader2 className="animate-spin" size={12} />
-                      ) : (
-                        "Make Primary"
-                      )}
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    title="Delete domain"
-                    disabled={isDeletingDomain || isFetchingDomains}
-                    onClick={() => handleOpenDeleteModal(domain)}
-                    className="text-gray-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-gray-200/50 transition-colors cursor-pointer disabled:opacity-50"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-
-                  <div className="text-gray-400 group-hover:text-gray-700 transition-colors pl-1">
-                    <ChevronRight size={16} />
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
+      </section>
 
       {/* Delete Modal Confirmation */}
       <DeleteDomainModal

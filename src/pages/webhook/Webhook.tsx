@@ -1,119 +1,70 @@
-import React, { useState } from "react";
-import { Radio, ShieldAlert, Key, Check, Copy, ToggleRight, ToggleLeft, Activity, ArrowUpRight } from "lucide-react";
+﻿import { useState, type FormEvent } from 'react'
+import { Info, Save, Radio } from '../../ui/icons'
+import { DeveloperPage, DeveloperCard, DeveloperNote, DeveloperLink, CodeBlock } from '../../components/developers/DeveloperUI'
+
+const eventOptions = [
+    { key: 'sms.delivered', label: 'SMS delivered', description: 'A delivery notification for an SMS message.' },
+    { key: 'sms.failed', label: 'SMS failed', description: 'A notification that an SMS could not be delivered.' },
+    { key: 'otp.verified', label: 'OTP verified', description: 'A notification that a verification code was accepted.' },
+    { key: 'email.bounced', label: 'Email bounced', description: 'A notification that an email was rejected by the receiving server.' },
+] as const
+type EventName = typeof eventOptions[number]['key']
+const STORAGE_KEY = 'pingstack:webhook-draft:v1'
+const initialEvents: EventName[] = ['sms.delivered', 'sms.failed']
+function readDraft(): { url: string; events: EventName[] } {
+    try {
+        const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null')
+        if (stored && typeof stored.url === 'string' && Array.isArray(stored.events)) return { url: stored.url, events: stored.events.filter((key: unknown): key is EventName => eventOptions.some(option => option.key === key)) }
+    } catch { /* Use an empty draft when browser storage is unavailable. */ }
+    return { url: '', events: initialEvents }
+}
 
 export default function WebhooksConfig() {
-  const [webhookUrl, setWebhookUrl] = useState("https://api.yourdomain.com/v1/pingstack-receiver");
-  const [secretKey] = useState("whsec_908fba23c0192e8a716bc239ab7cf8e1");
-  const [copied, setCopied] = useState(false);
-  
-  const [events, setEvents] = useState({
-    "sms.delivered": true,
-    "sms.failed": true,
-    "otp.verified": true,
-    "email.bounced": false,
-  });
+    const [initialDraft] = useState(readDraft)
+    const [webhookUrl, setWebhookUrl] = useState(initialDraft.url)
+    const [events, setEvents] = useState<EventName[]>(initialDraft.events)
+    const [feedback, setFeedback] = useState('')
+    const [previewEvent, setPreviewEvent] = useState<EventName>('sms.delivered')
+    const [saved, setSaved] = useState(initialDraft)
+    const hasChanges = webhookUrl.trim() !== saved.url || JSON.stringify(events) !== JSON.stringify(saved.events)
+    const examplePayload = JSON.stringify({ id: 'evt_example_001', type: previewEvent, createdAt: '2026-01-01T12:00:00Z', data: { messageId: 'msg_example_001', ...(previewEvent === 'email.bounced' ? { recipient: 'recipient@example.com' } : { recipient: '+2348031112222' }), status: previewEvent.split('.')[1] } }, null, 2)
+    const saveDraft = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault()
+        if (!events.length) { setFeedback('Select at least one event for your draft.'); return }
+        const next = { url: webhookUrl.trim(), events }
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+            setSaved(next)
+            setFeedback('Draft saved in this browser. Your endpoint has not been registered and will not receive events.')
+        } catch { setFeedback('Could not save this draft in your browser. Your changes are still available on this page.') }
+    }
 
-  const triggerCopy = (txt: string) => {
-    navigator.clipboard.writeText(txt);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <div className="w-full max-w-5xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-gray-900 tracking-tight">Streaming Webhook Topologies</h1>
-        <p className="text-xs text-gray-500 mt-0.5">
-          Stream programmatic real-time transport event frames (bounces, receipt latencies) straight into your remote infrastructure cluster.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* Main Parameters Block */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-4">
-            <div className="flex items-center gap-2.5 pb-2 border-b border-gray-50">
-              <div className="p-1.5 bg-blue-50 text-[#004aad]/90 rounded-lg">
-                <Radio size={15} />
-              </div>
-              <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wide">Destination Callback Node</h2>
+    return <DeveloperPage title="Webhooks" description="Prepare an endpoint for delivery updates and choose the events your application needs." action={<span className="dev-badge">Local draft</span>}>
+        <div className="dev-layout">
+            <div className="dev-stack">
+                <div className="dev-inline-note"><Info size={18} /><p>Webhook registration is not connected yet. You can prepare and save a draft here; no events will be sent to your endpoint.</p></div>
+                <form onSubmit={saveDraft} className="dev-stack">
+                    <DeveloperCard title="Endpoint details" description="Choose where your application will receive event notifications.">
+                        <div className="dev-card-body">
+                            <div className="dev-field"><label htmlFor="webhook-url">Endpoint URL</label><input id="webhook-url" name="endpoint" type="url" required pattern="https://.*" value={webhookUrl} onChange={event => { setWebhookUrl(event.target.value); setFeedback('') }} placeholder="https://yourcompany.com/webhooks/pingstack" className="dev-input" aria-describedby="webhook-url-help" /><p id="webhook-url-help" className="dev-helper">Use a public HTTPS endpoint that your server controls.</p></div>
+                            <div className="dev-field"><span className="dev-field-label">Signing secret</span><div className="dev-input !text-sm" aria-label="Signing secret unavailable">Not available for local drafts</div><p className="dev-helper">A real signing secret is needed to authenticate incoming events. None has been issued for this draft.</p></div>
+                        </div>
+                    </DeveloperCard>
+                    <DeveloperCard title="Event subscriptions" description="These example topics help you plan your integration. Confirm available events in your API reference." action={<span className="dev-badge">{events.length} selected</span>}>
+                        <fieldset className="dev-event-list"><legend className="sr-only">Select event topics</legend>{eventOptions.map(option => <label className="dev-event-row" key={option.key}><input type="checkbox" checked={events.includes(option.key)} onChange={event => { setEvents(previous => event.target.checked ? [...previous, option.key] : previous.filter(key => key !== option.key)); setFeedback('') }} /><span><strong className="dev-mono">{option.key}</strong><small>{option.description}</small></span></label>)}</fieldset>
+                        <div className="dev-card-footer"><p role="status">{feedback || (hasChanges ? 'You have unsaved draft changes.' : 'Changes are saved only when you save this draft.')}</p><button type="submit" className="dev-button is-primary" disabled={!hasChanges || !webhookUrl.trim() || !events.length}><Save size={16} />Save draft</button></div>
+                    </DeveloperCard>
+                </form>
+                <DeveloperCard title="Event payload" description="An illustrative event shape to help you plan your receiver. This is not a live delivery.">
+                    <div className="dev-card-body"><div className="dev-field mb-5"><label htmlFor="webhook-preview-event">Preview event</label><select id="webhook-preview-event" value={previewEvent} onChange={event => setPreviewEvent(event.target.value as EventName)} className="dev-input">{eventOptions.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}</select></div><CodeBlock title="JSON · Example payload" code={examplePayload} /></div>
+                </DeveloperCard>
+                <DeveloperCard title="Delivery activity" action={<span className="dev-badge">Not connected</span>}><div className="dev-empty"><Radio size={25} /><h3>No live deliveries</h3><p>Your draft is not registered as an active endpoint. Delivery history will be available when webhook delivery is connected.</p></div></DeveloperCard>
             </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold uppercase text-gray-400">Endpoint Receiver URL</label>
-              <input 
-                type="url" 
-                value={webhookUrl} 
-                onChange={(e) => setWebhookUrl(e.target.value)}
-                placeholder="https://api.yourbackend.com/webhooks"
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-mono text-gray-700 outline-none focus:ring-2 focus:ring-[#004aad]/10"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold uppercase text-gray-400">Cryptographic Signing Secret</label>
-              <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 font-mono text-xs">
-                <span className="text-gray-500 truncate select-all">{secretKey}</span>
-                <button onClick={() => triggerCopy(secretKey)} className="text-gray-400 hover:text-gray-700 cursor-pointer">
-                  {copied ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
-                </button>
-              </div>
-              <p className="text-[10px] text-gray-400 leading-normal">
-                Verifies payload authenticity via `x-pingstack-signature` SHA256 HMAC headers.
-              </p>
-            </div>
-          </div>
-
-          {/* Event Filters Section */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-3">
-            <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wide pb-1 border-b border-gray-50">Subscribed Propagation Topics</h3>
-            <div className="divide-y divide-gray-50">
-              {Object.entries(events).map(([evt, enabled]) => (
-                <div key={evt} className="flex items-center justify-between py-3.5 first:pt-1">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-xs font-mono font-bold text-gray-800">{evt}</span>
-                    <span className="text-[10px] text-gray-400">Triggered whenever state mutates cleanly to this vector.</span>
-                  </div>
-                  <button
-                    onClick={() => setEvents(p => ({ ...p, [evt]: !enabled }))}
-                    className={`cursor-pointer transition-colors ${enabled ? "text-[#004aad]" : "text-gray-300"}`}
-                  >
-                    {enabled ? <ToggleRight size={28} /> : <ToggleLeft size={28} />}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
+            <aside className="dev-sidebar">
+                <DeveloperNote title="Receiver checklist"><ul><li>Accept HTTPS requests on your endpoint.</li><li>Validate the signature using the documented signing format.</li><li>Handle repeated events safely.</li><li>Keep event processing separate from your response.</li></ul></DeveloperNote>
+                <DeveloperNote title="Draft storage"><p>The endpoint URL and selected topics are stored in this browser when you save. No signing secret or credentials are stored with this draft.</p></DeveloperNote>
+                <DeveloperNote title="Related tools"><DeveloperLink to="/dashboard/api-keys">API keys & sandbox</DeveloperLink><br /><DeveloperLink to="/dashboard/otp-guide">OTP integration guide</DeveloperLink></DeveloperNote>
+            </aside>
         </div>
-
-        {/* System Monitoring Metrics Side Panel */}
-        <div className="space-y-4">
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-4">
-            <div className="flex items-center gap-2.5 pb-2 border-b border-gray-50">
-              <div className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg">
-                <Activity size={15} />
-              </div>
-              <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wide">Trunk Diagnostics</h2>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 font-mono text-[11px]">
-              <div className="bg-gray-50 p-3 rounded-xl border border-gray-100/60">
-                <span className="text-gray-400 font-sans text-[10px] block font-bold uppercase">Success Rate</span>
-                <span className="text-base font-bold text-emerald-600 block mt-1">99.94%</span>
-              </div>
-              <div className="bg-gray-50 p-3 rounded-xl border border-gray-100/60">
-                <span className="text-gray-400 font-sans text-[10px] block font-bold uppercase">Mean Latency</span>
-                <span className="text-base font-bold text-gray-800 block mt-1">142ms</span>
-              </div>
-            </div>
-
-            <button className="w-full bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700 text-xs font-semibold py-2 rounded-xl flex items-center justify-center gap-1 cursor-pointer transition-colors">
-              <span>View Logs Cache</span>
-              <ArrowUpRight size={13} />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    </DeveloperPage>
 }

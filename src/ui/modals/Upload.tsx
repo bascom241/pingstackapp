@@ -1,9 +1,9 @@
+import { DataSkeleton } from "../Skeleton";
 import { motion } from "framer-motion";
-import { X } from "lucide-react";
+import { X } from "../icons";
 import FileUploader from "../../components/utils/FileUploader";
 import { useSnackbar } from "notistack";
 import { useGetSingleAudience } from "../../features/contacts/hooks/useAudience";
-import { useEffect } from "react";
 
 interface ModalState {
     setIsUploadModaOpen: (isOpen: boolean) => void;
@@ -11,7 +11,7 @@ interface ModalState {
 }
 
 const Upload = ({ setIsUploadModaOpen, selectedId }: ModalState) => {
-    const { data, isPending } = useGetSingleAudience(selectedId);
+    const { data, isPending, isError, refetch } = useGetSingleAudience(selectedId);
 
     console.log(data)
 
@@ -41,7 +41,7 @@ const Upload = ({ setIsUploadModaOpen, selectedId }: ModalState) => {
                   2. Added relative positioning so the close button can anchor to it
                   3. Updated border and padding 
                 */
-                className="relative bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-2xl max-w-sm w-full space-y-4"
+                className="relative bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-2xl max-w-sm w-full space-y-6"
             >
                 {/* Pinned Close Button: 
                   Positioned absolutely at the top right, with contrasting hover states 
@@ -49,7 +49,7 @@ const Upload = ({ setIsUploadModaOpen, selectedId }: ModalState) => {
                 <button
                     type="button"
                     onClick={() => setIsUploadModaOpen(false)}
-                    className="absolute top-4 right-4 p-1.5 hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg transition-colors z-20 cursor-pointer"
+                    className="absolute top-4 right-4 p-1.5 hover:bg-gray-100 dark:hover:bg-neutral-800 text-gray-500 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-200 rounded-lg transition-colors z-20 cursor-pointer"
                     aria-label="Close modal"
                 >
                     <X className="w-4.5 h-4.5" />
@@ -57,10 +57,7 @@ const Upload = ({ setIsUploadModaOpen, selectedId }: ModalState) => {
 
                 {/* Main Content (With top padding so it doesn't overlap the close button) */}
                 <div className="pt-2">
-                    <FileUploader
-                    audience ={name}
-                    id= {id}
-                    />
+                    {isPending ? <DataSkeleton layout="form" rows={2} label="Loading upload audience" /> : isError ? <div role="alert"><p>Audience details could not be loaded.</p><button type="button" className="dashboard-button mt-4" onClick={() => void refetch()}>Try again</button></div> : <FileUploader audience={name} id={id} />}
                 </div>
 
             </motion.div>

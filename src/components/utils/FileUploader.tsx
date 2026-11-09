@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent, type DragEvent } from "react";
-import { UploadCloud, FileText, X } from "lucide-react";
+import { UploadCloud, FileText, X } from "../../ui/icons";
 import { useUploadCsv } from "../../features/contacts/hooks/useUploadSubscriberCsv";
 import { useSnackbar } from "notistack";
 import { getApiErrorMessage } from "../../utils/apiError";

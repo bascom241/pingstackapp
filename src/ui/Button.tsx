@@ -2,7 +2,7 @@
 import * as React from "react";
 import MuiButton from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "./icons";
 
 type ButtonProps = {
   children?: React.ReactNode;

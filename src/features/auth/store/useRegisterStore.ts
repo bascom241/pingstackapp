@@ -1,63 +1,10 @@
-import { create } from "zustand";
+﻿import { create } from 'zustand'
+import type { RegisterType } from '../../../types/auth/auth'
 
-type RegisterFormType = {
-  firstName: "";
-  email: "";
-  password: "";
-  lastName: "";
-  phoneNumber: "";
-  companyName: "";
-  sector: "";
-  creatorRole: "";
-  source: "";
-    countryCode: string;
-};
-
-type AuthStore = {
-  formData: RegisterFormType;
-  setFormData: (data: Partial<RegisterFormType>) => void;
-  resetForm: () => void;
-};
-
-export const useRegisterStore = create<AuthStore>((set) => ({
-  formData: {
-    firstName: "",
-    email: "",
-    password: "",
-    lastName: "",
-    phoneNumber: "",
-    companyName: "",
-    sector: "",
-    creatorRole: "",
-    source: "",
-      countryCode: ""
-  },
-
-  token: null,
-  isAuthenticated: false,
-
-  setFormData: (data) =>
-    set((state) => ({
-      formData: { ...state.formData, ...data },
-    })),
-
-
-
- 
-
-  resetForm: () =>
-    set({
-      formData: {
-        firstName: "",
-        email: "",
-        password: "",
-        lastName: "",
-        phoneNumber: "",
-        companyName: "",
-        sector: "",
-        creatorRole: "",
-        source: "",
-          countryCode: ""
-      },
-    }),
-}));
+const emptyForm: RegisterType = { firstName: '', lastName: '', email: '', password: '', phoneNumber: '', companyName: '', sector: '', creatorRole: '', source: '', countryCode: '+234' }
+type RegisterStore = { formData: RegisterType; setFormData: (data: Partial<RegisterType>) => void; resetForm: () => void }
+export const useRegisterStore = create<RegisterStore>(set => ({
+    formData: { ...emptyForm },
+    setFormData: data => set(state => ({ formData: { ...state.formData, ...data } })),
+    resetForm: () => set({ formData: { ...emptyForm } }),
+}))

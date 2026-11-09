@@ -1,3 +1,4 @@
+import { InlineSkeleton } from "../Skeleton";
 import { motion } from "framer-motion"
 import React, { useState, type ChangeEvent, useEffect } from "react"
 import { AUDIENCE_QUERY_KEY, useGetAllAudience } from "../../features/contacts/hooks/useAudience"
@@ -14,8 +15,8 @@ const UploadSingleSubsciber = ({ setAdd, selectedId }: UploadProps) => {
 
     const [formData, setFormData] = useState({ name: "", destinationNumber: "", });
     const [selectedSubsciber, setSelectedSubsciber] = useState<string>("")
-    const { mutate, isPending: creatingSub, error: subError } = useCreateSubcriber()
-    const { data, isPending, isError, error } = useGetAllAudience();
+    const { mutate, isPending: isCreating } = useCreateSubcriber()
+    const { data, isPending: isAudiencesPending, isError: isAudiencesError, refetch } = useGetAllAudience();
     const { enqueueSnackbar } = useSnackbar()
     const queryClient = useQueryClient();
 
@@ -35,6 +36,7 @@ const UploadSingleSubsciber = ({ setAdd, selectedId }: UploadProps) => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
+        if (isAudiencesPending || isAudiencesError || isCreating || !selectedSubsciber) return;
         const dataToSend = {
             ...formData, listId: selectedSubsciber
         };
@@ -80,11 +82,13 @@ const UploadSingleSubsciber = ({ setAdd, selectedId }: UploadProps) => {
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-white rounded-2xl border border-gray-100 p-5 shadow-2xl max-w-sm w-full space-y-4"
+                className="bg-white rounded-2xl border border-gray-100 p-5 shadow-2xl max-w-sm w-full space-y-6"
             >
 
 
                 <div className="w-full flex items-center gap-4 overflow-x-scroll">
+                    {isAudiencesPending && <InlineSkeleton width="100%" height={36} label="Loading audience choices" />}
+                    {isAudiencesError && <button type="button" className="dashboard-button" onClick={() => void refetch()}>Retry loading audiences</button>}
 
 
                     {
@@ -108,7 +112,7 @@ const UploadSingleSubsciber = ({ setAdd, selectedId }: UploadProps) => {
 
                 <form className="space-y-3" onSubmit={handleSubmit}>
                     <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Subscriber Name</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Subscriber Name</label>
                         <input
                             type="text"
                             required
@@ -116,13 +120,13 @@ const UploadSingleSubsciber = ({ setAdd, selectedId }: UploadProps) => {
                             value={formData.name}
                             onChange={handleChange}
                             name="name"
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-800 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#004aad]/10 focus:border-[#004aad] transition-all"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 placeholder:text-gray-500 outline-none focus:ring-2 focus:ring-[#004aad]/10 focus:border-[#004aad] transition-all"
                         />
                     </div>
 
 
                     <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Subsciber PhoneNumber</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Subsciber PhoneNumber</label>
                         <input
                             type="number"
                             required
@@ -130,7 +134,7 @@ const UploadSingleSubsciber = ({ setAdd, selectedId }: UploadProps) => {
                             value={formData.destinationNumber}
                             onChange={handleChange}
                             name="destinationNumber"
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-800 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#004aad]/10 focus:border-[#004aad] transition-all"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 placeholder:text-gray-500 outline-none focus:ring-2 focus:ring-[#004aad]/10 focus:border-[#004aad] transition-all"
                         />
                     </div>
 
@@ -139,15 +143,16 @@ const UploadSingleSubsciber = ({ setAdd, selectedId }: UploadProps) => {
                         <button
                             type="button"
                             onClick={() => setAdd(false)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-500 hover:bg-gray-50 cursor-pointer"
+                            className="px-3 py-1.5 rounded-lg text-sm font-semibold text-gray-500 hover:bg-gray-50 cursor-pointer"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="bg-[#004aad] hover:bg-[#003985] text-white px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer shadow-sm shadow-[#004aad]/10"
+                            disabled={isAudiencesPending || isAudiencesError || isCreating || !selectedSubsciber}
+                            className="bg-[#004aad] hover:bg-[#003985] text-white px-3 py-1.5 rounded-lg text-sm font-semibold cursor-pointer shadow-sm shadow-[#004aad]/10"
                         >
-                            Add Subcriber
+                            {isCreating ? "Adding subscriber..." : "Add subscriber"}
                         </button>
                     </div>
 

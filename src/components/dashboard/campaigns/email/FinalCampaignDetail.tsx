@@ -8,7 +8,7 @@ import {
     Mail,
     Send,
     Users,
-} from "lucide-react";
+} from "../../../../ui/icons";
 
 import { useCreateCampaignStore } from "../../../../features/campaigns/store/createCampaignStore";
 
@@ -31,7 +31,7 @@ const FinalCampaignDetail = ({onSubmit, isPending}: FinalCampaignProps) => {
     }
 
     return (
-        <main className="min-h-screen bg-[#F8FAFC] px-5 py-10 sm:px-10">
+        <main className="bg-transparent py-4">
 
             <div className="mx-auto max-w-4xl">
 
@@ -39,7 +39,7 @@ const FinalCampaignDetail = ({onSubmit, isPending}: FinalCampaignProps) => {
                 <button
                     type="button"
                     onClick={goToPreviousStep}
-                    className="mb-8 flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-[#004aad] transition-colors"
+                    className="mb-8 flex items-center gap-2 text-base font-semibold text-gray-500 hover:text-[#004aad] transition-colors"
                 >
                     <ArrowLeft size={17} />
                     Back to campaign setup
@@ -48,7 +48,7 @@ const FinalCampaignDetail = ({onSubmit, isPending}: FinalCampaignProps) => {
                 {/* Page heading */}
                 <div className="mb-9">
                     <div className="mb-3 flex items-center gap-2">
-                        <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-[#004aad]">
+                        <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-bold text-[#004aad]">
                             FINAL STEP
                         </span>
                     </div>
@@ -57,7 +57,7 @@ const FinalCampaignDetail = ({onSubmit, isPending}: FinalCampaignProps) => {
                         Review your campaign
                     </h1>
 
-                    <p className="mt-3 max-w-xl text-sm leading-6 text-gray-500">
+                    <p className="mt-3 max-w-xl text-base leading-6 text-gray-500">
                         Take a moment to review your campaign details and
                         recipients before submitting. Make sure everything
                         looks correct.
@@ -69,10 +69,10 @@ const FinalCampaignDetail = ({onSubmit, isPending}: FinalCampaignProps) => {
                     <CheckCircle2 className="shrink-0 text-[#004aad]" size={22} />
 
                     <div>
-                        <p className="text-sm font-bold text-gray-900">
+                        <p className="text-base font-bold text-gray-900">
                             Your campaign is ready for review
                         </p>
-                        <p className="mt-1 text-xs text-gray-500">
+                        <p className="mt-1 text-sm text-gray-500">
                             Review the information below before proceeding.
                         </p>
                     </div>
@@ -91,7 +91,7 @@ const FinalCampaignDetail = ({onSubmit, isPending}: FinalCampaignProps) => {
                                 <h2 className="font-bold text-gray-900">
                                     Campaign information
                                 </h2>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-sm text-gray-500">
                                     Basic details about your campaign
                                 </p>
                             </div>
@@ -101,7 +101,7 @@ const FinalCampaignDetail = ({onSubmit, isPending}: FinalCampaignProps) => {
                     <div className="grid gap-6 px-6 py-7 sm:grid-cols-2 sm:px-8">
 
                         <div>
-                            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                            <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-gray-500">
                                 Campaign name
                             </p>
                             <p className="text-base font-bold text-gray-900">
@@ -110,20 +110,20 @@ const FinalCampaignDetail = ({onSubmit, isPending}: FinalCampaignProps) => {
                         </div>
 
                         <div>
-                            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                            <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-gray-500">
                                 Email subject
                             </p>
-                            <p className="break-all text-sm font-semibold text-gray-800">
+                            <p className="break-all text-base font-semibold text-gray-800">
                                 {subject}
                             </p>
                         </div>
 
                         <div className="sm:col-span-2">
-                            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                            <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-gray-500">
                                 Template ID
                             </p>
                             <div className="rounded-lg bg-gray-50 px-4 py-3">
-                                <p className="break-all font-mono text-xs text-gray-600">
+                                <p className="break-all font-mono text-sm text-gray-600">
                                     {templateId}
                                 </p>
                             </div>
@@ -146,13 +146,13 @@ const FinalCampaignDetail = ({onSubmit, isPending}: FinalCampaignProps) => {
                                 <h2 className="font-bold text-gray-900">
                                     Campaign recipients
                                 </h2>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-sm text-gray-500">
                                     People who will receive this campaign
                                 </p>
                             </div>
                         </div>
 
-                        <span className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-bold text-[#004aad]">
+                        <span className="rounded-full bg-blue-50 px-3 py-1.5 text-sm font-bold text-[#004aad]">
                             {recipients.length} {recipients.length === 1 ? "Recipient" : "Recipients"}
                         </span>
 
@@ -168,18 +168,18 @@ const FinalCampaignDetail = ({onSubmit, isPending}: FinalCampaignProps) => {
                                         key={`${recipient.email}-${index}`}
                                         className="flex items-center gap-3 rounded-xl border border-gray-100 p-4 transition-colors hover:border-blue-100 hover:bg-blue-50/30"
                                     >
-                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold uppercase text-[#004aad]">
+                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-50 text-base font-bold uppercase text-[#004aad]">
                                             {recipient.name?.charAt(0) || "R"}
                                         </div>
 
                                         <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm font-bold text-gray-900">
+                                            <p className="truncate text-base font-bold text-gray-900">
                                                 {recipient.name || "Unnamed recipient"}
                                             </p>
 
                                             <div className="mt-1 flex items-center gap-2">
-                                                <Mail size={13} className="shrink-0 text-gray-400" />
-                                                <p className="truncate text-xs text-gray-500">
+                                                <Mail size={13} className="shrink-0 text-gray-500" />
+                                                <p className="truncate text-sm text-gray-500">
                                                     {recipient.email}
                                                 </p>
                                             </div>
@@ -196,10 +196,10 @@ const FinalCampaignDetail = ({onSubmit, isPending}: FinalCampaignProps) => {
                         ) : (
                             <div className="py-10 text-center">
                                 <Users size={30} className="mx-auto mb-3 text-gray-300" />
-                                <p className="text-sm font-semibold text-gray-700">
+                                <p className="text-base font-semibold text-gray-700">
                                     No recipients added
                                 </p>
-                                <p className="mt-1 text-xs text-gray-400">
+                                <p className="mt-1 text-sm text-gray-500">
                                     Go back and add recipients to your campaign.
                                 </p>
                             </div>
@@ -216,7 +216,7 @@ const FinalCampaignDetail = ({onSubmit, isPending}: FinalCampaignProps) => {
                             Ready to create your campaign?
                         </h3>
 
-                        <p className="mt-2 text-sm leading-6 text-gray-500">
+                        <p className="mt-2 text-base leading-6 text-gray-500">
                             Once submitted, your campaign details will be
                             processed. Make sure you have reviewed all
                             the information above.
@@ -228,7 +228,7 @@ const FinalCampaignDetail = ({onSubmit, isPending}: FinalCampaignProps) => {
                         <button
                             type="button"
                             onClick={goToPreviousStep}
-                            className="rounded-xl border border-gray-200 px-6 py-3 text-sm font-bold text-gray-600 transition-colors hover:bg-gray-50"
+                            className="rounded-xl border border-gray-200 px-6 py-3 text-base font-bold text-gray-600 transition-colors hover:bg-gray-50"
                         >
                             Go back and edit
                         </button>
@@ -237,7 +237,7 @@ const FinalCampaignDetail = ({onSubmit, isPending}: FinalCampaignProps) => {
                             type="button"
                             disabled={recipients.length === 0 || isPending}
                             onClick={handleSuccess}
-                            className="flex items-center justify-center gap-2 rounded-xl bg-[#004aad] px-7 py-3 text-sm font-bold text-white shadow-sm shadow-blue-900/10 transition-all hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex items-center justify-center gap-2 rounded-xl bg-[#004aad] px-7 py-3 text-base font-bold text-white shadow-sm shadow-blue-900/10 transition-all hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {
                                 isPending ? <><Loader2 className="animate-spin" /> Submitting campaign...</> : <><Send size={16} /> <span>Submit campaign</span> <ArrowRight size={16} /></>

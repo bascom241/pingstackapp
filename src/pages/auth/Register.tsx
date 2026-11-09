@@ -1,263 +1,87 @@
-"use client"
-
-import React from 'react'
-import { ArrowRight } from 'lucide-react'
-import Input from "../../ui/Input"
-
-import MenuItem from '@mui/material/MenuItem'
-import Select from '@mui/material/Select'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { ArrowLeft, Check, User, Building2, KeyRound } from '../../ui/icons'
+import { AuthLayout, AuthHeading, AuthField, AuthPassword, AuthSelect, AuthSubmit, AuthError } from '../../components/auth/AuthUI'
 import { useRegisterStore } from '../../features/auth/store/useRegisterStore'
 import { useRegister } from '../../features/auth/hooks/useAuth'
-import { useSnackbar } from 'notistack'
-import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getApiErrorMessage } from '../../utils/apiError'
-import { Loader2 } from 'lucide-react'
-import AuthSideSection from '../../ui/modals/AuthSideSection'
+import { normalizeRegistrationPhone, registrationPayload, safeAuthRedirect } from '../../features/auth/utils'
+import { useSnackbar } from 'notistack'
 
-const Register: React.FC = () => {
-    const { formData, setFormData } = useRegisterStore();
-    const { mutate, isPending } = useRegister();
-    const { enqueueSnackbar } = useSnackbar();
-    const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
+const steps = [
+    { name: 'Your details', icon: User, title: 'Let’s start with you', description: 'Tell us who you are and how we can reach you.' },
+    { name: 'Workspace', icon: Building2, title: 'A home for your business', description: 'A few details to help us set up your messaging workspace.' },
+    { name: 'Password', icon: KeyRound, title: 'Make it yours', description: 'Choose a password and check your details before creating your account.' },
+]
+const sectors = [['Financial_Services', 'Financial services'], ['Online_Retail_Services', 'Online retail'], ['Educational_Services', 'Education'], ['Advertising_And_Marketing_Services', 'Advertising & marketing']]
+const roles = [['Engineering_Lead_OR_CTO', 'Engineering lead / CTO'], ['ProductManager', 'Product manager'], ['OPERATION_AND_DEVOPS', 'Operations & DevOps'], ['FOUNDER_OR_EXECUTIVE', 'Founder / executive']]
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const payload = {
-            ...formData,
-            phoneNumber:
-                formData.countryCode +
-                formData.phoneNumber.replace(/^0+/, ""),
-        } as any;
-        mutate(payload, {
-            onSuccess: (data) => {
-
-                enqueueSnackbar(data?.message || "Login successful!", {
-                    variant: "success"
-                })
-                navigate(searchParams.get("redirect") || "/login")
-            }, onError: (err) => {
-                console.log(err)
-                const errorMessage = getApiErrorMessage(err, "Something went wrong");
-                enqueueSnackbar(errorMessage || "Registeriom failed!", {
-                    variant: "error"
-                })
-            }
-        })
+export default function Register() {
+    const { formData, setFormData, resetForm } = useRegisterStore()
+    const { mutate, isPending } = useRegister()
+    const { enqueueSnackbar } = useSnackbar()
+    const [params] = useSearchParams()
+    const navigate = useNavigate()
+    const [step, setStep] = useState(0)
+    const [confirmation, setConfirmation] = useState('')
+    const [error, setError] = useState('')
+    const reduceMotion = useReducedMotion()
+    const heading = useRef<HTMLDivElement>(null)
+    useEffect(() => () => setFormData({ password: '' }), [setFormData])
+    const goToStep = (next: number) => { setError(''); setStep(next) }
+    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault()
+        if (isPending) return
+        setError('')
+        if (step === 0) {
+            if (!formData.firstName.trim() || !formData.lastName.trim()) { setError('Enter your first and last name.'); return }
+            if (!/^\+[1-9]\d{7,14}$/.test(normalizeRegistrationPhone(formData.countryCode, formData.phoneNumber))) { setError('Enter a valid phone number for your selected country.'); return }
+            goToStep(1)
+        } else if (step === 1) {
+            if (!formData.companyName.trim()) { setError('Enter your registered business or workspace name.'); return }
+            goToStep(2)
+        } else {
+            if (formData.password.length < 8) { setError('Choose a password with at least 8 characters.'); return }
+            if (formData.password !== confirmation) { setError('Your passwords do not match. Please check them and try again.'); return }
+            if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim() || !/^\+[1-9]\d{7,14}$/.test(normalizeRegistrationPhone(formData.countryCode, formData.phoneNumber))) { goToStep(0); return }
+            if (!formData.companyName.trim() || !formData.sector || !formData.creatorRole || !formData.source) { goToStep(1); return }
+            mutate(registrationPayload(formData), {
+                onSuccess: data => {
+                    resetForm()
+                    setConfirmation('')
+                    enqueueSnackbar(data?.message || 'Account created. Sign in to continue.', { variant: 'success' })
+                    const redirect = params.get('redirect')
+                    navigate(redirect ? `/login?redirect=${encodeURIComponent(safeAuthRedirect(redirect))}` : '/login', { replace: true })
+                },
+                onError: requestError => setError(getApiErrorMessage(requestError, 'We could not create your account. Please try again.')),
+            })
+        }
     }
-    return (
-        <main className="w-full min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-white overflow-hidden">
-
-            {/* LEFT ROW LAYER: Telemetry Side Panel */}
-            <AuthSideSection variant='register'/>
-
-            {/* RIGHT ROW LAYER: Compact Form Canvas */}
-            <section className="w-full flex flex-col justify-center px-6 py-6 sm:px-12 lg:px-16 bg-white self-center">
-
-                {/* Tightened core wrapper */}
-                <div className="w-full max-w-xl mx-auto flex flex-col gap-5">
-
-                    {/* Header */}
-                    <div className="flex flex-col gap-0.5">
-                        <h1 className="font-black text-2xl text-gray-900 tracking-tight">
-                            Welcome to PINGSTACK
-                        </h1>
-                        <p className="text-xs font-medium text-gray-500">
-                            Enter your details to create an account
-                        </p>
-                    </div>
-
-                    {/* Registration Form with tighter vertical flow */}
-                    <form onSubmit={handleSubmit} className="w-full flex flex-col gap-3.5">
-
-                        {/* Row 1: Names */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                            <Input label="First Name" type="text" placeholder="John" name="firstName"
-                                value={formData.firstName}
-                                onChange={(e) =>
-                                    setFormData({ firstName: e.target.value as any })
-                                } />
-                            <Input label="Last Name" type="text" placeholder="Doe" value={formData.lastName}
-                                onChange={(e) =>
-                                    setFormData({ lastName: e.target.value as any })
-                                } />
-                        </div>
-
-                        {/* Row 2: Credentials */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                            <Input label="Work Email" type="email" placeholder="john@company.com" name='email' value={formData.email}
-                                onChange={(e) =>
-                                    setFormData({ email: e.target.value as any })
-                                } />
-                            <Input label="Password" type="password" placeholder="••••••••••••" value={formData.password}
-                                onChange={(e) =>
-                                    setFormData({ password: e.target.value as any })
-                                } />
-                        </div>
-
-                        {/* Row 3: Phone Number Block */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 items-start">
-                            <div className="sm:col-span-1">
-                                <FormControl fullWidth sx={dropdownStyles}>
-                                    <InputLabel id="dial-code-label">Country</InputLabel>
-                                    <Select
-                                        value={formData.countryCode}
-                                        onChange={(e) =>
-                                            setFormData({ countryCode: e.target.value })
-                                        }
-                                    >
-                                        <MenuItem value="+234">🇳🇬 +234</MenuItem>
-                                        <MenuItem value="+233">🇬🇭 +233</MenuItem>
-                                        <MenuItem value="+254">🇰🇪 +254</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </div>
-                            <div className="sm:col-span-2">
-                                <Input label="Phone Number" type="tel" placeholder="80 1234 5678" value={formData.phoneNumber}
-                                    onChange={(e) =>
-                                        setFormData({ phoneNumber: e.target.value as any })
-                                    } />
-                            </div>
-                        </div>
-
-                        {/* Row 4: Company Name */}
-                        <div className="w-full">
-                            <Input label="Company Name" type="text" placeholder="Acme Technologies Ltd" value={formData.companyName}
-                                onChange={(e) =>
-                                    setFormData({ companyName: e.target.value as any })
-                                } />
-                        </div>
-
-                        {/* Row 5: Dropdowns */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                            <FormControl fullWidth sx={dropdownStyles}>
-                                <InputLabel id="sector-label">Select Sector</InputLabel>
-                                <Select
-                                    value={formData.sector}
-                                    onChange={(e) =>
-                                        setFormData({ sector: e.target.value as any })
-                                    }
-                                >
-                                    <MenuItem value="Financial_Services">Financial Services</MenuItem>
-                                    <MenuItem value="Online_Retail_Services">Online Retail Services</MenuItem>
-                                    <MenuItem value="Educational_Services">Education Services</MenuItem>
-                                    <MenuItem value="Advertising_And_Marketing_Services">
-                                        Advertising & Marketing Services
-                                    </MenuItem>
-                                </Select>
-                            </FormControl>
-
-                            <FormControl fullWidth sx={dropdownStyles}>
-                                <InputLabel id="role-label">Select Role</InputLabel>
-                                <Select
-                                    value={formData.creatorRole}
-                                    onChange={(e) =>
-                                        setFormData({ creatorRole: e.target.value as any })
-                                    }
-                                >
-                                    <MenuItem value="Engineering_Lead_OR_CTO">
-                                        Engineering Lead / CTO
-                                    </MenuItem>
-
-                                    <MenuItem value="ProductManager">
-                                        Product Manager
-                                    </MenuItem>
-
-                                    <MenuItem value="OPERATION_AND_DEVOPS">
-                                        Operations & DevOps
-                                    </MenuItem>
-
-                                    <MenuItem value="FOUNDER_OR_EXECUTIVE">
-                                        Founder / Executive
-                                    </MenuItem>
-                                </Select>
-                            </FormControl>
-                        </div>
-
-                        {/* Row 6: Attribution */}
-                        <FormControl fullWidth sx={dropdownStyles}>
-                            <InputLabel id="discovery-label">How did you hear about us?</InputLabel>
-                            <Select
-                                value={formData.source}
-                                onChange={(e) =>
-                                    setFormData({ source: e.target.value as any })
-                                }
-                            >
-                                <MenuItem value="Google">Google</MenuItem>
-                                <MenuItem value="Linkedin">LinkedIn</MenuItem>
-                                <MenuItem value="Twitter">Twitter / X</MenuItem>
-                                <MenuItem value="Communication">Referral / Word of mouth</MenuItem>
-                                <MenuItem value="Other">Other</MenuItem>
-                            </Select>
-                        </FormControl>
-
-                        {/* Action Button */}
-                        <button
-                            type="submit"
-                            className="w-full mt-2 bg-[#004aad] hover:bg-blue-700 text-white font-bold text-sm py-3 px-4 rounded-xl transition-all shadow-sm shadow-blue-900/10 flex items-center justify-center gap-2 group cursor-pointer"
-                        >
-                            {
-                                isPending ? <Loader2 className='animate-spin' /> : <><span>Create my account</span> <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" /></>
-                            }
-
-                        </button>
-                    </form>
-
-                    {/* Footer Anchor */}
-                    <p className="text-center text-xs font-medium text-gray-400 mt-1">
-                        Already have an active infrastructure account?{' '}
-                        <a href="/login" className="text-[#004aad] font-bold hover:underline">
-                            Log In here
-                        </a>
-                    </p>
-
-                </div>
-            </section>
-
-        </main>
-    )
+    return <AuthLayout variant="register">
+        <ol className="auth-step-progress" aria-label="Registration progress">{steps.map((item, index) => <li key={item.name} className={step > index ? 'is-complete' : ''} aria-current={step === index ? 'step' : undefined}><span className="auth-step-icon" aria-hidden="true">{step > index ? <Check size={15} /> : <item.icon size={15} />}</span><span>{index + 1}. {item.name}</span></li>)}</ol>
+        <div ref={heading} tabIndex={-1} className="auth-step-heading"><AuthHeading eyebrow={`Create your account · Step ${step + 1} of 3`} title={steps[step].title} description={steps[step].description} /></div>
+        <form className="auth-form" onSubmit={handleSubmit} aria-busy={isPending}>
+            <AnimatePresence mode="wait" initial={false} onExitComplete={() => heading.current?.focus()}><motion.div key={step} className="auth-step-content" initial={{ opacity: 0, y: reduceMotion ? 0 : 7 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: reduceMotion ? 0 : -5 }} transition={{ duration: reduceMotion ? 0 : .16 }}>
+                {step === 0 ? <>
+                    <div className="auth-form-row"><AuthField label="First name" name="firstName" autoComplete="given-name" required maxLength={100} placeholder="First name" value={formData.firstName} onChange={event => setFormData({ firstName: event.target.value })} /><AuthField label="Last name" name="lastName" autoComplete="family-name" required maxLength={100} placeholder="Last name" value={formData.lastName} onChange={event => setFormData({ lastName: event.target.value })} /></div>
+                    <AuthField label="Work email" type="email" name="email" autoComplete="email" required maxLength={254} placeholder="you@company.com" value={formData.email} onChange={event => setFormData({ email: event.target.value })} />
+                    <div className="auth-phone-row"><AuthSelect label="Country code" name="countryCode" required value={formData.countryCode} onChange={event => setFormData({ countryCode: event.target.value })}><option value="+234">Nigeria +234</option><option value="+233">Ghana +233</option><option value="+254">Kenya +254</option></AuthSelect><AuthField label="Phone number" type="tel" name="phoneNumber" autoComplete="tel-national" required maxLength={24} placeholder="080 1234 5678" value={formData.phoneNumber} onChange={event => setFormData({ phoneNumber: event.target.value })} /></div>
+                </> : step === 1 ? <>
+                    <AuthField label="Company or workspace name" name="companyName" autoComplete="organization" required maxLength={200} placeholder="e.g. Acme Technologies" value={formData.companyName} onChange={event => setFormData({ companyName: event.target.value })} />
+                    <AuthSelect label="Industry" name="sector" required value={formData.sector} onChange={event => setFormData({ sector: event.target.value })}><option value="" disabled>Choose your industry</option>{sectors.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</AuthSelect>
+                    <AuthSelect label="Your role" name="creatorRole" required value={formData.creatorRole} onChange={event => setFormData({ creatorRole: event.target.value })}><option value="" disabled>Choose your role</option>{roles.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</AuthSelect>
+                    <AuthSelect label="How did you hear about Pingstack?" name="source" required value={formData.source} onChange={event => setFormData({ source: event.target.value })}><option value="" disabled>Select an option</option>{[['Google', 'Google'], ['Linkedin', 'LinkedIn'], ['Twitter', 'X / Twitter'], ['Communication', 'Referral or word of mouth'], ['Other', 'Other']].map(([value, label]) => <option key={value} value={value}>{label}</option>)}</AuthSelect>
+                </> : <>
+                    <AuthPassword label="Password" name="password" autoComplete="new-password" required minLength={8} disabled={isPending} placeholder="Create a password" value={formData.password} onChange={event => setFormData({ password: event.target.value })} hint="Use at least 8 characters. Choose a password you don’t use elsewhere." />
+                    <AuthPassword label="Confirm password" name="confirmPassword" autoComplete="new-password" required disabled={isPending} value={confirmation} placeholder="Enter your password again" aria-invalid={Boolean(confirmation && confirmation !== formData.password)} onChange={event => setConfirmation(event.target.value)} />
+                    <div className="auth-checklist" aria-live="polite"><span className={formData.password.length >= 8 ? 'is-complete' : ''}>{formData.password.length >= 8 ? <Check size={14} /> : <i className="auth-checklist-dot" aria-hidden="true" />}8+ characters</span><span className={confirmation && confirmation === formData.password ? 'is-complete' : ''}>{confirmation && confirmation === formData.password ? <Check size={14} /> : <i className="auth-checklist-dot" aria-hidden="true" />}{confirmation && confirmation === formData.password ? 'Passwords match' : 'Passwords must match'}</span></div>
+                    <dl className="auth-review"><div><dt>Your name</dt><dd>{formData.firstName} {formData.lastName}</dd></div><div><dt>Email</dt><dd>{formData.email}</dd></div><div><dt>Workspace</dt><dd>{formData.companyName}</dd></div></dl>
+                </>}
+            </motion.div></AnimatePresence>
+            <AuthError message={error} />
+            <div className="auth-step-actions">{step > 0 && <button type="button" className="auth-secondary" disabled={isPending} onClick={() => goToStep(step - 1)}><ArrowLeft size={16} />Back</button>}<AuthSubmit pending={isPending} pendingText="Creating your account…">{step === 2 ? 'Create account' : 'Continue'}</AuthSubmit></div>
+        </form>
+        <p className="auth-form-footnote">Already part of Pingstack? <Link to="/login" className="auth-text-link">Sign in</Link></p>
+    </AuthLayout>
 }
-
-// Compact structural input dimensions configuration
-const dropdownStyles = {
-    "& .MuiInputLabel-root": {
-        color: "#9ca3af",
-        fontSize: "0.8rem",
-        // Force the label to sit correctly whether empty or shrunk
-        transform: "translate(14px, 12px) scale(1)",
-        "&.MuiInputLabel-shrink": {
-            // This forces it cleanly up into the top border line
-            transform: "translate(14px, -6px) scale(0.75) !important",
-            backgroundColor: "#ffffff", // Prevents the border line from cutting through text
-            padding: "0 4px",
-        },
-        "&.Mui-focused": {
-            color: "#004aad",
-        },
-    },
-    "& .MuiOutlinedInput-root": {
-        borderRadius: "10px",
-        backgroundColor: "#f8fafc",
-        fontSize: "0.825rem",
-        "& fieldset": {
-            borderColor: "#e2e8f0",
-        },
-        "&:hover fieldset": {
-            borderColor: "#cbd5e1",
-        },
-        "&.Mui-focused fieldset": {
-            borderColor: "#004aad",
-            borderWidth: "1.5px",
-        },
-    },
-    "& .MuiSelect-select": {
-        padding: "10px 14px",
-        color: "#1f2937",
-        display: "flex",
-        alignItems: "center",
-    },
-}
-
-export default Register

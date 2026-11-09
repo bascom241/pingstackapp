@@ -1,303 +1,86 @@
-import whatsapp from "../../../assets/whatsapp.png";
-import gmail from "../../../assets/gmail.png";
-import chat from "../../../assets/chat.png";
-import { motion } from "framer-motion";
-import { useState } from "react";
-import { XCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useCreateCampaignStore } from "../../../features/campaigns/store/createCampaignStore";
+﻿import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ArrowRight, CheckCircle2, Mail, MessageSquare, PhoneCall, X } from '../../../ui/icons'
+import { useCreateCampaignStore } from '../../../features/campaigns/store/createCampaignStore'
 
 interface SelectCampaignProps {
-    isOpen: boolean;
-    setIsOpen: (val: boolean) => void;
+    isOpen: boolean
+    setIsOpen: (value: boolean) => void
 }
 
-const SelectCampaign = ({
-    isOpen,
-    setIsOpen,
-}: SelectCampaignProps) => {
-    const [selectedBox, setSelectedBox] = useState("email");
-    const navigate = useNavigate();
-    const { setSelectedCampaignType, setCurrentStep } = useCreateCampaignStore();
+export default function SelectCampaign({ isOpen, setIsOpen }: SelectCampaignProps) {
+    const [selected, setSelected] = useState('email')
+    const navigate = useNavigate()
+    const dialogRef = useRef<HTMLDivElement>(null)
+    const { setSelectedCampaignType, setCurrentStep } = useCreateCampaignStore()
 
-    const campaignTypes = [
-        {
-            id: "email",
-            name: "Email Campaign",
-            description:
-                "Reach your audience with rich HTML emails and newsletters.",
-            image: gmail,
-            state: "active"
-        },
-        {
-            id: "sms",
-            name: "SMS Campaign",
-            description:
-                "Send direct, high-opening text messages right to mobile phones.",
-            image: chat,
-            state: "inactive"
-        },
-        {
-            id: "whatsapp",
-            name: "WhatsApp Campaign",
-            description:
-                "Interact with your customers through your WhatsApp channels.",
-            image: whatsapp,
-            state: "inactive"
-        },
-    ];
+    useEffect(() => {
+        if (!isOpen) return
+        const previousFocus = document.activeElement as HTMLElement | null
+        const previousOverflow = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+        dialogRef.current?.focus()
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') setIsOpen(false)
+            if (event.key !== 'Tab') return
+            const controls = dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), [tabindex="0"]')
+            if (!controls?.length) return
+            const first = controls[0]
+            const last = controls[controls.length - 1]
+            if (event.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) {
+                event.preventDefault()
+                last.focus()
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault()
+                first.focus()
+            }
+        }
+        document.addEventListener('keydown', onKeyDown)
+        return () => {
+            document.body.style.overflow = previousOverflow
+            document.removeEventListener('keydown', onKeyDown)
+            previousFocus?.focus()
+        }
+    }, [isOpen, setIsOpen])
 
-    if (!isOpen) return null;
+    if (!isOpen) return null
 
-    const selectedCampaignData = campaignTypes.find(c => c.id === selectedBox);
-    const isCurrentActive = selectedCampaignData?.state === "active";
+    const channels = [
+        { id: 'email', name: 'Email', icon: Mail, description: 'Bring your story to life with newsletters and beautifully designed emails.', available: true },
+        { id: 'sms', name: 'SMS', icon: PhoneCall, description: 'Keep it direct with timely updates delivered to your audience’s phones.', available: false },
+        { id: 'whatsapp', name: 'WhatsApp', icon: MessageSquare, description: 'Keep the conversation going with your customers on WhatsApp.', available: false },
+    ]
 
-    const handleNextStep = () => {
-        if (!isCurrentActive) return;
-
-        setSelectedCampaignType(selectedBox as "email" | "sms" | "whatsapp");
-        setCurrentStep(1);
-        setIsOpen(false);
-        navigate("/dashboard/campaigns/create");
-    };
+    const continueToCampaign = () => {
+        if (selected !== 'email') return
+        setSelectedCampaignType('email')
+        setCurrentStep(1)
+        setIsOpen(false)
+        navigate('/dashboard/campaigns/create')
+    }
 
     return (
-        <main>
-            {/* Overlay */}
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-3 sm:p-5">
-
-                {/* Modal */}
-                <motion.div
-                    initial={{ scale: 0.95, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.95, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="
-                        w-full
-                        max-w-2xl
-                        max-h-[95vh]
-                        sm:max-h-[90vh]
-                        overflow-y-auto
-                        bg-white
-                        rounded-2xl
-                        sm:rounded-3xl
-                        border border-slate-100
-                        p-4
-                        sm:p-6
-                        shadow-2xl
-                    "
-                >
-
-                    {/* Header */}
-                    <div className="flex items-center justify-between mb-4 sm:mb-5">
-                        <div>
-                            <h1 className="font-bold text-lg sm:text-xl text-slate-800">
-                                Create a campaign
-                            </h1>
-
-                            <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                                Choose how you want to reach your audience.
-                            </p>
-                        </div>
-
-                        <button
-                            type="button"
-                            onClick={() => setIsOpen(false)}
-                            className="
-                                flex-shrink-0
-                                rounded-full
-                                text-slate-400
-                                hover:bg-[#004aad]
-                                hover:text-white
-                                transition-colors
-                                duration-300
-                                cursor-pointer
-                            "
-                        >
-                            <XCircle size={23} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/40 p-4 backdrop-blur-sm" onClick={(event) => { if (event.target === event.currentTarget) setIsOpen(false) }}>
+            <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="campaign-channel-title" aria-describedby="campaign-channel-description" tabIndex={-1} className="my-auto max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 shadow-xl outline-none sm:p-9">
+                <div className="flex items-start justify-between gap-5">
+                    <div>
+                        <p className="messaging-eyebrow">Start a conversation</p>
+                        <h2 id="campaign-channel-title" className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Choose your channel</h2>
+                        <p id="campaign-channel-description" className="mt-3 text-base leading-7 text-slate-500">How would you like to reach your audience?</p>
+                    </div>
+                    <button type="button" onClick={() => setIsOpen(false)} aria-label="Close channel selector" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50"><X size={20} /></button>
+                </div>
+                <div className="my-8 space-y-3">
+                    {channels.map(({ id, name, icon: Icon, description, available }) => (
+                        <button key={id} type="button" disabled={!available} aria-pressed={selected === id} onClick={() => setSelected(id)} className={`flex w-full items-start gap-4 rounded-2xl border p-5 text-left transition-colors ${selected === id ? 'border-[#004aad] bg-blue-50/50' : 'border-slate-200 bg-slate-50'} disabled:cursor-not-allowed`}>
+                            <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${available ? 'bg-blue-100 text-[#004aad]' : 'bg-slate-200/60 text-slate-500'}`}><Icon size={23} /></span>
+                            <span className="min-w-0 flex-1"><span className="flex flex-wrap items-center gap-3 text-lg font-semibold text-slate-900">{name}{!available && <span className="rounded-full bg-slate-200/70 px-2.5 py-1 text-xs font-medium text-slate-600">Coming soon</span>}</span><span className="mt-1.5 block text-sm leading-6 text-slate-500">{description}</span></span>
+                            {selected === id && <CheckCircle2 size={22} className="mt-1 shrink-0 text-[#004aad]" />}
                         </button>
-                    </div>
-
-                    {/* Body */}
-                    <div
-                        className="
-                            w-full
-                            bg-gradient-to-br
-                            from-blue-50
-                            to-sky-100/70
-                            border
-                            border-blue-100/50
-                            rounded-xl
-                            sm:rounded-2xl
-                            p-3
-                            sm:p-5
-                        "
-                    >
-
-                        <p className="text-slate-600 text-xs sm:text-sm font-medium mb-3 sm:mb-4">
-                            Select your preferred communication channel:
-                        </p>
-
-                        {/* Campaign Cards */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-
-                            {campaignTypes.map((cT) => {
-                                const isSelected = selectedBox === cT.id;
-                                const isActive = cT.state === "active";
-
-                                return (
-                                    <div
-                                        key={cT.id}
-                                        onClick={() => {
-                                            if (isActive) {
-                                                setSelectedBox(cT.id);
-                                            }
-                                        }}
-                                        className={`
-                                            group
-                                            flex
-                                            flex-row
-                                            sm:flex-col
-                                            gap-3
-                                            sm:gap-3
-                                            rounded-xl
-                                            sm:rounded-2xl
-                                            p-3
-                                            sm:p-4
-                                            border
-                                            transition-all
-                                            duration-300
-                                            text-slate-800
-                                            relative
-                                            overflow-hidden
-
-                                            ${
-                                                !isActive
-                                                    ? "opacity-60 bg-slate-100/50 border-slate-200/60 cursor-not-allowed"
-                                                    : isSelected
-                                                    ? "bg-white border-blue-500 shadow-[0_6px_18px_rgba(0,74,173,0.12)] cursor-pointer"
-                                                    : "bg-white/50 border-white/70 hover:bg-white/80 hover:border-blue-200 shadow-sm cursor-pointer"
-                                            }
-                                        `}
-                                    >
-                                        {/* Optional Inactive/Coming Soon Badge */}
-                                        {!isActive && (
-                                            <span className="absolute top-2 right-2 text-[10px] font-semibold bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded">
-                                                Soon
-                                            </span>
-                                        )}
-
-                                        {/* Icon Container */}
-                                        <div
-                                            className="
-                                                flex
-                                                flex-shrink-0
-                                                items-center
-                                                justify-center
-                                                bg-white/70
-                                                rounded-lg
-                                                sm:rounded-xl
-                                                w-16
-                                                h-16
-                                                sm:w-full
-                                                sm:h-24
-                                                border
-                                                border-white/60
-                                            "
-                                        >
-                                            <img
-                                                src={cT.image}
-                                                alt={cT.name}
-                                                className="
-                                                    w-10
-                                                    h-10
-                                                    sm:w-14
-                                                    sm:h-14
-                                                    object-contain
-                                                    drop-shadow-sm
-                                                "
-                                            />
-                                        </div>
-
-                                        {/* Text Content */}
-                                        <div className="flex-1 min-w-0">
-
-                                            {/* Title + Selection */}
-                                            <div className="flex items-start justify-between gap-2">
-                                                <h3 className="font-bold text-sm sm:text-base text-slate-800 leading-tight">
-                                                    {cT.name}
-                                                </h3>
-
-                                                {isActive && (
-                                                    <span
-                                                        className={`
-                                                            flex-shrink-0
-                                                            h-4
-                                                            w-4
-                                                            rounded-full
-                                                            border
-                                                            flex
-                                                            items-center
-                                                            justify-center
-                                                            transition-all
-                                                            ${
-                                                                isSelected
-                                                                    ? "bg-[#004aad] border-[#004aad]"
-                                                                    : "border-slate-300 bg-white"
-                                                            }
-                                                        `}
-                                                    >
-                                                        {isSelected && (
-                                                            <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                                                        )}
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            {/* Description */}
-                                            <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed mt-1.5">
-                                                {cT.description}
-                                            </p>
-
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* Footer */}
-                    <div className="mt-4 sm:mt-5 flex justify-end">
-                        <button
-                            type="button"
-                            disabled={!isCurrentActive}
-                            className={`
-                                w-full
-                                sm:w-auto
-                                font-semibold
-                                text-sm
-                                py-2.5
-                                sm:py-3
-                                px-6
-                                rounded-xl
-                                transition-all
-                                shadow-md
-                                ${
-                                    isCurrentActive
-                                        ? "bg-[#004aad] hover:bg-blue-700 text-white active:scale-95 cursor-pointer"
-                                        : "bg-slate-300 text-slate-500 cursor-not-allowed shadow-none"
-                                }
-                            `}
-                            onClick={handleNextStep}
-                        >
-                            Next Step
-                        </button>
-                    </div>
-
-                </motion.div>
+                    ))}
+                </div>
+                <div className="flex justify-end border-t border-slate-100 pt-6"><button type="button" onClick={continueToCampaign} className="messaging-primary w-full sm:w-auto">Continue with email <ArrowRight size={18} /></button></div>
             </div>
-        </main>
-    );
-};
-
-export default SelectCampaign;
+        </div>
+    )
+}

@@ -1,3 +1,5 @@
+import { Check } from "../../../../ui/icons";
+import "../../../messaging/messaging.css";
 import CampaignDetails from "./CampaignDetails";
 import CampaignTemplate from "./CampaignTemplate";
 import CampaignRecipients from "./CampaignRecipients";
@@ -35,6 +37,14 @@ const Index = () => {
 
   return (
     <>
+      <ol className="messaging-steps" aria-label="Campaign progress">
+        {["Details", "Template", "Recipients", "Review"].map((label, index) => (
+          <li key={label} className={`messaging-step ${currentStep > index + 1 ? 'is-complete' : ''}`} aria-current={currentStep === index + 1 ? 'step' : undefined}>
+            <span className="messaging-step-number">{currentStep > index + 1 ? <Check size={16} /> : index + 1}</span>
+            <span>{label}</span>
+          </li>
+        ))}
+      </ol>
       {currentStep === 1 && (
         <CampaignDetails
           isPending={isPending}

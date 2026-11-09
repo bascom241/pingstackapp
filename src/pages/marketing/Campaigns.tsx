@@ -1,6 +1,7 @@
+import { PageSkeleton } from "../../ui/Skeleton";
 
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+
 
 import CampaignHeader from "../../components/dashboard/campaigns/CampaignHeader";
 import EmptyCartonState from "../../components/dashboard/campaigns/EmptyCartonState";
@@ -24,11 +25,7 @@ const Campaigns = () => {
     } = useCampaign(page, size);
 
     if (fetchingCampaignData) {
-        return (
-            <div className="flex h-screen w-full items-center justify-center">
-                <Loader2 className="animate-spin text-[#004aad]" size={50} />
-            </div>
-        );
+        return <PageSkeleton layout="table" label="Loading campaigns" />;
     }
 
     if (campaignError) {
@@ -38,7 +35,7 @@ const Campaigns = () => {
     const hasCampaigns = (campaignData?.content?.length ?? 0) > 0;
 
     return (
-        <main className="min-h-screen w-full bg-white px-5 py-8 sm:px-8">
+        <main className="messaging-page py-2 sm:py-4">
 
             <CampaignHeader
                 isOpen={isOpen}

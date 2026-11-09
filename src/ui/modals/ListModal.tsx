@@ -1,8 +1,7 @@
 import React, { type ChangeEvent } from 'react'
 import {motion} from "framer-motion"
-import { useCreateSubcriber } from '../../features/contacts/hooks/useSubsciber'
 import type { CreateAudience } from '../../types/contacts/AudienceType'
-import { Loader2 } from 'lucide-react'
+import { Loader2 } from "../icons"
 interface ListModalProps  {
     newListName: CreateAudience
     handleChange : (e:ChangeEvent<HTMLInputElement>)=> void
@@ -22,23 +21,23 @@ const ListModal = ({newListName, handleChange, isPending,  handleCreateList, set
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl border border-gray-100 p-5 shadow-2xl max-w-sm w-full space-y-4"
+              className="bg-white rounded-2xl border border-gray-100 p-5 shadow-2xl max-w-sm w-full space-y-6"
             >
               <div>
-                <h3 className="text-sm font-bold text-gray-900 tracking-tight">Spawn New Segment</h3>
-                <p className="text-[11px] text-gray-400 mt-0.5">Initialize an isolated node stack database repository.</p>
+                <h3 className="text-base font-bold text-gray-900 tracking-tight">Spawn New Segment</h3>
+                <p className="text-sm text-gray-500 mt-0.5">Initialize an isolated node stack database repository.</p>
               </div>
 
               <form onSubmit={handleCreateList} className="space-y-3">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">List Designation Name</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-gray-500">List Designation Name</label>
                   <input 
                     type="text" 
                     required
                     placeholder="e.g., Lagos Operations Trunk List"
                     value={newListName.name}
                     onChange={ handleChange}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-800 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#004aad]/10 focus:border-[#004aad] transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 placeholder:text-gray-500 outline-none focus:ring-2 focus:ring-[#004aad]/10 focus:border-[#004aad] transition-all"
                   />
                 </div>
 
@@ -46,13 +45,13 @@ const ListModal = ({newListName, handleChange, isPending,  handleCreateList, set
                   <button 
                     type="button" 
                     onClick={() => setIsNewListModalOpen(false)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-500 hover:bg-gray-50 cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg text-sm font-semibold text-gray-500 hover:bg-gray-50 cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button 
                     type="submit" 
-                    className="bg-[#004aad] hover:bg-[#003985] text-white px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer shadow-sm shadow-[#004aad]/10"
+                    className="bg-[#004aad] hover:bg-[#003985] text-white px-3 py-1.5 rounded-lg text-sm font-semibold cursor-pointer shadow-sm shadow-[#004aad]/10"
                   >
                     {isPending ? <Loader2 className='animate-spin'/> : "Generate Segment"}
                    

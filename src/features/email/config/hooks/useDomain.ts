@@ -58,7 +58,7 @@ export const useDeleteDomain = () => {
 
       return { previousDomains };
     },
-    onError: (err, deletedDomainId, context) => {
+    onError: (_err, _deletedDomainId, context) => {
     
       if (context?.previousDomains) {
         queryClient.setQueryData(["domains"], context.previousDomains);

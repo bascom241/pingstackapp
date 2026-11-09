@@ -1,3 +1,4 @@
+import { PageSkeleton } from "../../ui/Skeleton";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -20,8 +21,7 @@ import {
     Star,
     Tag,
     Trash2,
-    User,
-} from "lucide-react";
+} from "../../ui/icons";
 
 import { useGetSingleTemplate } from "../../features/templates/hooks/useTemplate";
 
@@ -162,22 +162,7 @@ const SingleTemplate = () => {
      * ---------------------------------------------------------
      */
     if (isPending) {
-        return (
-            <div className="flex min-h-screen items-center justify-center bg-[#f7f8fa]">
-                <div className="flex flex-col items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-50">
-                        <RefreshCw
-                            size={20}
-                            className="animate-spin text-[#004aad]"
-                        />
-                    </div>
-
-                    <p className="text-sm text-gray-500">
-                        Loading template...
-                    </p>
-                </div>
-            </div>
-        );
+        return <PageSkeleton layout="detail" label="Loading email template" />;
     }
 
     /**
@@ -200,7 +185,7 @@ const SingleTemplate = () => {
                         Unable to load template
                     </h2>
 
-                    <p className="mt-2 text-sm leading-relaxed text-gray-500">
+                    <p className="mt-2 text-base leading-relaxed text-gray-500">
                         We couldn't retrieve this email
                         template. Please try again.
                     </p>
@@ -209,7 +194,7 @@ const SingleTemplate = () => {
                         <button
                             type="button"
                             onClick={() => navigate(-1)}
-                            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-base font-semibold text-gray-700 transition hover:bg-gray-50"
                         >
                             <ArrowLeft size={16} />
                             Go back
@@ -218,7 +203,7 @@ const SingleTemplate = () => {
                         <button
                             type="button"
                             onClick={() => refetch()}
-                            className="inline-flex items-center gap-2 rounded-xl bg-[#004aad] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#003985]"
+                            className="inline-flex items-center gap-2 rounded-xl bg-[#004aad] px-4 py-3.5 text-base font-semibold text-white transition hover:bg-[#003985]"
                         >
                             <RefreshCw size={16} />
                             Retry
@@ -294,11 +279,11 @@ const SingleTemplate = () => {
                         <div className="hidden h-6 w-px bg-gray-200 sm:block" />
 
                         <div className="min-w-0">
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-400">
+                            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
                                 Email template
                             </p>
 
-                            <h1 className="truncate text-sm font-bold text-gray-900 sm:text-base">
+                            <h1 className="truncate text-lg font-bold text-gray-900 sm:text-xl">
                                 {template.subject ||
                                     "Untitled email"}
                             </h1>
@@ -311,7 +296,7 @@ const SingleTemplate = () => {
                         <button
                             type="button"
                             onClick={handleEdit}
-                            className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#004aad] px-3.5 text-xs font-semibold text-white transition hover:bg-[#003985] sm:text-sm"
+                            className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#004aad] px-3.5 text-sm font-semibold text-white transition hover:bg-[#003985] sm:text-base"
                         >
                             <Edit3 size={15} />
                             <span className="hidden sm:inline">
@@ -399,11 +384,11 @@ const SingleTemplate = () => {
                                     </div>
 
                                     <div>
-                                        <h2 className="text-sm font-bold text-gray-900">
+                                        <h2 className="text-base font-bold text-gray-900">
                                             Template details
                                         </h2>
 
-                                        <p className="mt-0.5 text-[11px] text-gray-400">
+                                        <p className="mt-0.5 text-sm text-gray-500">
                                             Information about this
                                             email
                                         </p>
@@ -412,11 +397,11 @@ const SingleTemplate = () => {
 
                                 {/* Subject */}
                                 <div className="mb-6">
-                                    <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-gray-400">
+                                    <p className="mb-1.5 text-xs font-bold uppercase tracking-[0.12em] text-gray-500">
                                         Subject
                                     </p>
 
-                                    <p className="text-sm font-semibold leading-relaxed text-gray-900">
+                                    <p className="text-base font-semibold leading-relaxed text-gray-900">
                                         {template.subject ||
                                             "No subject"}
                                     </p>
@@ -425,11 +410,11 @@ const SingleTemplate = () => {
                                 {/* Description */}
                                 {template.description && (
                                     <div className="mb-6">
-                                        <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-gray-400">
+                                        <p className="mb-1.5 text-xs font-bold uppercase tracking-[0.12em] text-gray-500">
                                             Description
                                         </p>
 
-                                        <p className="text-xs leading-relaxed text-gray-500">
+                                        <p className="text-sm leading-relaxed text-gray-500">
                                             {
                                                 template.description
                                             }
@@ -444,15 +429,15 @@ const SingleTemplate = () => {
                                         <div className="flex items-center gap-2.5">
                                             <FileJson
                                                 size={15}
-                                                className="text-gray-400"
+                                                className="text-gray-500"
                                             />
 
-                                            <span className="text-xs font-medium text-gray-600">
+                                            <span className="text-sm font-medium text-gray-600">
                                                 Version
                                             </span>
                                         </div>
 
-                                        <span className="rounded-md bg-blue-50 px-2 py-1 text-[11px] font-bold text-[#004aad]">
+                                        <span className="rounded-md bg-blue-50 px-2 py-1 text-sm font-bold text-[#004aad]">
                                             v
                                             {
                                                 template.version
@@ -468,15 +453,15 @@ const SingleTemplate = () => {
                                                     size={
                                                         15
                                                     }
-                                                    className="text-gray-400"
+                                                    className="text-gray-500"
                                                 />
 
-                                                <span className="text-xs font-medium text-gray-600">
+                                                <span className="text-sm font-medium text-gray-600">
                                                     Category
                                                 </span>
                                             </div>
 
-                                            <span className="text-[11px] font-semibold text-gray-700">
+                                            <span className="text-sm font-semibold text-gray-700">
                                                 {
                                                     template.category
                                                 }
@@ -497,12 +482,12 @@ const SingleTemplate = () => {
                                                     }`}
                                                 />
 
-                                                <span className="text-xs font-medium text-gray-600">
+                                                <span className="text-sm font-medium text-gray-600">
                                                     Status
                                                 </span>
                                             </div>
 
-                                            <span className="text-[11px] font-semibold text-gray-700">
+                                            <span className="text-sm font-semibold text-gray-700">
                                                 {
                                                     template.status
                                                 }
@@ -515,15 +500,15 @@ const SingleTemplate = () => {
                                         <div className="flex items-center gap-2.5">
                                             <Calendar
                                                 size={15}
-                                                className="text-gray-400"
+                                                className="text-gray-500"
                                             />
 
-                                            <span className="text-xs font-medium text-gray-600">
+                                            <span className="text-sm font-medium text-gray-600">
                                                 Created
                                             </span>
                                         </div>
 
-                                        <p className="mt-1.5 pl-6 text-[11px] text-gray-400">
+                                        <p className="mt-1.5 pl-6 text-sm text-gray-500">
                                             {createdDate}
                                         </p>
                                     </div>
@@ -536,10 +521,10 @@ const SingleTemplate = () => {
                                                     size={
                                                         15
                                                     }
-                                                    className="shrink-0 text-gray-400"
+                                                    className="shrink-0 text-gray-500"
                                                 />
 
-                                                <span className="text-xs font-medium text-gray-600">
+                                                <span className="text-sm font-medium text-gray-600">
                                                     Template ID
                                                 </span>
                                             </div>
@@ -549,7 +534,7 @@ const SingleTemplate = () => {
                                                 onClick={
                                                     handleCopyTemplateId
                                                 }
-                                                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
+                                                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
                                                 title="Copy template ID"
                                             >
                                                 <Copy
@@ -560,7 +545,7 @@ const SingleTemplate = () => {
                                             </button>
                                         </div>
 
-                                        <p className="mt-1.5 break-all pl-6 font-mono text-[10px] leading-relaxed text-gray-400">
+                                        <p className="mt-1.5 break-all pl-6 font-mono text-xs leading-relaxed text-gray-500">
                                             {
                                                 template.templateId
                                             }
@@ -573,15 +558,15 @@ const SingleTemplate = () => {
                                     <div className="flex items-center gap-2">
                                         <FileJson
                                             size={14}
-                                            className="text-gray-400"
+                                            className="text-gray-500"
                                         />
 
-                                        <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-gray-400">
+                                        <span className="text-xs font-bold uppercase tracking-[0.1em] text-gray-500">
                                             Version ID
                                         </span>
                                     </div>
 
-                                    <p className="mt-2 break-all font-mono text-[10px] leading-relaxed text-gray-400">
+                                    <p className="mt-2 break-all font-mono text-xs leading-relaxed text-gray-500">
                                         {
                                             template.templateVersionId
                                         }
@@ -594,7 +579,7 @@ const SingleTemplate = () => {
                                     onClick={
                                         toggleInfoPanel
                                     }
-                                    className="mt-6 hidden w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50 lg:flex"
+                                    className="mt-6 hidden w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 lg:flex"
                                 >
                                     <ChevronLeft
                                         size={15}
@@ -632,7 +617,7 @@ const SingleTemplate = () => {
                                     />
                                 </div>
 
-                                <span className="text-sm font-semibold text-gray-700">
+                                <span className="text-base font-semibold text-gray-700">
                                     Mail
                                 </span>
                             </div>
@@ -645,7 +630,7 @@ const SingleTemplate = () => {
                                         className="shrink-0 text-gray-500"
                                     />
 
-                                    <span className="truncate text-xs text-gray-400">
+                                    <span className="truncate text-sm text-gray-500">
                                         Search mail
                                     </span>
                                 </div>
@@ -671,7 +656,7 @@ const SingleTemplate = () => {
                                     />
                                 </button>
 
-                                <div className="ml-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#004aad] text-xs font-bold text-white">
+                                <div className="ml-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#004aad] text-sm font-bold text-white">
                                     U
                                 </div>
                             </div>
@@ -688,7 +673,7 @@ const SingleTemplate = () => {
                             <div className="px-3">
                                 <button
                                     type="button"
-                                    className="mb-4 flex h-11 w-[120px] items-center justify-center gap-2 rounded-2xl bg-white px-4 text-xs font-semibold text-gray-700 shadow-sm"
+                                    className="mb-4 flex h-11 w-[120px] items-center justify-center gap-2 rounded-2xl bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm"
                                 >
                                     <Mail
                                         size={16}
@@ -697,31 +682,31 @@ const SingleTemplate = () => {
                                 </button>
 
                                 <div className="space-y-1">
-                                    <div className="flex items-center gap-3 rounded-r-full bg-[#d3e3fd] px-4 py-2.5 text-xs font-bold text-[#174ea6]">
+                                    <div className="flex items-center gap-3 rounded-r-full bg-[#d3e3fd] px-4 py-3.5 text-sm font-bold text-[#174ea6]">
                                         <Inbox
                                             size={16}
                                         />
                                         Inbox
-                                        <span className="ml-auto text-[10px]">
+                                        <span className="ml-auto text-xs">
                                             1
                                         </span>
                                     </div>
 
-                                    <div className="flex items-center gap-3 rounded-r-full px-4 py-2.5 text-xs text-gray-600">
+                                    <div className="flex items-center gap-3 rounded-r-full px-4 py-3.5 text-sm text-gray-600">
                                         <Star
                                             size={16}
                                         />
                                         Starred
                                     </div>
 
-                                    <div className="flex items-center gap-3 rounded-r-full px-4 py-2.5 text-xs text-gray-600">
+                                    <div className="flex items-center gap-3 rounded-r-full px-4 py-3.5 text-sm text-gray-600">
                                         <Send
                                             size={16}
                                         />
                                         Sent
                                     </div>
 
-                                    <div className="flex items-center gap-3 rounded-r-full px-4 py-2.5 text-xs text-gray-600">
+                                    <div className="flex items-center gap-3 rounded-r-full px-4 py-3.5 text-sm text-gray-600">
                                         <Trash2
                                             size={16}
                                         />
@@ -786,7 +771,7 @@ const SingleTemplate = () => {
                                     <div className="rounded-t-xl border border-b-0 border-gray-200 bg-white px-5 py-5 sm:px-7">
                                         <div className="flex items-start gap-3">
                                             {/* Avatar */}
-                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#004aad] text-sm font-bold text-white">
+                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#004aad] text-base font-bold text-white">
                                                 P
                                             </div>
 
@@ -794,22 +779,22 @@ const SingleTemplate = () => {
                                                 <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                                                     <div className="min-w-0">
                                                         <div className="flex items-center gap-2">
-                                                            <p className="truncate text-sm font-bold text-gray-900">
+                                                            <p className="truncate text-base font-bold text-gray-900">
                                                                 Pingstack
                                                             </p>
 
-                                                            <span className="truncate text-[11px] text-gray-400">
+                                                            <span className="truncate text-sm text-gray-500">
                                                                 &lt;no-reply@pingstack.com&gt;
                                                             </span>
                                                         </div>
 
-                                                        <p className="mt-0.5 text-[11px] text-gray-400">
+                                                        <p className="mt-0.5 text-sm text-gray-500">
                                                             to me
                                                         </p>
                                                     </div>
 
                                                     <div className="flex shrink-0 items-center gap-2">
-                                                        <span className="text-[10px] text-gray-400">
+                                                        <span className="text-xs text-gray-500">
                                                             {
                                                                 shortDate
                                                             }
@@ -817,7 +802,7 @@ const SingleTemplate = () => {
 
                                                         <button
                                                             type="button"
-                                                            className="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100"
+                                                            className="flex h-7 w-7 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100"
                                                         >
                                                             <Star
                                                                 size={
@@ -828,7 +813,7 @@ const SingleTemplate = () => {
 
                                                         <button
                                                             type="button"
-                                                            className="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100"
+                                                            className="flex h-7 w-7 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100"
                                                         >
                                                             <MoreVertical
                                                                 size={
@@ -848,7 +833,7 @@ const SingleTemplate = () => {
                                         </h2>
 
                                         {/* Snippet */}
-                                        <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-gray-400">
+                                        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-gray-500">
                                             {emailSnippet}
                                         </p>
                                     </div>
@@ -897,7 +882,7 @@ const SingleTemplate = () => {
                         border-gray-200
                         bg-white
                         px-4
-                        text-xs
+                        text-sm
                         font-semibold
                         text-gray-700
                         shadow-lg

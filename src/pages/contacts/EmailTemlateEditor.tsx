@@ -1,3 +1,4 @@
+import { PageSkeleton, InlineSkeleton, DataSkeleton } from "../../ui/Skeleton";
 import EmailEditor from "react-email-editor";
 import { useRef, useState, useEffect } from "react";
 import {
@@ -7,7 +8,7 @@ import {
     Mail,
     Save,
     AlertCircle,
-} from "lucide-react";
+} from "../../ui/icons";
 import { useNavigate, useParams } from "react-router-dom";
 
 
@@ -139,20 +140,7 @@ console.log("Template ID:", templateId);
      * Loading
      */
     if (isLoading) {
-        return (
-            <div className="flex min-h-screen items-center justify-center bg-[#f7f8fa] px-4">
-                <div className="flex flex-col items-center gap-3 text-center">
-                    <Loader2
-                        size={28}
-                        className="animate-spin text-[#004aad]"
-                    />
-
-                    <p className="text-sm font-medium text-gray-600">
-                        Loading email template...
-                    </p>
-                </div>
-            </div>
-        );
+        return <PageSkeleton layout="editor" label="Loading email editor" />;
     }
 
     /**
@@ -173,7 +161,7 @@ console.log("Template ID:", templateId);
                         Unable to load template
                     </h2>
 
-                    <p className="mt-2 text-sm leading-6 text-gray-500">
+                    <p className="mt-2 text-base leading-6 text-gray-500">
                         {(
                             error as any
                         )?.response?.data?.message ||
@@ -192,8 +180,8 @@ console.log("Template ID:", templateId);
                             rounded-xl
                             bg-[#004aad]
                             px-4
-                            py-2.5
-                            text-sm
+                            py-3.5
+                            text-base
                             font-semibold
                             text-white
                             transition
@@ -266,18 +254,18 @@ console.log("Template ID:", templateId);
 
                                 <div className="min-w-0">
                                     <div className="flex min-w-0 items-center gap-2">
-                                        <h1 className="max-w-[180px] truncate text-sm font-bold text-gray-900 sm:max-w-[300px] sm:text-base">
+                                        <h1 className="max-w-[180px] truncate text-lg font-bold text-gray-900 sm:max-w-[300px] sm:text-xl">
                                             {initialData?.name ||
                                                 "Email Template"}
                                         </h1>
 
-                                        <span className="hidden shrink-0 rounded-md bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500 sm:inline-flex">
+                                        <span className="hidden shrink-0 rounded-md bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-500 sm:inline-flex">
                                             {initialData?.status ||
                                                 "DRAFT"}
                                         </span>
                                     </div>
 
-                                    <p className="mt-0.5 hidden max-w-[400px] truncate text-xs text-gray-400 sm:block">
+                                    <p className="mt-0.5 hidden max-w-[400px] truncate text-sm text-gray-500 sm:block">
                                         Create and customize your email
                                     </p>
                                 </div>
@@ -288,7 +276,7 @@ console.log("Template ID:", templateId);
                         <div className="flex shrink-0 items-center gap-2">
                             {/* SAVED */}
                             {saved && (
-                                <div className="hidden items-center gap-1.5 text-xs font-medium text-emerald-600 sm:flex">
+                                <div className="hidden items-center gap-1.5 text-sm font-medium text-emerald-600 sm:flex">
                                     <Check size={14} />
                                     Saved
                                 </div>
@@ -296,7 +284,7 @@ console.log("Template ID:", templateId);
 
                             {/* ERROR */}
                             {saveError && (
-                                <div className="hidden max-w-[250px] truncate items-center gap-1.5 text-xs font-medium text-red-500 lg:flex">
+                                <div className="hidden max-w-[250px] truncate items-center gap-1.5 text-sm font-medium text-red-500 lg:flex">
                                     <AlertCircle size={14} />
                                     {saveError}
                                 </div>
@@ -316,7 +304,7 @@ console.log("Template ID:", templateId);
                                     rounded-xl
                                     bg-[#004aad]
                                     px-3.5
-                                    text-xs
+                                    text-sm
                                     font-semibold
                                     text-white
                                     shadow-sm
@@ -325,7 +313,7 @@ console.log("Template ID:", templateId);
                                     disabled:cursor-not-allowed
                                     disabled:bg-gray-300
                                     sm:px-4
-                                    sm:text-sm
+                                    sm:text-base
                                 "
                             >
                                 {isSaving ? (
@@ -382,11 +370,11 @@ console.log("Template ID:", templateId);
                             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-2 lg:gap-8">
                                 {/* SUBJECT */}
                                 <div className="min-w-0">
-                                    <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-gray-400 sm:text-[11px]">
+                                    <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 sm:text-sm">
                                         Email subject
                                     </label>
 
-                                    <div className="break-words text-sm font-semibold text-gray-800 sm:text-base">
+                                    <div className="break-words text-base font-semibold text-gray-800 sm:text-base">
                                         {initialData?.subject ||
                                             "Untitled email"}
                                     </div>
@@ -395,11 +383,11 @@ console.log("Template ID:", templateId);
                                 {/* DESCRIPTION */}
                                 {initialData?.description && (
                                     <div className="min-w-0">
-                                        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-gray-400 sm:text-[11px]">
+                                        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500 sm:text-sm">
                                             Purpose
                                         </label>
 
-                                        <div className="break-words text-xs leading-5 text-gray-500 sm:text-sm">
+                                        <div className="break-words text-sm leading-5 text-gray-500 sm:text-base">
                                             {initialData.description}
                                         </div>
                                     </div>
@@ -412,7 +400,7 @@ console.log("Template ID:", templateId);
                         ERROR MOBILE
                     ================================================= */}
                     {saveError && (
-                        <div className="mb-3 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-3.5 py-3 text-xs text-red-600 lg:hidden">
+                        <div className="mb-3 flex items-start gap-2 rounded-xl border border-red-100 bg-red-50 px-3.5 py-3 text-sm text-red-600 lg:hidden">
                             <AlertCircle
                                 size={15}
                                 className="mt-0.5 shrink-0"
@@ -431,24 +419,17 @@ console.log("Template ID:", templateId);
                             <div className="flex items-center gap-2">
                                 <div className="h-2 w-2 rounded-full bg-emerald-500" />
 
-                                <span className="text-xs font-semibold text-gray-700">
+                                <span className="text-sm font-semibold text-gray-700">
                                     Email editor
                                 </span>
                             </div>
 
                             {!isReady && (
-                                <div className="flex items-center gap-1.5 text-[10px] text-gray-400 sm:text-[11px]">
-                                    <Loader2
-                                        size={13}
-                                        className="animate-spin"
-                                    />
-
-                                    <span>Loading editor...</span>
-                                </div>
+                                <InlineSkeleton width={130} height={17} label="Loading editor" />
                             )}
 
                             {isReady && (
-                                <span className="hidden text-[11px] text-gray-400 sm:block">
+                                <span className="hidden text-sm text-gray-500 sm:block">
                                     Click Save email when finished
                                 </span>
                             )}
@@ -456,7 +437,8 @@ console.log("Template ID:", templateId);
 
                         {/* UNLAYER */}
                         <div className="w-full bg-[#f8f9fb] p-0 sm:p-2 lg:p-3">
-                            <div className="w-full overflow-hidden bg-white sm:rounded-xl sm:border sm:border-gray-200">
+                            <div className="relative w-full overflow-hidden bg-white sm:rounded-xl sm:border sm:border-gray-200" aria-busy={!isReady}>
+                                {!isReady && <div className="absolute inset-0 z-10 bg-white p-6"><DataSkeleton layout="editor" label="Preparing email editor" /></div>}
                                 <EmailEditor
                                     ref={emailEditorRef}
                                     onReady={onReady}
@@ -474,11 +456,11 @@ console.log("Template ID:", templateId);
                         FOOTER
                     ================================================= */}
                     <div className="mt-3 flex flex-col gap-1 px-1 sm:flex-row sm:items-center sm:justify-between">
-                        <p className="text-[10px] leading-4 text-gray-400 sm:text-[11px]">
+                        <p className="text-xs leading-4 text-gray-500 sm:text-sm">
                             Design your email and save when you're finished.
                         </p>
 
-                        <p className="text-[10px] leading-4 text-gray-400 sm:text-[11px]">
+                        <p className="text-xs leading-4 text-gray-500 sm:text-sm">
                             Changes are saved when you click Save.
                         </p>
                     </div>

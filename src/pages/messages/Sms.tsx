@@ -1,3 +1,5 @@
+import { DataSkeleton, InlineSkeleton } from "../../ui/Skeleton";
+import MessagingHeader from '../../components/messaging/MessagingHeader';
 import React, { useEffect, useState } from "react";
 import {
   Send,
@@ -20,7 +22,7 @@ import {
   X,
   Sparkles,
   Maximize2,
-} from "lucide-react";
+} from "../../ui/icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGetApprovedIds } from "../../features/senderId/hooks/useSenderIds";
 import {
@@ -111,12 +113,12 @@ export default function Sms() {
     useGetTemplateForUser();
   const { data: selectedTemplateDetails, isPending: isTemplateDetailsPending } =
     useGetSingleTemplate(selectedTemplate?.templateId ?? "");
-  const { data: emailConfig } = useGetEmailConfig();
-  const { data: domains = [] } = useGetAllDomains();
+  const { data: emailConfig, isPending: isEmailConfigPending } = useGetEmailConfig();
+  const { data: domains = [], isPending: isDomainsPending } = useGetAllDomains();
   const { data: audiences = [], isPending: isAudiencesPending } = useGetAllAudience();
   const {
     data: subscriberData,
-    isPending: isSubscribersPending,
+    isLoading: isSubscribersPending,
     isError: isSubscribersError,
   } = useGetAllSubscibers(
     selectedAudienceId,
@@ -167,7 +169,7 @@ export default function Sms() {
 
   // Real-time Feeds for Previews
   const [smsPreviewFeed, setSmsPreviewFeed] = useState<string[]>([
-    "Welcome to Pingstack! Your developer node is now active.",
+    "Welcome to Pingstack! Your workspace is ready.",
   ]);
 
   const charCount = message.length;
@@ -189,6 +191,7 @@ export default function Sms() {
 
   const handleLaunchCampaign = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (channel === "sms" && (!senderId || !recipients || !message)) return;
     if (channel === "email" && (!senderEmail || !subject || !recipients || !message)) return;
 
@@ -199,9 +202,6 @@ export default function Sms() {
       if (channel === "sms") {
         setSmsPreviewFeed((prev) => [...prev, message]);
       }
-      setMessage("");
-      if (channel === "email") setSubject("");
-      setSelectedTemplate(null);
       setIsSubmitting(false);
       setIsAnimatingTransmission(false);
     }, 2800);
@@ -214,75 +214,49 @@ export default function Sms() {
   });
 
   return (
-    <div className="w-full max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start relative">
-
-      {/* Main Dispatch Form */}
-      <form onSubmit={handleLaunchCampaign} className="lg:col-span-2 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">
-              Dispatch Message
-            </h1>
-            <p className="text-xs text-gray-500 mt-1">
-              Broadcast high-throughput SMS alerts to phones or dispatch email notifications globally.
-            </p>
+    <div className="messaging-page">
+      <MessagingHeader
+        title="Send a message"
+        description="A quick update or an important announcement. Connect with your audience by SMS or email."
+        action={
+          <div className="messaging-channels" aria-label="Message channel">
+            <button type="button" aria-pressed={channel === "sms"} onClick={() => setChannel("sms")}><PhoneCall size={19} /> SMS</button>
+            <button type="button" aria-pressed={channel === "email"} onClick={() => setChannel("email")}><Mail size={19} /> Email</button>
           </div>
-
-          {/* Channel Selector Toggle */}
-          <div className="flex items-center bg-gray-100 p-1 rounded-xl shrink-0">
-            <button
-              type="button"
-              onClick={() => setChannel("sms")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                channel === "sms"
-                  ? "bg-white text-[#004aad] shadow-sm"
-                  : "text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              <PhoneCall size={13} />
-              <span>SMS Phone</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setChannel("email")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                channel === "email"
-                  ? "bg-white text-[#004aad] shadow-sm"
-                  : "text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              <Mail size={13} />
-              <span>Email</span>
-            </button>
+        }
+      />
+      <div className="messaging-composer-grid">
+      <form onSubmit={handleLaunchCampaign} className="min-w-0 space-y-6">
+        <div className="messaging-panel space-y-7">
+          <div className="messaging-panel-heading">
+            <h2>{channel === "sms" ? "Compose your SMS" : "Compose your email"}</h2>
+            <p>Choose your sender, add recipients, and make your message count.</p>
           </div>
-        </div>
-
-        <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-4">
 
           {/* Template Bar Quick Trigger (EMAIL ONLY) */}
           {channel === "email" && (
-            <div className="flex items-center justify-between bg-purple-50/60 border border-purple-100 rounded-xl p-3">
+            <div className="flex items-center justify-between bg-blue-50/60 border border-blue-100 rounded-xl p-3">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="p-1.5 bg-purple-100 text-purple-700 rounded-lg shrink-0">
+                <div className="p-1.5 bg-blue-100 text-[#004aad] rounded-lg shrink-0">
                   <FileText size={15} />
                 </div>
                 <div className="truncate">
-                  <p className="text-xs font-bold text-gray-800 truncate">
+                  <p className="text-sm font-bold text-gray-800 truncate">
                     {selectedTemplate ? selectedTemplate.name : "No template loaded"}
                   </p>
-                  <p className="text-[10px] text-gray-500 truncate">
+                  <p className="text-xs text-gray-500 truncate">
                     {selectedTemplate
                       ? isTemplateDetailsPending
-                        ? "Loading current template version..."
+                        ? <InlineSkeleton width={170} height={12} label="Loading template details" />
                         : `Category: ${selectedTemplate.category}`
-                      : "Use a pre-designed blueprint template to autofill layout"}
+                      : "Start with a saved design for your email"}
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsTemplateModalOpen(true)}
-                className="bg-purple-600 hover:bg-purple-700 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer flex items-center gap-1 shadow-sm"
+                className="bg-[#004aad] hover:bg-[#003985] text-white font-bold text-sm px-3 py-1.5 rounded-lg transition-all shrink-0 cursor-pointer flex items-center gap-1 shadow-sm"
               >
                 <Sparkles size={12} />
                 <span>{selectedTemplate ? "Change Template" : "Choose Template"}</span>
@@ -292,18 +266,18 @@ export default function Sms() {
 
           {/* Sender Identity Selection */}
           {channel === "sms" ? (
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="message-sender-id" className="text-sm font-semibold text-slate-700 flex items-center gap-1">
                 SMS Sender ID <HelpCircle size={12} className="text-gray-300" />
               </label>
 
-              <select
+              {isPending ? <InlineSkeleton width="100%" height={52} label="Loading sender IDs" /> : <select
+                id="message-sender-id"
                 value={senderId}
                 onChange={(e) => setSenderId(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-[#004aad]/20 focus:border-[#004aad] transition-all"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-3.5 text-sm font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-[#004aad]/20 focus:border-[#004aad] transition-all"
                 required
               >
-                {isPending && <option>Loading Sender IDs...</option>}
                 {isError && <option>Error loading Sender IDs</option>}
                 {!isPending && approvedSenderIds.length === 0 && (
                   <option>No approved Sender IDs found</option>
@@ -317,12 +291,12 @@ export default function Sms() {
                     </option>
                   );
                 })}
-              </select>
+              </select>}
 
               {/* Select Pagination Bar for SMS */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-end gap-2 mt-1 px-1">
-                  <span className="text-[10px] text-gray-400">
+                  <span className="text-xs text-gray-500">
                     Page {page + 1} of {totalPages}
                   </span>
                   <button
@@ -345,63 +319,64 @@ export default function Sms() {
               )}
             </div>
           ) : (
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                Sender Email Identity
+            <div className="flex flex-col gap-2">
+              <label htmlFor="message-sender-email" className="text-sm font-semibold text-slate-700">
+                Sender email
               </label>
-              <input
+              {!senderEmail && (isEmailConfigPending || isDomainsPending) ? <InlineSkeleton width="100%" height={52} label="Loading sender email" /> : <input
                 type="email"
+                id="message-sender-email"
                 value={senderEmail}
                 onChange={(e) => setSenderEmail(e.target.value)}
                 placeholder="noreply@yourdomain.com"
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-mono text-gray-700 outline-none focus:ring-2 focus:ring-[#004aad]/20 focus:border-[#004aad] transition-all"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-3.5 text-sm font-mono text-gray-700 outline-none focus:ring-2 focus:ring-[#004aad]/20 focus:border-[#004aad] transition-all"
                 required
-              />
+              />}
             </div>
           )}
 
           {/* Email Subject Field (Email Channel Only) */}
           {channel === "email" && (
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                Email Subject Line
+            <div className="flex flex-col gap-2">
+              <label htmlFor="message-subject" className="text-sm font-semibold text-slate-700">
+                Subject line
               </label>
               <input
                 type="text"
+                id="message-subject"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="Important updates regarding your account..."
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-gray-800 outline-none focus:ring-2 focus:ring-[#004aad]/20 focus:border-[#004aad] transition-all"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-3.5 text-sm font-semibold text-gray-800 outline-none focus:ring-2 focus:ring-[#004aad]/20 focus:border-[#004aad] transition-all"
                 required
               />
             </div>
           )}
 
           {/* Recipients Box */}
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-2">
             {channel === "sms" && (
-              <div className="flex flex-col gap-1.5 rounded-xl border border-blue-100 bg-blue-50/50 p-3">
+              <div className="flex flex-col gap-2 rounded-xl border border-blue-100 bg-blue-50/50 p-3">
                 <div className="flex items-center justify-between gap-3">
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                  <label className="text-sm font-semibold text-slate-700">
                     Contact Audience
                   </label>
                   <button
                     type="button"
                     onClick={() => setIsContactUploadOpen(true)}
                     disabled={!selectedAudienceId}
-                    className="text-[10px] font-bold text-[#004aad] hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                    className="text-xs font-bold text-[#004aad] hover:underline disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     Import CSV
                   </button>
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row">
-                  <select
+                  {isAudiencesPending ? <InlineSkeleton width="100%" height={48} label="Loading audiences" /> : <select
                     value={selectedAudienceId}
                     onChange={(event) => setSelectedAudienceId(event.target.value)}
                     disabled={isAudiencesPending || audiences.length === 0}
-                    className="min-w-0 flex-1 rounded-lg border border-blue-100 bg-white px-3 py-2 text-xs font-semibold text-gray-700 outline-none focus:border-[#004aad] focus:ring-2 focus:ring-[#004aad]/20"
+                    className="min-w-0 flex-1 rounded-lg border border-blue-100 bg-white px-3 py-2 text-sm font-semibold text-gray-700 outline-none focus:border-[#004aad] focus:ring-2 focus:ring-[#004aad]/20"
                   >
-                    {isAudiencesPending && <option>Loading audiences...</option>}
                     {!isAudiencesPending && audiences.length === 0 && (
                       <option>No contact audiences found</option>
                     )}
@@ -410,17 +385,17 @@ export default function Sms() {
                         {audience.name} ({audience.totalCount.toLocaleString()})
                       </option>
                     ))}
-                  </select>
+                  </select>}
                   <button
                     type="button"
                     onClick={handleUseAudience}
                     disabled={!selectedAudienceId || isSubscribersPending || subscribers.length === 0}
-                    className="rounded-lg bg-[#004aad] px-3 py-2 text-[11px] font-bold text-white transition hover:bg-[#003985] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded-lg bg-[#004aad] px-3 py-2 text-sm font-bold text-white transition hover:bg-[#003985] disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    {isSubscribersPending ? "Loading..." : "Use audience"}
+                    {isSubscribersPending ? <InlineSkeleton width={85} height={16} label="Loading audience subscribers" /> : "Use audience"}
                   </button>
                 </div>
-                <p className="text-[10px] text-gray-500">
+                <p className="text-xs text-gray-500">
                   {isSubscribersError
                     ? "Unable to load subscribers for this audience."
                     : selectedAudience
@@ -431,18 +406,20 @@ export default function Sms() {
             )}
 
             <div className="flex justify-between items-end">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                {channel === "sms" ? "Recipients Phone Book" : "Recipient Email Addresses"}
+              <label htmlFor="message-recipients" className="text-sm font-semibold text-slate-700">
+                {channel === "sms" ? "Phone numbers" : "Email addresses"}
               </label>
-              <button
+              {channel === "sms" && <button
                 type="button"
-                onClick={() => channel === "sms" && setIsContactUploadOpen(true)}
-                className="text-[10px] font-bold text-[#004aad] flex items-center gap-1 hover:underline cursor-pointer"
+                disabled={!selectedAudienceId}
+                onClick={() => setIsContactUploadOpen(true)}
+                className="text-xs font-bold text-[#004aad] flex items-center gap-1 hover:underline cursor-pointer"
               >
-                <Upload size={12} /> Import CSV list
-              </button>
+                <Upload size={16} /> Import CSV
+              </button>}
             </div>
             <textarea
+              id="message-recipients"
               value={recipients}
               onChange={(e) => setRecipients(e.target.value)}
               placeholder={
@@ -450,43 +427,44 @@ export default function Sms() {
                   ? "Enter mobile numbers comma-separated (+23480..., +23490...)"
                   : "Enter email addresses comma-separated (user1@domain.com, user2@domain.com)"
               }
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs font-mono text-gray-600 h-24 placeholder:font-sans outline-none focus:ring-2 focus:ring-[#004aad]/20 focus:border-[#004aad] transition-all resize-none"
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-base text-gray-600 h-28 placeholder:font-sans outline-none focus:ring-2 focus:ring-[#004aad]/20 focus:border-[#004aad] transition-all resize-none"
               required
             />
           </div>
 
           {/* Email content is authored in Unlayer. */}
           {channel === "email" && (
-            <div className="rounded-xl border border-purple-100 bg-purple-50/50 px-3 py-2.5 text-[11px] text-purple-700">
-              Email content is managed in Unlayer. Choose a template to load its rendered version.
+            <div className="rounded-xl border border-blue-100 bg-blue-50/50 px-3 py-3.5 text-sm text-[#004aad]">
+              Choose a saved email template, then check the preview before continuing.
             </div>
           )}
 
           {/* Message Payload Body */}
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-2">
             <div className="flex justify-between items-end">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                {channel === "sms" ? "SMS Message Body" : "Email Template Content"}
+              <label htmlFor={channel === "sms" ? "message-body" : undefined} className="text-sm font-semibold text-slate-700">
+                {channel === "sms" ? "Message" : "Email content"}
               </label>
               {channel === "sms" && (
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${charCount > 160 ? 'bg-amber-50 text-amber-600' : 'bg-gray-50 text-gray-400'}`}>
+                <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${charCount > 160 ? 'bg-amber-50 text-amber-600' : 'bg-gray-50 text-gray-500'}`}>
                   {charCount} / {smsPages} SMS Unit{smsPages > 1 && 's'}
                 </span>
               )}
             </div>
             {channel === "sms" ? (
               <textarea
+                id="message-body"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Type your SMS content here..."
                 maxLength={1000}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3.5 text-xs text-gray-700 h-32 outline-none focus:ring-2 focus:ring-[#004aad]/20 focus:border-[#004aad] transition-all resize-none"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-base leading-7 text-gray-700 h-48 outline-none focus:ring-2 focus:ring-[#004aad]/20 focus:border-[#004aad] transition-all resize-none"
                 required
               />
             ) : (
-              <div className="flex h-32 items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 text-center text-xs text-gray-500">
+              <div className="flex h-32 items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 text-center text-sm text-gray-500">
                 {selectedTemplate
-                  ? "Rendered template content is available in the Email Client Render preview."
+                  ? "Rendered template content is available in the Email preview preview."
                   : "Choose an email template to continue."}
               </div>
             )}
@@ -497,24 +475,25 @@ export default function Sms() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-[#004aad] hover:bg-[#003985] disabled:opacity-50 text-white font-semibold text-xs py-3 px-4 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#004aad]/40"
+          className="w-full bg-[#004aad] hover:bg-[#003985] disabled:opacity-50 text-white font-semibold text-sm py-3 px-4 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#004aad]/40"
         >
           {isSubmitting ? (
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : (
             <>
               <Send size={14} />
-              <span>Broadcast {channel === "sms" ? "SMS Campaign" : "Email Campaign"}</span>
+              <span>Preview {channel === "sms" ? "SMS" : "email"} message</span>
             </>
           )}
         </button>
+        <p className="text-center text-sm leading-6 text-slate-500">This composer is a preview. Messages are not sent from this screen.</p>
       </form>
 
       {/* Real-Time Live Preview Display */}
-      <div className="flex flex-col items-center gap-3 lg:mt-12 w-full">
+      <div className="messaging-preview flex w-full flex-col items-center gap-6">
         <div className="flex w-full items-center justify-between lg:justify-center gap-3">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-            {channel === "sms" ? "Device Phone Render" : "Email Client Render"}
+          <span className="text-sm font-semibold text-slate-700">
+            {channel === "sms" ? "SMS preview" : "Email preview"}
           </span>
           {channel === "email" && message && (
             <button
@@ -662,7 +641,7 @@ export default function Sms() {
 
             {/* Email Body Content */}
             <div className="bg-gray-50/50 min-h-[180px] text-xs text-gray-700 leading-relaxed font-sans">
-              {message ? (
+              {selectedTemplate && isTemplateDetailsPending ? <div className="p-4"><DataSkeleton layout="form" rows={3} label="Loading email preview" /></div> : message ? (
                 <iframe
                   title="Email template preview"
                   srcDoc={message}
@@ -679,6 +658,8 @@ export default function Sms() {
         )}
       </div>
 
+      </div>
+
       {/* Template Selection Modal (EMAIL ONLY) */}
       <AnimatePresence>
         {isTemplateModalOpen && channel === "email" && (
@@ -687,19 +668,20 @@ export default function Sms() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white border border-gray-100 rounded-2xl p-6 shadow-2xl max-w-2xl w-full space-y-4 max-h-[90vh] overflow-y-auto"
+              className="bg-white border border-gray-100 rounded-2xl p-6 shadow-2xl max-w-2xl w-full space-y-6 max-h-[90vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                 <div>
-                  <h3 className="text-base font-bold text-gray-900">Select Template Blueprint</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    Choose a preset payload format to automatically sync into your campaign dispatch workspace.
+                  <h3 className="text-base font-bold text-gray-900">Choose an email template</h3>
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    Find a saved design that fits your message.
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsTemplateModalOpen(false)}
-                  className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all cursor-pointer"
+                  aria-label="Close template selector"
+                  className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all cursor-pointer"
                 >
                   <X size={16} />
                 </button>
@@ -713,7 +695,7 @@ export default function Sms() {
                       key={tab}
                       type="button"
                       onClick={() => setTemplateCategoryTab(tab)}
-                      className={`px-3 py-1.5 rounded-lg text-[11px] font-bold capitalize transition-all cursor-pointer ${
+                      className={`px-3 py-1.5 rounded-lg text-sm font-bold capitalize transition-all cursor-pointer ${
                         templateCategoryTab === tab
                           ? "bg-white text-[#004aad] shadow-sm"
                           : "text-gray-500 hover:text-gray-800"
@@ -725,13 +707,13 @@ export default function Sms() {
                 </div>
 
                 <div className="relative w-full sm:w-48">
-                  <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                  <Search className="w-3.5 h-3.5 text-gray-500 absolute left-3 top-1/2 transform -translate-y-1/2" />
                   <input
                     type="text"
                     placeholder="Search templates..."
                     value={templateSearch}
                     onChange={(e) => setTemplateSearch(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-8 pr-3 py-1.5 text-xs text-gray-700 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#004aad]/10"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-8 pr-3 py-1.5 text-sm text-gray-700 placeholder:text-gray-500 outline-none focus:ring-2 focus:ring-[#004aad]/10"
                   />
                 </div>
               </div>
@@ -739,28 +721,28 @@ export default function Sms() {
               {/* Template Cards Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 {isTemplatesPending && (
-                  <p className="sm:col-span-2 py-8 text-center text-xs text-gray-500">
-                    Loading email templates...
-                  </p>
+                  <div className="sm:col-span-2"><DataSkeleton layout="cards" rows={4} label="Loading email templates" /></div>
                 )}
 
                 {isTemplatesError && (
-                  <p className="sm:col-span-2 py-8 text-center text-xs text-red-500">
+                  <p className="sm:col-span-2 py-8 text-center text-sm text-red-500">
                     Unable to load email templates. Please try again.
                   </p>
                 )}
 
                 {!isTemplatesPending && !isTemplatesError && filteredTemplates.length === 0 && (
-                  <p className="sm:col-span-2 py-8 text-center text-xs text-gray-500">
+                  <p className="sm:col-span-2 py-8 text-center text-sm text-gray-500">
                     No email templates match your filters.
                   </p>
                 )}
 
                 {filteredTemplates.map((tpl) => (
-                  <div
+                  <button
+                    type="button"
+                    aria-pressed={selectedTemplate?.templateId === tpl.templateId}
                     key={tpl.templateId}
                     onClick={() => handleSelectTemplate(tpl)}
-                    className={`border rounded-xl p-4 cursor-pointer transition-all flex flex-col justify-between gap-3 hover:border-[#004aad] hover:shadow-md ${
+                    className={`border rounded-xl p-5 text-left cursor-pointer transition-all flex flex-col justify-between gap-3 hover:border-[#004aad] hover:shadow-md ${
                       selectedTemplate?.templateId === tpl.templateId
                         ? "border-[#004aad] bg-blue-50/20"
                         : "border-gray-200 bg-white"
@@ -769,33 +751,33 @@ export default function Sms() {
                     <div className="space-y-1">
                       <div className="flex items-center justify-between">
                         <span
-                          className={`text-[9px] font-black tracking-wide uppercase px-2 py-0.5 rounded-md ${
+                          className={`text-xs font-black tracking-wide uppercase px-2 py-0.5 rounded-md ${
                             tpl.category === "Transactional"
                               ? "bg-blue-50 text-blue-700 border border-blue-100"
                               : tpl.category === "Marketing"
                               ? "bg-amber-50 text-amber-700 border border-amber-100"
-                              : "bg-purple-50 text-purple-700 border border-purple-100"
+                              : "bg-purple-50 text-[#004aad] border border-blue-100"
                           }`}
                         >
                           {tpl.category}
                         </span>
-                        <span className="text-[10px] font-mono text-gray-400">
+                        <span className="text-xs font-mono text-gray-500">
                           {tpl.updatedAt ? formatTemplateDate(tpl.updatedAt) : "Email template"}
                         </span>
                       </div>
-                      <h4 className="text-xs font-bold text-gray-900 pt-1">{tpl.name}</h4>
-                      <p className="text-[10px] text-gray-500 line-clamp-2">
-                        {tpl.description || "Select to load the current template version."}
+                      <h4 className="text-sm font-bold text-gray-900 pt-1">{tpl.name}</h4>
+                      <p className="text-xs text-gray-500 line-clamp-2">
+                        {tpl.description || "Use this design for your email."}
                       </p>
                     </div>
 
-                    <div className="flex items-center justify-between border-t border-gray-100 pt-2 text-[10px]">
-                      <span className="text-gray-400">{formatTemplateDate(tpl.updatedAt)}</span>
+                    <div className="flex items-center justify-between border-t border-gray-100 pt-2 text-xs">
+                      <span className="text-gray-500">{formatTemplateDate(tpl.updatedAt)}</span>
                       <span className="text-[#004aad] font-bold flex items-center gap-0.5">
-                        Apply Blueprint <Check size={12} />
+                        Use template <Check size={12} />
                       </span>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             </motion.div>
@@ -814,17 +796,17 @@ export default function Sms() {
             >
               <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
                 <div>
-                  <h3 className="text-sm font-bold text-gray-900">
+                  <h3 className="text-base font-bold text-gray-900">
                     {selectedTemplate?.name || "Email preview"}
                   </h3>
-                  <p className="mt-0.5 text-[11px] text-gray-500">
+                  <p className="mt-0.5 text-sm text-gray-500">
                     This is the rendered content from the selected Unlayer template.
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsEmailPreviewOpen(false)}
-                  className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
+                  className="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
                   aria-label="Close email preview"
                 >
                   <X size={16} />

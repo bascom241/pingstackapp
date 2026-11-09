@@ -6,7 +6,9 @@ import {
   saveAuthSession,
 } from "../../utils/authToken";
 
-const baseURL = "http://localhost:3000/api/v1";
+const baseURL = import.meta.env.VITE_API_URL;
+console.log("API Base URL:", baseURL);
+console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
 export const axiosInstance = axios.create({
   baseURL,
 });

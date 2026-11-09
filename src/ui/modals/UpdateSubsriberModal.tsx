@@ -1,3 +1,4 @@
+import { DataSkeleton } from "../Skeleton";
 import { motion } from "framer-motion"
 import React, { useEffect, useState } from "react"
 import { useUpdateSubscriber } from "../../features/contacts/hooks/useSubsciber"
@@ -6,7 +7,7 @@ import { SUBSCIBERS_QUERY_KEY } from "../../features/contacts/hooks/useSubsciber
 import { useSnackbar } from "notistack"
 import { AUDIENCE_QUERY_KEY } from "../../features/contacts/hooks/useAudience"
 import { getApiErrorMessage } from "../../utils/apiError"
-import { Loader2 } from "lucide-react"
+import { Loader2 } from "../icons"
 import { useGetSingSubscriber } from "../../features/contacts/hooks/useSubsciber"
 
 
@@ -16,11 +17,11 @@ interface UpdateSubscriberModalProps {
     listId: string
     subscriberId: string
 }
-const UpdateSubsriberModal = ({ uploadModal, setUploadModal, listId, subscriberId }: UpdateSubscriberModalProps) => {
-    const {data,isPending:fetchingSingleSubscriber,error} = useGetSingSubscriber(subscriberId)
+const UpdateSubsriberModal = ({ setUploadModal, listId, subscriberId }: UpdateSubscriberModalProps) => {
+    const { data, isLoading: isDataPending, isError: isDataError, refetch } = useGetSingSubscriber(subscriberId)
   
     const [formData, setFormData] = useState({ name: "", destinationNumber: "", status: "" });
-    const { mutate, isPending, isError } = useUpdateSubscriber();
+    const { mutate, isPending } = useUpdateSubscriber();
 
 
 
@@ -38,6 +39,7 @@ const UpdateSubsriberModal = ({ uploadModal, setUploadModal, listId, subscriberI
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (isDataPending || isDataError || isPending || !data) return;
         const dataToSend = { ...formData, listId, subscriberId };
         mutate(dataToSend, {
             onSuccess: (data) => {
@@ -76,33 +78,33 @@ const UpdateSubsriberModal = ({ uploadModal, setUploadModal, listId, subscriberI
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-white rounded-2xl border border-gray-100 p-5 shadow-2xl max-w-sm w-full space-y-4"
+                className="bg-white rounded-2xl border border-gray-100 p-5 shadow-2xl max-w-sm w-full space-y-6"
             >
-                <form className="space-y-3" onSubmit={handleSubmit} >
+                {isDataPending ? <><DataSkeleton layout="form" rows={3} label="Loading subscriber details" /><button type="button" onClick={() => setUploadModal(false)} className="dashboard-button">Cancel</button></> : isDataError ? <div role="alert"><p>Subscriber details could not be loaded.</p><button type="button" onClick={() => void refetch()} className="dashboard-button mt-4">Try again</button><button type="button" onClick={() => setUploadModal(false)} className="dashboard-button ml-2">Cancel</button></div> : <form className="space-y-3" onSubmit={handleSubmit} >
                     <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Subscriber Name</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Subscriber Name</label>
                         <input
                             type="text"
                             placeholder="e.g., Abdulbasit"
                             value={formData.name}
                             onChange={handleChange}
                             name="name"
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-800 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#004aad]/10 focus:border-[#004aad] transition-all"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 placeholder:text-gray-500 outline-none focus:ring-2 focus:ring-[#004aad]/10 focus:border-[#004aad] transition-all"
                         />
                     </div>
                     <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Subsciber PhoneNumber</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Subsciber PhoneNumber</label>
                         <input
                             type="number"
                             value={formData.destinationNumber}
                             onChange={handleChange}
                             name="destinationNumber"
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-800 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#004aad]/10 focus:border-[#004aad] transition-all"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 placeholder:text-gray-500 outline-none focus:ring-2 focus:ring-[#004aad]/10 focus:border-[#004aad] transition-all"
                         />
                     </div>
                     <div className="flex flex-col gap-1">
                         <select
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-800 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#004aad]/10 focus:border-[#004aad] transition-all"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 placeholder:text-gray-500 outline-none focus:ring-2 focus:ring-[#004aad]/10 focus:border-[#004aad] transition-all"
                             value={formData.status}
                             name="status"
                             onChange={handleChange}
@@ -119,20 +121,20 @@ const UpdateSubsriberModal = ({ uploadModal, setUploadModal, listId, subscriberI
                         <button
                             type="button"
                             onClick={()=> setUploadModal(false)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-500 hover:bg-gray-50 cursor-pointer"
+                            className="px-3 py-1.5 rounded-lg text-sm font-semibold text-gray-500 hover:bg-gray-50 cursor-pointer"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="bg-[#004aad] hover:bg-[#003985] text-white px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer shadow-sm shadow-[#004aad]/10"
+                            className="bg-[#004aad] hover:bg-[#003985] text-white px-3 py-1.5 rounded-lg text-sm font-semibold cursor-pointer shadow-sm shadow-[#004aad]/10"
                         >
                             {
                                 isPending ? <Loader2 className="animate-spin"/> : " Update Subcriber"
                             }
                         </button>
                     </div>
-                </form>
+                </form>}
             </motion.div>
         </div>
 

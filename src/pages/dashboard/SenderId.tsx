@@ -1,3 +1,5 @@
+import { DataSkeleton } from "../../ui/Skeleton";
+import MessagingHeader from '../../components/messaging/MessagingHeader';
 import { useState } from "react"
 import {
   Plus,
@@ -8,7 +10,7 @@ import {
   ChevronLeft,
   PhoneCall,
   Mail
-} from "lucide-react"
+} from "../../ui/icons"
 import {
   Table,
   TableBody,
@@ -29,7 +31,7 @@ export default function SenderId() {
   const [page, setPage] = useState(0)
   const pageSize = 5
 
-  const { data } = useGetAllSenderIds(page, pageSize)
+  const { data, isPending, isError, refetch } = useGetAllSenderIds(page, pageSize)
 
   const handleOpenModal = () => setIsModalOpen(true)
   const handleCloseModal = () => setIsModalOpen(false)
@@ -77,33 +79,17 @@ export default function SenderId() {
   const isLastPage = data?.last ?? true
 
   return (
-    <main className="flex flex-col w-full h-auto p-6 max-w-6xl mx-auto gap-6">
+    <main className="messaging-page flex flex-col gap-6 py-2 sm:py-4">
       
-      {/* Top Header & Context Description */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full border-b border-gray-100 pb-5">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
-            Sender Identities
-          </h1>
-          <p className="text-sm text-gray-500 mt-1 max-w-xl">
-            Manage your verified phone Sender IDs for SMS broadcasts and custom email domains for outgoing campaigns.
-          </p>
-        </div>
-
-        <button
-          onClick={handleOpenModal}
-          className="whitespace-nowrap bg-[#004aad] hover:bg-[#003985] text-white font-semibold text-sm py-2.5 px-4 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#004aad]/40"
-        >
-          <Plus size={18} />
-          {activeTab === "sms" ? "Request SMS ID" : "Add Email Domain"}
-        </button>
-      </div>
+      <MessagingHeader eyebrow="Make it recognizable" title="Sender identities" description="Put your name on every message. Manage your SMS sender IDs and verified email domains." action={
+        <button type="button" onClick={handleOpenModal} className="messaging-primary"><Plus size={20} />{activeTab === "sms" ? "Request sender ID" : "Add email domain"}</button>
+      } />
 
       {/* Tab Switcher (SMS Phone vs Email Domains) */}
       <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
         <button
           onClick={() => setActiveTab("sms")}
-          className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer ${
+          className={`flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-xl transition-all cursor-pointer ${
             activeTab === "sms"
               ? "bg-[#004aad]/10 text-[#004aad]"
               : "text-gray-500 hover:bg-gray-100"
@@ -115,7 +101,7 @@ export default function SenderId() {
 
         <button
           onClick={() => setActiveTab("email")}
-          className={`flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer ${
+          className={`flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-xl transition-all cursor-pointer ${
             activeTab === "email"
               ? "bg-[#004aad]/10 text-[#004aad]"
               : "text-gray-500 hover:bg-gray-100"
@@ -129,9 +115,9 @@ export default function SenderId() {
       {/* Tab 1: SMS Sender IDs View */}
       {activeTab === "sms" && (
         <>
-          {senderIds.length === 0 ? (
+          {isPending ? <DataSkeleton layout="table" rows={5} label="Loading sender identities" /> : isError ? <div role="alert" className="dashboard-empty"><strong>Sender identities could not be loaded.</strong><button type="button" className="dashboard-button" onClick={() => void refetch()}>Try again</button></div> : senderIds.length === 0 ? (
             <div className="w-full py-16 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
-              <p className="text-center text-gray-400 max-w-xs text-sm">
+              <p className="text-center text-gray-500 max-w-xs text-base">
                 No SMS Sender IDs registered. Click "Request SMS ID" to send messages to phone devices.
               </p>
             </div>
@@ -172,7 +158,7 @@ export default function SenderId() {
 
               {totalPages > 1 && (
                 <div className="flex items-center justify-between border-t border-gray-100 pt-3 px-4 pb-4 mt-2">
-                  <span className="text-xs text-gray-400">
+                  <span className="text-sm text-gray-500">
                     Page {page + 1} of {totalPages}
                   </span>
                   <div className="flex items-center gap-1">

@@ -1,6 +1,6 @@
 import Input from "../Input"
 import { motion } from "framer-motion"
-import { Loader2, X } from "lucide-react"
+import { Loader2, X } from "../icons"
 import { useCreateSenderId } from "../../features/senderId/hooks/useCreateSenderId"
 import React, { useState } from "react";
 import { getApiErrorMessage } from "../../utils/apiError";
@@ -23,7 +23,7 @@ const SenderIdModal = ({ onClose }: SenderIdModalProps) => {
             }
         })
     }
-    const { mutate, error, isPending } = useCreateSenderId();
+    const { mutate, isPending } = useCreateSenderId();
 
     const handleCreateSenderId = () => {
         mutate(formData, {
@@ -65,11 +65,11 @@ const SenderIdModal = ({ onClose }: SenderIdModalProps) => {
                 <div className="flex w-full items-center justify-between pb-3 border-b border-gray-100">
                     <div>
                         <h1 className="text-xl font-bold text-gray-900 tracking-tight">Create Your ID</h1>
-                        <p className="text-xs text-gray-500 mt-0.5">Fill in the details to request your SMS sender ID.</p>
+                        <p className="text-sm text-gray-500 mt-0.5">Fill in the details to request your SMS sender ID.</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-full transition-all duration-200"
+                        className="text-gray-500 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-full transition-all duration-200"
                     >
                         <X size={20} />
                     </button>
@@ -78,7 +78,7 @@ const SenderIdModal = ({ onClose }: SenderIdModalProps) => {
                 {/* Form Body */}
                 <div className="w-full flex flex-col gap-4">
                     <div className="flex flex-col gap-1.5 w-full">
-                        <label className="text-xs font-semibold text-gray-700 tracking-wide uppercase">
+                        <label className="text-sm font-semibold text-gray-700 tracking-wide uppercase">
                             Sender ID SMS
                         </label>
                         <Input
@@ -89,13 +89,13 @@ const SenderIdModal = ({ onClose }: SenderIdModalProps) => {
                             value={formData.senderId}
 
                         />
-                        <span className="text-[11px] text-gray-400">
+                        <span className="text-sm text-gray-500">
                             Ensure your ID is not more than 11 characters.
                         </span>
                     </div>
 
                     <div className="flex flex-col gap-1.5 w-full">
-                        <label className="text-xs font-semibold text-gray-700 tracking-wide uppercase">
+                        <label className="text-sm font-semibold text-gray-700 tracking-wide uppercase">
                             Company
                         </label>
                         <Input
@@ -108,7 +108,7 @@ const SenderIdModal = ({ onClose }: SenderIdModalProps) => {
                     </div>
 
                     <div className="flex flex-col gap-1.5 w-full">
-                        <label className="text-xs font-semibold text-gray-700 tracking-wide uppercase">
+                        <label className="text-sm font-semibold text-gray-700 tracking-wide uppercase">
                             Use Case
                         </label>
                         <Input
@@ -125,7 +125,7 @@ const SenderIdModal = ({ onClose }: SenderIdModalProps) => {
                 <button
                     type="submit"
                     onClick={handleCreateSenderId}
-                    className="w-full mt-2 bg-[#004aad] hover:bg-[#003985] text-white font-semibold text-sm py-3 px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#004aad]/50"
+                    className="w-full mt-2 bg-[#004aad] hover:bg-[#003985] text-white font-semibold text-base py-3 px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#004aad]/50"
                 >
 
                     {

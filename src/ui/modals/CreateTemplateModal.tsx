@@ -6,7 +6,7 @@ import {
     ArrowRight,
     Check,
     Loader2,
-} from "lucide-react";
+} from "../icons";
 
 interface CreateEmailTemplateModalProps {
     open: boolean;
@@ -195,7 +195,7 @@ const CreateEmailTemplateModal = ({
                                     Create an email
                                 </h2>
 
-                                <p className="mt-0.5 truncate text-xs text-gray-500">
+                                <p className="mt-0.5 truncate text-sm text-gray-500">
                                     Set up your email template
                                 </p>
                             </div>
@@ -213,7 +213,7 @@ const CreateEmailTemplateModal = ({
                                 items-center
                                 justify-center
                                 rounded-lg
-                                text-gray-400
+                                text-gray-500
                                 transition
                                 hover:bg-gray-100
                                 hover:text-gray-700
@@ -273,11 +273,11 @@ const CreateEmailTemplateModal = ({
                         <div className="mt-2 flex justify-between">
                             <span
                                 className={`
-                                    text-[10px] font-semibold
+                                    text-xs font-semibold
                                     ${
                                         step === 1
                                             ? "text-[#004aad]"
-                                            : "text-gray-400"
+                                            : "text-gray-500"
                                     }
                                 `}
                             >
@@ -286,11 +286,11 @@ const CreateEmailTemplateModal = ({
 
                             <span
                                 className={`
-                                    text-[10px] font-semibold
+                                    text-xs font-semibold
                                     ${
                                         step === 2
                                             ? "text-[#004aad]"
-                                            : "text-gray-400"
+                                            : "text-gray-500"
                                     }
                                 `}
                             >
@@ -299,11 +299,11 @@ const CreateEmailTemplateModal = ({
 
                             <span
                                 className={`
-                                    text-[10px] font-semibold
+                                    text-xs font-semibold
                                     ${
                                         step === 3
                                             ? "text-[#004aad]"
-                                            : "text-gray-400"
+                                            : "text-gray-500"
                                     }
                                 `}
                             >
@@ -346,7 +346,7 @@ const CreateEmailTemplateModal = ({
                                             Basic information
                                         </h3>
 
-                                        <p className="mt-1.5 text-sm leading-6 text-gray-500">
+                                        <p className="mt-1.5 text-base leading-6 text-gray-500">
                                             Give your email a name and explain
                                             what it will be used for.
                                         </p>
@@ -357,7 +357,7 @@ const CreateEmailTemplateModal = ({
                                         <div>
                                             <label
                                                 htmlFor="template-name"
-                                                className="mb-2 block text-sm font-semibold text-gray-800"
+                                                className="mb-2 block text-base font-semibold text-gray-800"
                                             >
                                                 Email name
                                             </label>
@@ -381,18 +381,18 @@ const CreateEmailTemplateModal = ({
                                                     bg-white
                                                     px-4
                                                     py-3.5
-                                                    text-sm
+                                                    text-base
                                                     text-gray-900
                                                     outline-none
                                                     transition
-                                                    placeholder:text-gray-400
+                                                    placeholder:text-gray-500
                                                     focus:border-[#004aad]
                                                     focus:ring-4
                                                     focus:ring-[#004aad]/10
                                                 "
                                             />
 
-                                            <p className="mt-2 text-xs leading-5 text-gray-400">
+                                            <p className="mt-2 text-sm leading-5 text-gray-500">
                                                 Choose a recognizable name for
                                                 your team.
                                             </p>
@@ -402,7 +402,7 @@ const CreateEmailTemplateModal = ({
                                         <div>
                                             <label
                                                 htmlFor="template-description"
-                                                className="mb-2 block text-sm font-semibold text-gray-800"
+                                                className="mb-2 block text-base font-semibold text-gray-800"
                                             >
                                                 What is this email for?
                                             </label>
@@ -428,19 +428,19 @@ const CreateEmailTemplateModal = ({
                                                     bg-white
                                                     px-4
                                                     py-3.5
-                                                    text-sm
+                                                    text-base
                                                     leading-6
                                                     text-gray-900
                                                     outline-none
                                                     transition
-                                                    placeholder:text-gray-400
+                                                    placeholder:text-gray-500
                                                     focus:border-[#004aad]
                                                     focus:ring-4
                                                     focus:ring-[#004aad]/10
                                                 "
                                             />
 
-                                            <p className="mt-2 text-xs leading-5 text-gray-400">
+                                            <p className="mt-2 text-sm leading-5 text-gray-500">
                                                 Describe when or why this
                                                 template should be used.
                                             </p>
@@ -457,7 +457,7 @@ const CreateEmailTemplateModal = ({
                                             Choose an email type
                                         </h3>
 
-                                        <p className="mt-1.5 text-sm leading-6 text-gray-500">
+                                        <p className="mt-1.5 text-base leading-6 text-gray-500">
                                             This helps organize your templates
                                             and identify how they are used.
                                         </p>
@@ -525,7 +525,7 @@ const CreateEmailTemplateModal = ({
                                                     <div className="min-w-0">
                                                         <p
                                                             className={`
-                                                                text-sm
+                                                                text-base
                                                                 font-bold
                                                                 ${
                                                                     selected
@@ -537,7 +537,7 @@ const CreateEmailTemplateModal = ({
                                                             {item.title}
                                                         </p>
 
-                                                        <p className="mt-1 text-xs leading-5 text-gray-500">
+                                                        <p className="mt-1 text-sm leading-5 text-gray-500">
                                                             {item.description}
                                                         </p>
                                                     </div>
@@ -556,7 +556,7 @@ const CreateEmailTemplateModal = ({
                                             Email details
                                         </h3>
 
-                                        <p className="mt-1.5 text-sm leading-6 text-gray-500">
+                                        <p className="mt-1.5 text-base leading-6 text-gray-500">
                                             Set the subject recipients will see
                                             in their inbox.
                                         </p>
@@ -565,7 +565,7 @@ const CreateEmailTemplateModal = ({
                                     <div>
                                         <label
                                             htmlFor="template-subject"
-                                            className="mb-2 block text-sm font-semibold text-gray-800"
+                                            className="mb-2 block text-base font-semibold text-gray-800"
                                         >
                                             Email subject
                                         </label>
@@ -589,18 +589,18 @@ const CreateEmailTemplateModal = ({
                                                 bg-white
                                                 px-4
                                                 py-3.5
-                                                text-sm
+                                                text-base
                                                 text-gray-900
                                                 outline-none
                                                 transition
-                                                placeholder:text-gray-400
+                                                placeholder:text-gray-500
                                                 focus:border-[#004aad]
                                                 focus:ring-4
                                                 focus:ring-[#004aad]/10
                                             "
                                         />
 
-                                        <p className="mt-2 text-xs leading-5 text-gray-400">
+                                        <p className="mt-2 text-sm leading-5 text-gray-500">
                                             This is what recipients will see
                                             before opening the email.
                                         </p>
@@ -616,38 +616,38 @@ const CreateEmailTemplateModal = ({
                                                 />
                                             </div>
 
-                                            <p className="text-sm font-bold text-gray-900">
+                                            <p className="text-base font-bold text-gray-900">
                                                 Ready to create
                                             </p>
                                         </div>
 
                                         <div className="space-y-3">
                                             <div>
-                                                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                                                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                                                     Name
                                                 </p>
 
-                                                <p className="mt-0.5 break-words text-sm font-medium text-gray-800">
+                                                <p className="mt-0.5 break-words text-base font-medium text-gray-800">
                                                     {name}
                                                 </p>
                                             </div>
 
                                             <div>
-                                                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                                                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                                                     Type
                                                 </p>
 
-                                                <p className="mt-0.5 text-sm font-medium text-gray-800">
+                                                <p className="mt-0.5 text-base font-medium text-gray-800">
                                                     {selectedCategory?.title}
                                                 </p>
                                             </div>
 
                                             <div>
-                                                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                                                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                                                     Subject
                                                 </p>
 
-                                                <p className="mt-0.5 break-words text-sm font-medium text-gray-800">
+                                                <p className="mt-0.5 break-words text-base font-medium text-gray-800">
                                                     {subject}
                                                 </p>
                                             </div>
@@ -685,7 +685,7 @@ const CreateEmailTemplateModal = ({
                                     gap-1.5
                                     rounded-xl
                                     px-3
-                                    text-sm
+                                    text-base
                                     font-semibold
                                     text-gray-600
                                     transition
@@ -699,7 +699,7 @@ const CreateEmailTemplateModal = ({
                             </button>
 
                             {/* MOBILE STEP COUNT */}
-                            <span className="text-xs font-medium text-gray-400 sm:hidden">
+                            <span className="text-sm font-medium text-gray-500 sm:hidden">
                                 Step {step} of 3
                             </span>
 
@@ -720,7 +720,7 @@ const CreateEmailTemplateModal = ({
                                         rounded-xl
                                         bg-[#004aad]
                                         px-5
-                                        text-sm
+                                        text-base
                                         font-semibold
                                         text-white
                                         transition
@@ -748,7 +748,7 @@ const CreateEmailTemplateModal = ({
                                         rounded-xl
                                         bg-[#004aad]
                                         px-5
-                                        text-sm
+                                        text-base
                                         font-semibold
                                         text-white
                                         transition

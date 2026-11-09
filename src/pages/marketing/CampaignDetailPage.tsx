@@ -1,3 +1,5 @@
+import { PageSkeleton } from "../../ui/Skeleton";
+import "../../components/messaging/messaging.css";
 import { useState, type ChangeEvent } from "react";
 import {
   ArrowLeft,
@@ -8,10 +10,10 @@ import {
   Trash2,
   Upload,
   Users,
-} from "lucide-react";
+} from "../../ui/icons";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useSnackbar } from "notistack";
-import { useAddRecipient, useCampaign, useSingleCampaign } from "../../features/campaigns/hooks/useEmailCampaign";
+import { useAddRecipient, useSingleCampaign } from "../../features/campaigns/hooks/useEmailCampaign";
 import type {
   CampaignSummary,
   EmailRecipientRequest,
@@ -222,11 +224,7 @@ const CampaignDetailPage = () => {
   };
 
   if (!campaignFromState && isPending) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <Loader2 className="animate-spin text-[#004aad]" size={42} />
-      </div>
-    );
+    return <PageSkeleton layout="detail" label="Loading campaign details" />;
   }
 
   if (!campaignFromState && isError) {
@@ -238,13 +236,13 @@ const CampaignDetailPage = () => {
       <main className="min-h-screen bg-[#F8FAFC] px-5 py-10 sm:px-10">
         <div className="mx-auto max-w-4xl rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
           <h1 className="text-xl font-bold text-gray-900">Campaign not found</h1>
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-base text-gray-500">
             This campaign is not available in the current campaign list.
           </p>
           <button
             type="button"
             onClick={() => navigate("/dashboard/campaigns")}
-            className="mt-6 rounded-xl bg-[#004aad] px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
+            className="mt-6 rounded-xl bg-[#004aad] px-5 py-3.5 text-base font-semibold text-white hover:bg-blue-700"
           >
             Back to campaigns
           </button>
@@ -254,26 +252,26 @@ const CampaignDetailPage = () => {
   }
 
   return (
-    <main className="min-h-screen bg-[#F8FAFC] px-5 py-8 sm:px-10 sm:py-10">
-      <div className="mx-auto max-w-5xl">
+    <main className="messaging-page py-2 sm:py-4">
+      <div className="mx-auto max-w-6xl">
         <button
           type="button"
           onClick={() => navigate("/dashboard/campaigns")}
-          className="mb-7 inline-flex items-center gap-2 text-sm font-semibold text-gray-500 transition-colors hover:text-[#004aad]"
+          className="mb-7 inline-flex items-center gap-2 text-base font-semibold text-gray-500 transition-colors hover:text-[#004aad]"
         >
           <ArrowLeft size={17} />
           Back to campaigns
         </button>
 
         <header className="mb-8">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold uppercase text-[#004aad]">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-sm font-bold uppercase text-[#004aad]">
             <Mail size={14} />
             Email campaign
           </div>
           <h1 className="text-3xl font-black tracking-tight text-gray-900 sm:text-4xl">
             {campaign.name}
           </h1>
-          <p className="mt-2 break-all text-sm text-gray-500">
+          <p className="mt-2 break-all text-base text-gray-500">
             Campaign ID: {campaign.campaignId}
           </p>
         </header>
@@ -286,54 +284,54 @@ const CampaignDetailPage = () => {
               </div>
               <div>
                 <h2 className="font-bold text-gray-900">Campaign details</h2>
-                <p className="text-xs text-gray-500">Content and delivery progress</p>
+                <p className="text-sm text-gray-500">Content and delivery progress</p>
               </div>
             </div>
-            <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-bold text-[#004aad]">
+            <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-sm font-bold text-[#004aad]">
               {campaign.status}
             </span>
           </div>
 
           <div className="grid gap-6 px-6 py-7 sm:grid-cols-2 sm:px-8">
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+              <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-gray-500">
                 Email subject
               </p>
-              <p className="break-all text-sm font-semibold text-gray-800">
+              <p className="break-all text-base font-semibold text-gray-800">
                 {campaign.subject || "Not set"}
               </p>
             </div>
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+              <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-gray-500">
                 Template ID
               </p>
-              <p className="break-all font-mono text-xs text-gray-600">
+              <p className="break-all font-mono text-sm text-gray-600">
                 {campaign.templateId || "Not set"}
               </p>
             </div>
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+              <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-gray-500">
                 Template version
               </p>
-              <p className="break-all font-mono text-xs text-gray-600">
+              <p className="break-all font-mono text-sm text-gray-600">
                 {campaign.templateVersionId || "Not set"}
               </p>
             </div>
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+              <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-gray-500">
                 Created
               </p>
-              <p className="flex items-center gap-2 text-sm text-gray-700">
-                <CalendarDays size={15} className="text-gray-400" />
+              <p className="flex items-center gap-2 text-base text-gray-700">
+                <CalendarDays size={15} className="text-gray-500" />
                 {formatDate(campaign.createdAt)}
               </p>
             </div>
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+              <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-gray-500">
                 Started
               </p>
-              <p className="flex items-center gap-2 text-sm text-gray-700">
-                <CalendarDays size={15} className="text-gray-400" />
+              <p className="flex items-center gap-2 text-base text-gray-700">
+                <CalendarDays size={15} className="text-gray-500" />
                 {formatDate(campaign.startedAt)}
               </p>
             </div>
@@ -350,7 +348,7 @@ const CampaignDetailPage = () => {
               key={stat.label}
               className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
             >
-              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+              <p className="text-sm font-semibold uppercase tracking-wider text-gray-500">
                 {stat.label}
               </p>
               <p className="mt-2 text-2xl font-black text-gray-900">{stat.value}</p>
@@ -366,7 +364,7 @@ const CampaignDetailPage = () => {
               </div>
               <div>
                 <h2 className="font-bold text-gray-900">Add recipients</h2>
-                <p className="text-xs text-gray-500">
+                <p className="text-sm text-gray-500">
                   Add recipients individually or import multiple recipients with a CSV file. Changes are local only for now.
                 </p>
               </div>
@@ -375,21 +373,21 @@ const CampaignDetailPage = () => {
 
           <div className="grid grid-cols-1 gap-8 p-6 sm:p-8 lg:grid-cols-2">
             {/* Manual recipient input */}
-            <div className="space-y-5">
+            <div className="space-y-7">
               <div>
-                <h3 className="text-sm font-bold text-gray-800">
+                <h3 className="text-base font-bold text-gray-800">
                   Add recipient manually
                 </h3>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-sm text-gray-500">
                   Enter the recipient's name and email address.
                 </p>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="space-y-2">
                   <label
                     htmlFor="recipient-name"
-                    className="text-sm font-medium text-gray-700"
+                    className="text-base font-medium text-gray-700"
                   >
                     Full name
                   </label>
@@ -400,14 +398,14 @@ const CampaignDetailPage = () => {
                     onChange={(event) => setRecipientName(event.target.value)}
                     placeholder="e.g. John Doe"
                     autoComplete="name"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-[#004aad] focus:bg-white focus:ring-4 focus:ring-[#004aad]/10"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base outline-none transition focus:border-[#004aad] focus:bg-white focus:ring-4 focus:ring-[#004aad]/10"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <label
                     htmlFor="recipient-email"
-                    className="text-sm font-medium text-gray-700"
+                    className="text-base font-medium text-gray-700"
                   >
                     Email address
                   </label>
@@ -418,14 +416,14 @@ const CampaignDetailPage = () => {
                     onChange={(event) => setRecipientEmail(event.target.value)}
                     placeholder="john@example.com"
                     autoComplete="email"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-[#004aad] focus:bg-white focus:ring-4 focus:ring-[#004aad]/10"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-base outline-none transition focus:border-[#004aad] focus:bg-white focus:ring-4 focus:ring-[#004aad]/10"
                   />
                 </div>
 
                 <button
                   type="button"
                   onClick={handleAddRecipient}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#004aad] px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#004aad] px-5 py-3 text-base font-semibold text-white transition hover:bg-blue-700"
                 >
 
                   {
@@ -437,23 +435,23 @@ const CampaignDetailPage = () => {
             </div>
 
             {/* CSV upload */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <p className="flex items-center gap-2 text-sm font-bold text-gray-800">
+                <p className="flex items-center gap-2 text-base font-bold text-gray-800">
                   <Upload size={17} className="text-[#004aad]" />
                   Upload CSV
                 </p>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-sm text-gray-500">
                   Import multiple recipients using a CSV file.
                 </p>
               </div>
 
               <label className="flex min-h-48 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 text-center transition hover:border-[#004aad] hover:bg-blue-50/40">
                 <Upload size={24} className="text-[#004aad]" />
-                <span className="text-sm font-semibold text-gray-700">
+                <span className="text-base font-semibold text-gray-700">
                   Choose a CSV file
                 </span>
-                <span className="text-xs text-gray-400">
+                <span className="text-sm text-gray-500">
                   CSV must contain an email column and optionally a name column.
                 </span>
                 <input
@@ -469,8 +467,8 @@ const CampaignDetailPage = () => {
           {recipients.length > 0 && (
             <div className="border-t border-gray-100 px-6 py-5 sm:px-8">
               <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-sm font-bold text-gray-900">Added in this session</h3>
-                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-[#004aad]">
+                <h3 className="text-base font-bold text-gray-900">Added in this session</h3>
+                <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-bold text-[#004aad]">
                   {recipients.length} recipient{recipients.length === 1 ? "" : "s"}
                 </span>
               </div>
@@ -482,10 +480,10 @@ const CampaignDetailPage = () => {
                     className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 px-4 py-3"
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-gray-800">
+                      <p className="truncate text-base font-semibold text-gray-800">
                         {recipient.name || "Unnamed recipient"}
                       </p>
-                      <p className="truncate text-xs text-gray-500">{recipient.email}</p>
+                      <p className="truncate text-sm text-gray-500">{recipient.email}</p>
                     </div>
 
                     <button
@@ -496,7 +494,7 @@ const CampaignDetailPage = () => {
                         )
                       }
                       aria-label={`Remove ${recipient.email}`}
-                      className="rounded-lg p-2 text-gray-400 transition hover:bg-red-50 hover:text-red-600"
+                      className="rounded-lg p-2 text-gray-500 transition hover:bg-red-50 hover:text-red-600"
                     >
                       <Trash2 size={16} />
                     </button>

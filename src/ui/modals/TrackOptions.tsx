@@ -1,127 +1,65 @@
-import { useEffect, useState } from "react";
-import { Loader2, Save, ShieldCheck } from "lucide-react";
-import type { EmailConfigResponse } from "../../types/email/EmailConfigDto";
-import { useUpdatePreference } from "../../features/email/config/hooks/useEmailConfig";
-import { useSnackbar } from "notistack";
-import { getApiErrorMessage } from "../../utils/apiError";
-import { useQueryClient } from "@tanstack/react-query";
-import { EMAIL_CONFIG_QUERY } from "../../features/email/config/hooks/useEmailConfig"
-interface TrackOptions {
-    data: EmailConfigResponse
-}
-const TrackOptions = ({ data }: TrackOptions) => {
+﻿import { useEffect, useState } from 'react'
+import { Eye, Link, AlertCircle, LineChart, Loader2 } from '../icons'
+import { EmailSectionHeading, StatusMark } from '../../components/messaging/EmailConfigElements'
+import type { EmailConfigResponse } from '../../types/email/EmailConfigDto'
+import { useUpdatePreference, EMAIL_CONFIG_QUERY } from '../../features/email/config/hooks/useEmailConfig'
+import { useSnackbar } from 'notistack'
+import { getApiErrorMessage } from '../../utils/apiError'
+import { useQueryClient } from '@tanstack/react-query'
 
-    const { enqueueSnackbar } = useSnackbar();
+const trackingOptions = [
+    { key: 'trackOpens', title: 'Email opens', description: 'See when recipients open your emails to understand what gets their attention.', icon: Eye },
+    { key: 'trackClicks', title: 'Link clicks', description: 'Measure engagement by tracking clicks on links inside your emails.', icon: Link },
+    { key: 'bounceAlerts', title: 'Bounce alerts', description: 'Get notified when an email cannot be delivered so you can keep your lists up to date.', icon: AlertCircle },
+] as const
+
+export default function TrackOptions({ data }: { data: EmailConfigResponse }) {
+    const { enqueueSnackbar } = useSnackbar()
     const queryClient = useQueryClient()
-    const { trackOpens, trackClicks, bounceAlerts } = data;
-    console.log(trackOpens, trackClicks, bounceAlerts)
-    const [settings, setSettings] = useState({
-        trackOpens,
-        trackClicks,
-        bounceAlerts,
-    });
     const { mutate, isPending } = useUpdatePreference()
+    const { trackOpens, trackClicks, bounceAlerts } = data
+    const [settings, setSettings] = useState({ trackOpens, trackClicks, bounceAlerts })
+    const [saved, setSaved] = useState({ trackOpens, trackClicks, bounceAlerts })
+    const hasChanges = trackingOptions.some(({ key }) => settings[key] !== saved[key])
 
-    const handlePreference = () => {
-        mutate(settings, {
-            onSuccess: (data) => {
-                queryClient.invalidateQueries({ queryKey: EMAIL_CONFIG_QUERY })
-                enqueueSnackbar("Prefrence updated", { variant: "success" })
+    useEffect(() => {
+        const next = { trackOpens, trackClicks, bounceAlerts }
+        setSettings(next)
+        setSaved(next)
+    }, [trackOpens, trackClicks, bounceAlerts])
+
+    const savePreferences = () => {
+        if (isPending || !hasChanges) return
+        const submitted = { ...settings }
+        mutate(submitted, {
+            onSuccess: () => {
+                setSaved(submitted)
+                void queryClient.invalidateQueries({ queryKey: EMAIL_CONFIG_QUERY })
+                enqueueSnackbar('Tracking preferences saved.', { variant: 'success' })
             },
-            onError: (error) => {
-                console.error("ApiKey Genaration Error:", error);
-                const errorMessage = getApiErrorMessage(error, "Something went wrong");
-                enqueueSnackbar(errorMessage || "Api Key Generation Failed", {
-                    variant: "error"
-                })
-            }
+            onError: (error) => enqueueSnackbar(getApiErrorMessage(error, 'Unable to save tracking preferences. Please try again.'), { variant: 'error' }),
         })
     }
 
-
-    useEffect(() => {
-        setSettings({
-            trackOpens: data.trackOpens,
-            trackClicks: data.trackClicks,
-            bounceAlerts: data.bounceAlerts,
-        })
-    }, [data])
-
     return (
-        <div className="space-y-6">
-            {/* Tracking Options */}
-            <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-4">
-                <div className="flex items-center gap-2.5 pb-2 border-b border-gray-50">
-                    <div className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg">
-                        <ShieldCheck size={15} />
+        <section className="email-settings-card" aria-label="Tracking and analytics" aria-busy={isPending}>
+            <EmailSectionHeading icon={<LineChart size={23} />} title="Tracking & analytics" description="Choose the insights you collect from your emails. You’re in control of what gets tracked." />
+            <div className="email-tracking-list">
+                {trackingOptions.map(({ key, title, description, icon: Icon }) => (
+                    <div key={key} className="email-tracking-row">
+                        <span className="email-tracking-icon"><Icon size={22} /></span>
+                        <div className="email-tracking-copy"><label htmlFor={`tracking-${key}`}>{title}</label><p id={`tracking-${key}-description`}>{description}</p></div>
+                        <span className="email-switch">
+                            <input id={`tracking-${key}`} type="checkbox" role="switch" checked={settings[key]} disabled={isPending} aria-describedby={`tracking-${key}-description`} onChange={(event) => setSettings(previous => ({ ...previous, [key]: event.target.checked }))} />
+                            <span className="email-switch-track" aria-hidden="true" />
+                        </span>
                     </div>
-                    <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wide">
-                        Tracking & Analytics
-                    </h2>
-                </div>
-
-                <div className="space-y-3 pt-1">
-                    {[
-                        {
-                            key: "trackOpens",
-                            title: "Track Email Opens",
-                            desc: "Know when your users open your emails.",
-                        },
-                        {
-                            key: "trackClicks",
-                            title: "Track Link Clicks",
-                            desc: "Track when links inside your emails are clicked.",
-                        },
-                        {
-                            key: "bounceAlerts",
-                            title: "Bounce Alerts",
-                            desc: "Get notified if an email fails to deliver.",
-                        },
-                    ].map((item) => {
-                        const isChecked =
-                            settings[item.key as keyof typeof settings];
-                        return (
-                            <div
-                                key={item.key}
-                                className="flex items-start justify-between gap-4"
-                            >
-                                <div className="flex flex-col gap-0.5">
-                                    <span className="text-xs font-bold text-gray-700">
-                                        {item.title}
-                                    </span>
-                                    <span className="text-[10px] text-gray-400 leading-normal">
-                                        {item.desc}
-                                    </span>
-                                </div>
-                                <input
-                                    type="checkbox"
-                                    checked={isChecked}
-                                    onChange={() =>
-                                        setSettings((prev) => ({
-                                            ...prev,
-                                            [item.key]: !isChecked,
-                                        }))
-                                    }
-                                    className="mt-1 h-4 w-4 rounded border-gray-300 text-[#004aad] focus:ring-[#004aad] cursor-pointer"
-                                />
-                            </div>
-                        );
-                    })}
-                </div>
+                ))}
             </div>
-
-            <button
-                onClick={handlePreference}
-                type="button"
-                className="w-full bg-[#004aad] hover:bg-[#003985] text-white font-semibold text-xs py-3 px-4 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-                {
-                    isPending ? <Loader2 className="animate-spin" /> : <><Save size={14} /> <span>Save Preferences</span></>
-                }
-            </button>
-        </div>
-
+            <div className="email-settings-footer">
+                <p role="status" aria-live="polite">{isPending ? 'Saving your preferences…' : hasChanges ? 'You have unsaved changes.' : <><StatusMark /> Your preferences are up to date.</>}</p>
+                <button type="button" className="email-button is-primary" disabled={!hasChanges || isPending} onClick={savePreferences}>{isPending && <Loader2 size={17} className="animate-spin" />}{isPending ? 'Saving…' : 'Save preferences'}</button>
+            </div>
+        </section>
     )
 }
-
-export default TrackOptions

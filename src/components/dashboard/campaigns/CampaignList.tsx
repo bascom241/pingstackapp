@@ -6,7 +6,7 @@ import {
     ChevronRight,
     Mail,
     Users,
-} from "lucide-react";
+} from "../../../ui/icons";
 import { useNavigate } from "react-router-dom";
 import type { CampaignPageResponse, CampaignSummary } from "../../../features/campaigns/types/campaign";
 
@@ -92,12 +92,12 @@ const CampaignList = ({ data, onPageChange }: CampaignListProps) => {
                     <h2 className="text-xl font-bold text-gray-900">
                         All Campaigns
                     </h2>
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-base text-gray-500">
                         Manage and monitor your email campaigns.
                     </p>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-gray-500">
+                <div className="flex items-center gap-2 text-base text-gray-500">
                     <span className="h-2 w-2 rounded-full bg-[#004aad]" />
                     {totalElements} campaigns in total
                 </div>
@@ -111,27 +111,27 @@ const CampaignList = ({ data, onPageChange }: CampaignListProps) => {
 
                         <thead>
                             <tr className="border-b border-gray-100 bg-gray-50/80">
-                                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">
+                                <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-gray-500">
                                     Campaign
                                 </th>
 
-                                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">
+                                <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-gray-500">
                                     Email details
                                 </th>
 
-                                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">
+                                <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-gray-500">
                                     Recipients
                                 </th>
 
-                                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">
+                                <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-gray-500">
                                     Status
                                 </th>
 
-                                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">
+                                <th className="px-6 py-4 text-sm font-bold uppercase tracking-wider text-gray-500">
                                     Created
                                 </th>
 
-                                <th className="px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-gray-500">
+                                <th className="px-6 py-4 text-right text-sm font-bold uppercase tracking-wider text-gray-500">
                                     Action
                                 </th>
                             </tr>
@@ -155,12 +155,12 @@ const CampaignList = ({ data, onPageChange }: CampaignListProps) => {
                                                 <button
                                                     type="button"
                                                     onClick={() => openCampaign(campaign)}
-                                                    className="truncate text-left text-sm font-bold text-gray-900 hover:text-[#004aad]"
+                                                    className="truncate text-left text-base font-bold text-gray-900 hover:text-[#004aad]"
                                                 >
                                                     {campaign.name}
                                                 </button>
 
-                                                <p className="mt-1 font-mono text-[10px] text-gray-400">
+                                                <p className="mt-1 font-mono text-xs text-gray-500">
                                                     ID: {campaign.campaignId.slice(0, 8)}...
                                                 </p>
                                             </div>
@@ -170,11 +170,11 @@ const CampaignList = ({ data, onPageChange }: CampaignListProps) => {
                                     {/* Email details */}
                                     <td className="px-6 py-5">
                                         <div className="max-w-[200px]">
-                                            <p className="truncate text-sm font-medium text-gray-700">
+                                            <p className="truncate text-base font-medium text-gray-700">
                                                 {campaign.subject}
                                             </p>
 
-                                            <p className="mt-1 truncate text-xs text-gray-400">
+                                            <p className="mt-1 truncate text-sm text-gray-500">
                                                 {campaign.templateVersionId || "Email template"}
                                             </p>
                                         </div>
@@ -187,7 +187,7 @@ const CampaignList = ({ data, onPageChange }: CampaignListProps) => {
                                                 <Users size={15} />
                                             </div>
 
-                                            <span className="text-sm font-semibold text-gray-700">
+                                            <span className="text-base font-semibold text-gray-700">
                                                 {campaign.totalRecipients}
                                             </span>
                                         </div>
@@ -195,7 +195,7 @@ const CampaignList = ({ data, onPageChange }: CampaignListProps) => {
 
                                     {/* Status */}
                                     <td className="px-6 py-5">
-                                        <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${getStatusStyle(campaign.status)}`}>
+                                        <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-bold ${getStatusStyle(campaign.status)}`}>
                                             <span className="h-1.5 w-1.5 rounded-full bg-current" />
                                             {campaign.status}
                                         </span>
@@ -204,14 +204,14 @@ const CampaignList = ({ data, onPageChange }: CampaignListProps) => {
                                     {/* Date */}
                                     <td className="px-6 py-5">
                                         <div className="flex items-start gap-2">
-                                            <CalendarDays size={15} className="mt-0.5 text-gray-400" />
+                                            <CalendarDays size={15} className="mt-0.5 text-gray-500" />
 
                                             <div>
-                                                <p className="text-sm font-medium text-gray-700">
+                                                <p className="text-base font-medium text-gray-700">
                                                     {formatDate(campaign.createdAt)}
                                                 </p>
 
-                                                <p className="mt-1 text-xs text-gray-400">
+                                                <p className="mt-1 text-sm text-gray-500">
                                                     {formatTime(campaign.createdAt)}
                                                 </p>
                                             </div>
@@ -223,7 +223,7 @@ const CampaignList = ({ data, onPageChange }: CampaignListProps) => {
                                         <button
                                             type="button"
                                             onClick={() => openCampaign(campaign)}
-                                            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-xs font-bold text-gray-600 transition-all hover:border-[#004aad] hover:bg-[#004aad] hover:text-white"
+                                            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-sm font-bold text-gray-600 transition-all hover:border-[#004aad] hover:bg-[#004aad] hover:text-white"
                                         >
                                             View campaign
                                             <ArrowUpRight size={14} />
@@ -239,7 +239,7 @@ const CampaignList = ({ data, onPageChange }: CampaignListProps) => {
                 {/* Pagination */}
                 <div className="flex flex-col gap-4 border-t border-gray-100 bg-white px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
 
-                    <p className="text-xs font-medium text-gray-500">
+                    <p className="text-sm font-medium text-gray-500">
                         Showing{" "}
                         <span className="font-bold text-gray-900">
                             {totalElements === 0 ? 0 : currentPage * data.size + 1}
@@ -255,13 +255,13 @@ const CampaignList = ({ data, onPageChange }: CampaignListProps) => {
                         {" "}campaigns
                     </p>
 
-                    <div className="flex flex-wrap items-center gap-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
 
                         <button
                             type="button"
                             disabled={currentPage === 0}
                             onClick={() => onPageChange(currentPage - 1)}
-                            className="flex h-9 items-center gap-1 rounded-lg border border-gray-200 px-3 text-xs font-semibold text-gray-600 transition-colors hover:border-[#004aad] hover:text-[#004aad] disabled:cursor-not-allowed disabled:opacity-40"
+                            className="flex h-9 items-center gap-1 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-600 transition-colors hover:border-[#004aad] hover:text-[#004aad] disabled:cursor-not-allowed disabled:opacity-40"
                         >
                             <ChevronLeft size={15} />
                             <span>Previous</span>
@@ -272,7 +272,7 @@ const CampaignList = ({ data, onPageChange }: CampaignListProps) => {
                                 key={page}
                                 type="button"
                                 onClick={() => onPageChange(page)}
-                                className={`h-9 min-w-9 rounded-lg px-3 text-xs font-bold transition-colors ${
+                                className={`h-9 min-w-9 rounded-lg px-3 text-sm font-bold transition-colors ${
                                     currentPage === page
                                         ? "bg-[#004aad] text-white shadow-sm"
                                         : "border border-gray-200 text-gray-600 hover:border-[#004aad] hover:text-[#004aad]"
@@ -286,7 +286,7 @@ const CampaignList = ({ data, onPageChange }: CampaignListProps) => {
                             type="button"
                             disabled={currentPage >= totalPages - 1 || totalPages === 0}
                             onClick={() => onPageChange(currentPage + 1)}
-                            className="flex h-9 items-center gap-1 rounded-lg border border-gray-200 px-3 text-xs font-semibold text-gray-600 transition-colors hover:border-[#004aad] hover:text-[#004aad] disabled:cursor-not-allowed disabled:opacity-40"
+                            className="flex h-9 items-center gap-1 rounded-lg border border-gray-200 px-3 text-sm font-semibold text-gray-600 transition-colors hover:border-[#004aad] hover:text-[#004aad] disabled:cursor-not-allowed disabled:opacity-40"
                         >
                             <span>Next</span>
                             <ChevronRight size={15} />

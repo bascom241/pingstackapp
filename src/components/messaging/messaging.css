@@ -1,0 +1,105 @@
+.messaging-page {
+    width: 100%;
+    max-width: 1320px;
+    margin-inline: auto;
+    color: #172338;
+}
+.messaging-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 36px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #e2e8f0;
+}
+.messaging-header-copy { min-width: 0; }
+.messaging-eyebrow {
+    margin: 0 0 12px;
+    color: #004aad;
+    font-size: 12px;
+    font-weight: 750;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+}
+.messaging-header h1 {
+    margin: 0;
+    font-size: clamp(28px, 2.8vw, 38px);
+    line-height: 1.2;
+    font-weight: 750;
+    letter-spacing: -.04em;
+    color: #142238;
+}
+.messaging-description {
+    max-width: 650px;
+    margin-top: 14px;
+    color: #627188;
+    font-size: 16px;
+    line-height: 1.75;
+}
+.messaging-header-action { flex-shrink: 0; }
+.messaging-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 50px;
+    padding: 13px 22px;
+    border-radius: 12px;
+    background: #004aad;
+    color: white;
+    font-size: 15px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: background .18s;
+}
+.messaging-primary:hover { background: #003985; }
+.messaging-page :is(button, a, input, select, textarea):focus-visible {
+    outline: 3px solid #93c5fd;
+    outline-offset: 3px;
+}
+.messaging-composer-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+    gap: 32px;
+    align-items: start;
+}
+.messaging-panel {
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 28px;
+    background: #fff;
+    box-shadow: 0 3px 12px #14223803;
+}
+.messaging-panel-heading { margin-bottom: 26px; padding-bottom: 22px; border-bottom: 1px solid #edf1f6; }
+.messaging-panel-heading h2 { font-size: 20px; font-weight: 700; letter-spacing: -.025em; }
+.messaging-panel-heading p { margin-top: 7px; font-size: 14px; color: #627188; line-height: 1.7; }
+.messaging-preview { padding: 26px 18px; border: 1px solid #e2e8f0; border-radius: 20px; background: #f0f5fc; }
+.messaging-channels { display: flex; gap: 6px; padding: 5px; background: #eaf0f8; border: 1px solid #dce6f3; border-radius: 14px; }
+.messaging-channels button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 44px; padding: 10px 18px; border-radius: 10px; font-size: 15px; font-weight: 650; cursor: pointer; color: #627188; }
+.messaging-channels button[aria-pressed="true"] { background: #fff; color: #004aad; box-shadow: 0 2px 5px #1739620a; }
+.messaging-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 32px; }
+.messaging-step { display: flex; align-items: center; gap: 12px; padding: 18px 16px; border-radius: 14px; border: 1px solid #e2e8f0; background: white; color: #64748b; font-size: 14px; font-weight: 600; }
+.messaging-step-number { display: grid; place-items: center; flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; background: #f1f5f9; font-size: 13px; }
+.messaging-step[aria-current="step"] { border-color: #004aad; background: #f0f6ff; color: #004aad; }
+.messaging-step[aria-current="step"] .messaging-step-number { background: #004aad; color: white; }
+.messaging-step.is-complete { color: #004aad; }
+@media (max-width: 1350px) {
+    .messaging-composer-grid { grid-template-columns: minmax(0, 1fr); }
+    .messaging-header { align-items: flex-start; flex-direction: column; }
+    .messaging-header-action { max-width: 100%; }
+}
+@media (max-width: 1100px) {
+    .messaging-composer-grid { grid-template-columns: minmax(0, 1fr); }
+    .messaging-preview { max-width: 100%; }
+}
+@media (max-width: 640px) {
+    .messaging-header { align-items: stretch; flex-direction: column; margin-bottom: 26px; padding-bottom: 24px; gap: 20px; }
+    .messaging-header-action :is(button, a) { flex: 1; }
+    .messaging-header-action > button { width: 100%; }
+    .messaging-description { font-size: 15px; }
+    .messaging-panel { padding: 20px; border-radius: 16px; }
+    .messaging-channels button { flex: 1; }
+    .messaging-steps { gap: 6px; }
+    .messaging-step { padding: 12px 4px; flex-direction: column; gap: 8px; font-size: 11px; text-align: center; }
+}

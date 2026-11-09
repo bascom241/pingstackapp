@@ -1,3 +1,4 @@
+import SettingsPage from "./pages/settings/Settings";
 import { Routes, Route, Outlet } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
@@ -22,6 +23,10 @@ import CampaignDetailPage from "./pages/marketing/CampaignDetailPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 const App = () => {
+
+
+  
+  
   return (
     <Routes>
       {/* Public Authentication Routes */}
@@ -46,7 +51,7 @@ const App = () => {
           <Route path="sender-id" element={<SenderId />} />
           <Route path="billing" element={<Wallet />} />
           <Route path="email-templates/:templateId/edit" element={<EmailTemplateEditor />} />
-          <Route path="settings" element={<div>Settings Screen</div>} />
+          <Route path="settings" element={<SettingsPage />} />
           <Route path="email-templates/:templateId" element={<SingleTemplate/>} />
           <Route path="campaigns" element={<Campaigns/>}/>
           <Route path="campaigns/create" element={<CreateCampaignPage />} />

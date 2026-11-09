@@ -1,3 +1,5 @@
+import { DataSkeleton } from "../../ui/Skeleton";
+import MessagingHeader from '../../components/messaging/MessagingHeader';
 import { useState } from "react";
 import {
     Plus,
@@ -7,7 +9,7 @@ import {
     Mail,
     MoreHorizontal,
     Clock3,
-} from "lucide-react";
+} from "../../ui/icons";
 import { useNavigate } from "react-router-dom";
 import {EMPTY_EMAIL_HTML, EMPTY_EMAIL_DESIGN} from "../../utils/templates/EmptyEmailDesign"
 import {
@@ -166,56 +168,9 @@ export default function EmailTemplates() {
 
     return (
         <>
-            <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6">
+            <div className="messaging-page py-2 sm:py-4">
 
-                {/* Header */}
-                <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
-                    <div>
-                        <div className="mb-1 flex items-center gap-2">
-                            <Mail
-                                size={18}
-                                className="text-[#004aad]"
-                            />
-
-                            <h1 className="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
-                                Email Templates
-                            </h1>
-                        </div>
-
-                        <p className="max-w-xl text-sm text-gray-500">
-                            Create and manage the emails you send to your
-                            customers and users.
-                        </p>
-                    </div>
-
-                    <button
-                        type="button"
-                        onClick={handleCreateTemplate}
-                        className="
-                            inline-flex
-                            w-full
-                            cursor-pointer
-                            items-center
-                            justify-center
-                            gap-2
-                            rounded-xl
-                            bg-[#004aad]
-                            px-4
-                            py-2.5
-                            text-sm
-                            font-semibold
-                            text-white
-                            shadow-sm
-                            transition-all
-                            hover:bg-[#003985]
-                            sm:w-auto
-                        "
-                    >
-                        <Plus size={16} />
-                        Create email
-                    </button>
-                </div>
+                <MessagingHeader eyebrow="Design your message" title="Email templates" description="A home for your best emails. Build reusable designs that feel like your brand." action={<button type="button" className="messaging-primary" onClick={handleCreateTemplate}><Plus size={20} /> Create template</button>} />
 
                 {/* Toolbar */}
                 <div className="mb-5 rounded-2xl border border-gray-100 bg-white p-3 shadow-sm sm:p-4">
@@ -259,7 +214,7 @@ export default function EmailTemplates() {
                                         rounded-lg
                                         px-3
                                         py-2
-                                        text-xs
+                                        text-sm
                                         font-semibold
                                         transition-all
                                         ${
@@ -283,7 +238,7 @@ export default function EmailTemplates() {
                                     left-3
                                     top-1/2
                                     -translate-y-1/2
-                                    text-gray-400
+                                    text-gray-500
                                 "
                             />
 
@@ -303,11 +258,11 @@ export default function EmailTemplates() {
                                     py-2
                                     pl-9
                                     pr-3
-                                    text-sm
+                                    text-base
                                     text-gray-700
                                     outline-none
                                     transition-all
-                                    placeholder:text-gray-400
+                                    placeholder:text-gray-500
                                     focus:border-[#004aad]/30
                                     focus:bg-white
                                     focus:ring-2
@@ -319,33 +274,7 @@ export default function EmailTemplates() {
                 </div>
 
                 {/* Loading */}
-                {isLoading && (
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        {[1, 2, 3, 4].map((item) => (
-                            <div
-                                key={item}
-                                className="
-                                    animate-pulse
-                                    rounded-2xl
-                                    border
-                                    border-gray-100
-                                    bg-white
-                                    p-5
-                                "
-                            >
-                                <div className="mb-5 h-5 w-24 rounded bg-gray-100" />
-
-                                <div className="mb-3 h-5 w-2/3 rounded bg-gray-100" />
-
-                                <div className="mb-2 h-4 w-full rounded bg-gray-100" />
-
-                                <div className="mb-7 h-4 w-4/5 rounded bg-gray-100" />
-
-                                <div className="h-9 rounded-xl bg-gray-100" />
-                            </div>
-                        ))}
-                    </div>
-                )}
+                {isLoading && <DataSkeleton layout="cards" rows={4} label="Loading email templates" />}
 
                 {/* Empty */}
                 {!isLoading && filtered.length === 0 && (
@@ -380,13 +309,13 @@ export default function EmailTemplates() {
                             />
                         </div>
 
-                        <h3 className="text-sm font-bold text-gray-900">
+                        <h3 className="text-base font-bold text-gray-900">
                             {search
                                 ? "No emails found"
                                 : "You haven't created any emails yet"}
                         </h3>
 
-                        <p className="mx-auto mt-1 max-w-sm text-sm text-gray-500">
+                        <p className="mx-auto mt-1 max-w-sm text-base text-gray-500">
                             {search
                                 ? "Try searching with a different name or description."
                                 : "Create your first email template to start communicating with your customers."}
@@ -405,8 +334,8 @@ export default function EmailTemplates() {
                                     rounded-xl
                                     bg-[#004aad]
                                     px-4
-                                    py-2.5
-                                    text-sm
+                                    py-3.5
+                                    text-base
                                     font-semibold
                                     text-white
                                     transition-all
@@ -422,7 +351,7 @@ export default function EmailTemplates() {
 
                 {/* Templates */}
                 {!isLoading && filtered.length > 0 && (
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 
                         {filtered.map((template) => (
                             <div
@@ -452,7 +381,7 @@ export default function EmailTemplates() {
                                             border
                                             px-2.5
                                             py-1
-                                            text-[10px]
+                                            text-xs
                                             font-bold
                                             ${categoryStyles[template.category]}
                                         `}
@@ -470,7 +399,7 @@ export default function EmailTemplates() {
                                             items-center
                                             justify-center
                                             rounded-lg
-                                            text-gray-400
+                                            text-gray-500
                                             transition
                                             hover:bg-gray-50
                                             hover:text-gray-700
@@ -502,7 +431,7 @@ export default function EmailTemplates() {
                                             mt-1.5
                                             min-h-[40px]
                                             line-clamp-2
-                                            text-sm
+                                            text-base
                                             leading-relaxed
                                             text-gray-500
                                         "
@@ -530,11 +459,11 @@ export default function EmailTemplates() {
                                         className={`
                                             inline-flex
                                             items-center
-                                            gap-1.5
+                                            gap-2
                                             rounded-md
                                             px-2
                                             py-1
-                                            text-[10px]
+                                            text-xs
                                             font-bold
                                             ${statusStyles[template.status]}
                                         `}
@@ -564,9 +493,9 @@ export default function EmailTemplates() {
                                         className="
                                             flex
                                             items-center
-                                            gap-1.5
-                                            text-[11px]
-                                            text-gray-400
+                                            gap-2
+                                            text-sm
+                                            text-gray-500
                                         "
                                     >
                                         <Clock3 size={12} />
@@ -592,13 +521,13 @@ export default function EmailTemplates() {
                                             inline-flex
                                             items-center
                                             justify-center
-                                            gap-1.5
+                                            gap-2
                                             rounded-xl
                                             border
                                             border-gray-200
                                             bg-gray-50
-                                            py-2.5
-                                            text-xs
+                                            py-3.5
+                                            text-sm
                                             font-semibold
                                             text-gray-700
                                             transition-all
@@ -622,11 +551,11 @@ export default function EmailTemplates() {
                                             inline-flex
                                             items-center
                                             justify-center
-                                            gap-1.5
+                                            gap-2
                                             rounded-xl
                                             bg-[#004aad]
-                                            py-2.5
-                                            text-xs
+                                            py-3.5
+                                            text-sm
                                             font-semibold
                                             text-white
                                             transition-all
@@ -646,7 +575,7 @@ export default function EmailTemplates() {
                 {/* Count */}
                 {!isLoading && templates.length > 0 && (
                     <div className="pt-2 text-center">
-                        <p className="text-[11px] text-gray-400">
+                        <p className="text-sm text-gray-500">
                             Showing {filtered.length} of{" "}
                             {templates.length} emails
                         </p>

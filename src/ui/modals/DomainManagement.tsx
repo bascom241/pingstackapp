@@ -15,6 +15,7 @@ const DomainManagement = () => {
     data: domains = [],
     isPending: isInitialLoading,
     isRefetching,
+    isError,
     refetch: refetchDomains,
   } = useGetAllDomains();
 
@@ -25,14 +26,18 @@ const DomainManagement = () => {
   const { mutate: createDomain, isPending: isAddingDomain } = useCreateDomain();
   const { enqueueSnackbar } = useSnackbar();
 
-  const handleCopy = (text: string, key: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedKey(key);
-    setTimeout(() => setCopiedKey(null), 2000);
+  const handleCopy = async (text: string, key: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedKey(key);
+      setTimeout(() => setCopiedKey(previous => previous === key ? null : previous), 2000);
+    } catch {
+      enqueueSnackbar("Couldn’t copy this value. Select and copy it manually.", { variant: "error" });
+    }
   };
 
   const addDomain = () => {
-    if (!newDomainInput.trim()) return;
+    if (!newDomainInput.trim() || isAddingDomain) return;
 
     createDomain(
       { customDomain: newDomainInput.trim() },
@@ -60,6 +65,7 @@ const DomainManagement = () => {
     <>
       <DomainList
         domains={domains}
+        isDomainError={isError}
         newDomainInput={newDomainInput}
         onInputChange={setNewDomainInput}
         onAddDomain={addDomain}

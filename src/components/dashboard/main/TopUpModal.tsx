@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, HelpCircle, Loader2 } from 'lucide-react';
+import { X, HelpCircle, Loader2 } from "../../../ui/icons";
 import { useTopUpWallet } from '../../../features/wallet/hooks/useTopUpWallet';
 import type { WalletTopUpRequest } from '../../../types/wallet/walletType';
 import { useSnackbar } from 'notistack';

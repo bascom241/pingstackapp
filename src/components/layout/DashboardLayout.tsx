@@ -1,312 +1,163 @@
-"use client"
+import { InlineSkeleton } from "../../ui/Skeleton";
+import { useInterfaceSettings } from "../../features/settings/store/useInterfaceSettings";
+import Brand from "../brand/Brand";
+import { useEffect, useId, useState, type ReactNode, type ComponentType } from "react";
+import { NavLink, Link, useLocation } from "react-router-dom";
+import { Modal, useMediaQuery } from "@mui/material";
+import { AnimatePresence, motion, MotionConfig, useReducedMotion } from "framer-motion";
+import { LayoutDashboard, MessageSquare, Send, Radio, Globe, CreditCard, Settings, ChevronDown, ArrowUpRight, Menu, X, Plus, Wallet, ChevronLeft, type IconProps } from "../../ui/icons";
+import { useBalance } from "../../features/wallet/hooks/useBalance";
+import { formatNaira } from "../../utils/currency";
+import "./dashboard.css";
 
-import React, { useState } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
-import {
-    LayoutDashboard,
-    MessageSquare,
-    Terminal,
-    CreditCard,
-    Settings,
-    ChevronDown,
-    ChevronUp,
-    Bell,
-    Send,
-    Radio,
-    Globe,
-    Plus,
-    Zap,
-    Menu,
-    X,
+type NavItem = { label: string; path: string };
+type NavGroup = { label: string; icon: ComponentType<IconProps>; items: NavItem[] };
+const groups: NavGroup[] = [
+  { label: "Messaging", icon: MessageSquare, items: [
+    { label: "Send messages", path: "/dashboard/sms" },
+    { label: "Contacts & lists", path: "/dashboard/contacts" },
+    { label: "Email configuration", path: "/dashboard/email-config" },
+  ] },
+  { label: "Marketing", icon: Send, items: [
+    { label: "Campaigns", path: "/dashboard/campaigns" },
+    { label: "Email templates", path: "/dashboard/email-templates" },
+  ] },
+  { label: "Developers", icon: Radio, items: [
+    { label: "API keys & sandbox", path: "/dashboard/api-keys" },
+    { label: "Webhooks", path: "/dashboard/webhooks" },
+    { label: "OTP guide", path: "/dashboard/otp-guide" },
+  ] },
+  { label: "Account setup", icon: Globe, items: [
+    { label: "Sender IDs", path: "/dashboard/sender-id" },
+    { label: "KYC verification", path: "/dashboard/kyc" },
+  ] },
+];
 
-} from "lucide-react"
-
-type SidebarSubItem = {
-    label: string
-    path: string
-}
-
-type SidebarItem = {
-    label: string
-    icon: React.ComponentType<{ size: number; className?: string }>
-    path?: string
-    subItems?: SidebarSubItem[]
-}
-
-type DashboardLayoutProps = {
-    children: React.ReactNode
-}
-import { useBalance } from "../../features/wallet/hooks/useBalance"
-
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
-    const location = useLocation()
-    const navigate = useNavigate()
-    const { data, isLoading, error } = useBalance();
-
-    // UI Layout States
-    const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({ "Engage": true })
-    const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false)
-    const [isQuickMenuOpen, setIsQuickMenuOpen] = useState(false)
-    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
-
-    const currentPath = location.pathname
-
-    const navigationConfig: SidebarItem[] = [
-        { label: "Overview", icon: LayoutDashboard, path: "/dashboard" },
-        {
-            label: "Engage",
-            icon: MessageSquare,
-            subItems: [
-                { label: "Send Messages", path: "/dashboard/sms" },
-                { label: "Contacts & Lists", path: "/dashboard/contacts" },
-                { label: "Email Configuration", path: "/dashboard/email-config" },
-                { label: "KYC Verification", path: "/dashboard/kyc" },
-                { label: "OTP Guide Docs", path: "/dashboard/otp-guide" },
-
-            ]
-        },
-
-        {
-            label: "Marketing",
-            icon: Send,
-            subItems: [
-                { label: "Campaigns", path: "/dashboard/campaigns" },
-                { label: "Templates", path: "/dashboard/email-templates" }
-            ]
-        },
-        {
-            label: "Signals",
-            icon: Radio,
-            subItems: [
-                { label: "Webhooks Configuration", path: "/dashboard/webhooks" },
-                { label: "API Keys & Sandbox", path: "/dashboard/api-keys" },
-            ]
-        },
-        {
-            label: "Sotel Systems",
-            icon: Globe,
-            subItems: [
-                { label: "Sender ID Registry", path: "/dashboard/sender-id" },
-                { label: "Carrier Routing Trunks", path: "/dashboard/trunks" },
-            ]
-        }
-    ]
-
-    const handleNavigation = (path: string) => {
-        navigate(path)
-        setIsMobileSidebarOpen(false) // Close drawer automatically on mobile navigation
-    }
-
-    // Isolated Sidebar Content Factory for cleaner re-use across viewpoints
-    const SidebarContent = () => (
-        <div className="flex flex-col h-full justify-between bg-white select-none">
-            <div>
-                {/* Header Logo Frame */}
-                <div className="h-16 flex items-center px-6 border-b border-[#e2e8f0]">
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-[#004aad] flex items-center justify-center text-white font-black text-sm tracking-tighter">
-                            P
-                        </div>
-                        <span className="font-extrabold text-sm tracking-wider text-[#0f172a] uppercase">
-                            Pingstack
-                        </span>
-                    </div>
-                </div>
-
-                {/* Clean Workspace Selector Dropdown */}
-                <div className="px-4 py-3 border-b border-[#f1f5f9] relative">
-                    <button
-                        onClick={() => setIsOrgDropdownOpen(!isOrgDropdownOpen)}
-                        className="w-full flex items-center justify-between p-2 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] hover:border-[#cbd5e1] transition-all cursor-pointer text-left"
-                    >
-                        <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-full bg-[#004aad]/10 flex items-center justify-center text-xs font-bold text-[#004aad]">
-                                AW
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-xs font-bold text-[#334155] leading-tight">Abdulwahab</span>
-                                <span className="text-[10px] text-[#94a3b8] font-medium">Default Node</span>
-                            </div>
-                        </div>
-                        <ChevronDown size={14} className={`text-[#64748b] transition-transform ${isOrgDropdownOpen ? "rotate-180" : ""}`} />
-                    </button>
-
-                    {isOrgDropdownOpen && (
-                        <div className="absolute left-4 right-4 mt-1 bg-white border border-[#e2e8f0] rounded-xl shadow-lg p-1 z-30 flex flex-col">
-                            <button className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold bg-[#004aad]/5 text-[#004aad]">
-                                Production Live Node
-                            </button>
-                            <button className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-[#64748b] hover:bg-[#f8fafc] transition-colors">
-                                Developer Sandbox
-                            </button>
-                        </div>
-                    )}
-                </div>
-
-                {/* Clean Menu Iteration Factory */}
-                <nav className="p-3 flex flex-col gap-0.5">
-                    {navigationConfig.map((item) => {
-                        const Icon = item.icon
-                        const hasSubItems = !!item.subItems
-                        const isExpanded = !!expandedMenus[item.label]
-                        const isDirectActive = item.path ? currentPath === item.path : false
-
-                        return (
-                            <div key={item.label} className="w-full flex flex-col">
-                                <button
-                                    onClick={() => hasSubItems ? setExpandedMenus(prev => ({ ...prev, [item.label]: !prev[item.label] })) : item.path && handleNavigation(item.path)}
-                                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${isDirectActive
-                                            ? "bg-[#004aad] text-white"
-                                            : "text-[#64748b] hover:text-[#0f172a] hover:bg-[#f1f5f9]"
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <Icon size={16} className={isDirectActive ? "text-white" : "text-[#94a3b8]"} />
-                                        <span>{item.label}</span>
-                                    </div>
-                                    {hasSubItems && (
-                                        isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />
-                                    )}
-                                </button>
-
-                                {hasSubItems && isExpanded && (
-                                    <div className="flex flex-col gap-0.5 pl-4 mt-0.5 ml-4 border-l border-[#e2e8f0]">
-                                        {item.subItems?.map((subItem) => {
-                                            const isChildActive = currentPath === subItem.path
-                                            return (
-                                                <button
-                                                    key={subItem.path}
-                                                    onClick={() => handleNavigation(subItem.path)}
-                                                    className={`w-full text-left px-3 py-1.5 rounded-md text-[11px] font-medium transition-all cursor-pointer ${isChildActive
-                                                            ? "text-[#004aad] font-bold bg-[#004aad]/5"
-                                                            : "text-[#64748b] hover:text-[#0f172a] hover:bg-[#f8fafc]"
-                                                        }`}
-                                                >
-                                                    {subItem.label}
-                                                </button>
-                                            )
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        )
-                    })}
-                </nav>
+function Sidebar({ close, collapsed = false, expand }: { close?: () => void; collapsed?: boolean; expand?: () => void }) {
+  const { pathname } = useLocation();
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const sidebarId = useId();
+  return (
+    <div className="dashboard-sidebar-content">
+      <div className="dashboard-brand-row">
+        <Link to="/dashboard" onClick={close} className="dashboard-brand" aria-label="Pingstack overview">
+          <Brand size={44} />
+        </Link>
+        {close && <button type="button" autoFocus className="dashboard-icon-button" onClick={close} aria-label="Close navigation"><X /></button>}
+      </div>
+      <div className="dashboard-workspace">
+        <span className="dashboard-workspace-avatar"><MessageSquare size={22} /></span>
+        <div><strong>Your workspace</strong><span>Messaging workspace</span></div>
+      </div>
+      <nav className="dashboard-navigation" aria-label="Main navigation">
+        <p className="dashboard-nav-caption">Workspace</p>
+        <NavLink end to="/dashboard" aria-label="Overview" title={collapsed ? "Overview" : undefined} onClick={close} className={({ isActive }) => `dashboard-nav-link ${isActive ? "is-active" : ""}`}><LayoutDashboard /><span>Overview</span></NavLink>
+        {groups.map(({ label, icon: Icon, items }, index) => {
+          const active = items.some(item => pathname === item.path || pathname.startsWith(item.path + "/"));
+          const open = !collapsed && (expanded[label] ?? (active || label === "Messaging"));
+          return (
+            <div className="dashboard-nav-group" key={label}>
+              <button className={`dashboard-nav-link ${active ? "has-active-child" : ""}`} aria-label={label} title={collapsed ? label : undefined} onClick={() => { if (collapsed) expand?.(); setExpanded(prev => ({ ...prev, [label]: !open })); }} aria-expanded={open} aria-controls={`${sidebarId}-nav-group-${index}`}>
+                <Icon /><span>{label}</span>
+                <motion.span className="dashboard-nav-chevron" animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.18 }}><ChevronDown size={16} /></motion.span>
+              </button>
+              <AnimatePresence initial={false}>
+                {open && <motion.div id={`${sidebarId}-nav-group-${index}`} initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                  <div className="dashboard-nav-children">{items.map(item => <NavLink key={item.path} to={item.path} onClick={close} className={({ isActive }) => `dashboard-nav-child ${isActive ? "is-active" : ""}`}>{item.label}</NavLink>)}</div>
+                </motion.div>}
+              </AnimatePresence>
             </div>
-
-            {/* Bottom Core Base Utilities */}
-            <div className="p-3 border-t border-[#f1f5f9] flex flex-col gap-0.5">
-                <button onClick={() => handleNavigation("/dashboard/billing")} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-[#64748b] hover:bg-[#f1f5f9] cursor-pointer">
-                    <CreditCard size={16} />
-                    <span>Billing & Credits</span>
-                </button>
-                <button onClick={() => handleNavigation("/dashboard/settings")} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-[#64748b] hover:bg-[#f1f5f9] cursor-pointer">
-                    <Settings size={16} />
-                    <span>Settings</span>
-                </button>
-            </div>
+          );
+        })}
+        <div className="dashboard-account-links">
+        <NavLink to="/dashboard/billing" aria-label="Billing and credits" title={collapsed ? "Billing & credits" : undefined} onClick={close} className={({ isActive }) => `dashboard-nav-link ${isActive ? "is-active" : ""}`}><CreditCard /><span>Billing & credits</span></NavLink>
+        <NavLink to="/dashboard/settings" aria-label="Settings" title={collapsed ? "Settings" : undefined} onClick={close} className={({ isActive }) => `dashboard-nav-link ${isActive ? "is-active" : ""}`}><Settings /><span>Settings</span></NavLink>
         </div>
-    )
+      </nav>
+      <div className="dashboard-sidebar-footer">
+        <Link to="/dashboard/otp-guide" onClick={close} className="dashboard-help-link"><span>Build with Pingstack</span><ArrowUpRight size={17} /></Link>
+      </div>
+    </div>
+  );
+}
 
-    return (
-        <div className="w-full min-h-screen bg-[#f8fafc] text-[#1e293b] flex antialiased relative">
-
-            {/* DESKTOP SIDEBAR VIEWPORT (Hidden on Mobile) */}
-            <aside className="hidden md:flex w-64 bg-white border-r border-[#e2e8f0] flex-col justify-between z-20 flex-shrink-0">
-                <SidebarContent />
-            </aside>
-
-            {/* MOBILE SIDEBAR SLIDE DRAWER (Hidden on Desktop) */}
-            {isMobileSidebarOpen && (
-                <div className="md:hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 transition-opacity">
-                    <div className="w-64 h-full bg-white relative animate-slide-in">
-                        <button
-                            onClick={() => setIsMobileSidebarOpen(false)}
-                            className="absolute right-4 top-4 text-[#64748b] hover:text-[#0f172a] p-1 rounded-lg"
-                        >
-                            <X size={18} />
-                        </button>
-                        <SidebarContent />
-                    </div>
-                </div>
-            )}
-
-            {/* MAIN APP REGION WRAPPER */}
-            <div className="flex-1 flex flex-col min-w-0">
-
-                {/* STABLE RESPONSIVE NAVBAR */}
-                <header className="h-16 bg-white border-b border-[#e2e8f0] px-4 sm:px-8 flex items-center justify-between sticky top-0 z-10 select-none">
-
-                    {/* Left side actions: Drawer toggler & Financial Display */}
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => setIsMobileSidebarOpen(true)}
-                            className="md:hidden text-[#475569] hover:bg-[#f1f5f9] p-1.5 rounded-xl transition-all cursor-pointer"
-                        >
-                            <Menu size={20} />
-                        </button>
-
-                        <div className="flex items-center gap-2 bg-[#f8fafc] border border-[#e2e8f0] px-2.5 py-1.5 rounded-xl">
-                            <span className="text-[10px] font-bold text-[#94a3b8] uppercase tracking-wider hidden sm:inline">Balance:</span>
-                            <span className="text-xs font-black text-[#1e293b] font-mono">₦{data}</span>
-                            <button
-                                onClick={() => navigate("/dashboard/billing")}
-                                className="ml-0.5 bg-[#004aad] text-white px-1.5 py-0.5 rounded-md text-[10px] font-bold hover:bg-[#003680] transition-colors flex items-center gap-0.5 cursor-pointer"
-                            >
-                                <Plus size={9} /> <span className="hidden sm:inline">Fund</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Right side actions: Launch control utilities */}
-                    <div className="flex items-center gap-2 sm:gap-4">
-
-                        {/* Dropdown Utilities Element */}
-                        <div className="relative">
-                            <button
-                                onClick={() => setIsQuickMenuOpen(!isQuickMenuOpen)}
-                                className="bg-white border border-[#e2e8f0] hover:border-[#cbd5e1] text-[#334155] px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer transition-all shadow-sm"
-                            >
-                                <Zap size={14} className="text-[#004aad]" />
-                                <span className="hidden sm:inline">Quick Actions</span>
-                                <ChevronDown size={12} />
-                            </button>
-
-                            {isQuickMenuOpen && (
-                                <div className="absolute right-0 mt-1.5 w-44 bg-white border border-[#e2e8f0] rounded-xl shadow-xl p-1 z-30 flex flex-col">
-                                    <button onClick={() => { setIsQuickMenuOpen(false); navigate("/dashboard/sms"); }} className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-[#334155] hover:bg-[#f8fafc] flex items-center gap-2">
-                                        <Send size={12} className="text-[#004aad]" /> Instant SMS
-                                    </button>
-                                    <button onClick={() => setIsQuickMenuOpen(false)} className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-[#334155] hover:bg-[#f8fafc] flex items-center gap-2">
-                                        <Terminal size={12} className="text-[#004aad]" /> Test OTP
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Send Message Button */}
-                        <button
-                            onClick={() => navigate("/dashboard/sms")}
-                            className="bg-[#004aad] text-white px-2.5 sm:px-4 py-1.5 rounded-xl text-xs font-bold hover:bg-[#003680] transition-all flex items-center gap-1.5 cursor-pointer shadow-sm shadow-[#004aad]/10"
-                        >
-                            <Send size={13} />
-                            <span className="hidden sm:inline">Send Message</span>
-                        </button>
-
-                        <div className="w-px h-5 bg-[#e2e8f0] hidden sm:block" />
-
-                        <button className="text-[#94a3b8] hover:text-[#475569] relative p-1.5 rounded-full hover:bg-[#f1f5f9] cursor-pointer hidden sm:block">
-                            <Bell size={18} />
-                            <span className="w-1.5 h-1.5 bg-[#004aad] rounded-full absolute top-1.5 right-1.5" />
-                        </button>
-                    </div>
-                </header>
-
-                {/* CORE CANVAS VIEWPORT PORT PORTAL */}
-                <main className="flex-1 p-4 sm:p-8 max-w-[1600px] w-full mx-auto overflow-y-auto">
-                    {children}
-                </main>
+export default function DashboardLayout({ children }: { children: ReactNode }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const { sidebarCollapsed, reduceMotion, showBalance, update, toggleSidebar } = useInterfaceSettings();
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const prefersReducedMotion = useReducedMotion();
+  const motionDuration = reduceMotion || prefersReducedMotion ? 0 : 0.24;
+  const { pathname } = useLocation();
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [isDesktop, pathname]);
+  const toggleNavigation = () => {
+    if (isDesktop) toggleSidebar();
+    else setMobileOpen(previous => !previous);
+  };
+  const { data, isPending, isError } = useBalance();
+  const page = groups.flatMap(group => group.items).find(item => pathname === item.path || pathname.startsWith(item.path + "/"))?.label
+    ?? (pathname === "/dashboard/billing" ? "Billing & credits" : pathname === "/dashboard/settings" ? "Settings" : "Overview");
+  return (
+    <MotionConfig reducedMotion={reduceMotion ? "always" : "user"} transition={{ duration: 0.22, ease: "easeOut" }}>
+      <div className={`dashboard-shell ${sidebarCollapsed ? "is-sidebar-collapsed" : ""} ${reduceMotion ? "is-reduced-motion" : ""}`}>
+        <a className="dashboard-skip-link" href="#dashboard-content">Skip to content</a>
+        <motion.aside
+          id="dashboard-desktop-navigation"
+          className="dashboard-desktop-sidebar"
+          initial={false}
+          animate={{ width: sidebarCollapsed ? 76 : 224 }}
+          transition={{ duration: motionDuration, ease: [0.22, 1, 0.36, 1] }}
+        ><Sidebar collapsed={sidebarCollapsed} expand={() => update({ sidebarCollapsed: false })} /></motion.aside>
+        <AnimatePresence>
+          {mobileOpen && !isDesktop && (
+            <Modal open onClose={() => setMobileOpen(false)} hideBackdrop aria-label="Mobile navigation">
+              <motion.div className="dashboard-mobile-overlay" initial="closed" animate="open" exit="closed" tabIndex={-1}>
+                <motion.div
+                  className="dashboard-mobile-backdrop"
+                  aria-hidden="true"
+                  onClick={() => setMobileOpen(false)}
+                  variants={{ closed: { opacity: 0 }, open: { opacity: 1 } }}
+                  transition={{ duration: motionDuration }}
+                />
+                <motion.aside
+                  id="dashboard-mobile-navigation"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Main navigation"
+                  className="dashboard-mobile-panel"
+                  variants={{ closed: { x: "-100%" }, open: { x: 0 } }}
+                  transition={{ duration: motionDuration, ease: [0.22, 1, 0.36, 1] }}
+                ><Sidebar close={() => setMobileOpen(false)} /></motion.aside>
+              </motion.div>
+            </Modal>
+          )}
+        </AnimatePresence>
+        <div className="dashboard-main">
+          <header className="dashboard-topbar">
+            <div className="flex items-center gap-3 min-w-0">
+              <motion.button
+                type="button"
+                className="dashboard-icon-button dashboard-navigation-toggle"
+                onClick={toggleNavigation}
+                aria-label={isDesktop ? sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar" : mobileOpen ? "Close navigation" : "Open navigation"}
+                aria-expanded={isDesktop ? !sidebarCollapsed : mobileOpen}
+                aria-controls={isDesktop ? "dashboard-desktop-navigation" : mobileOpen ? "dashboard-mobile-navigation" : undefined}
+                title={isDesktop ? sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar" : "Open navigation"}
+                whileTap={motionDuration ? { scale: 0.94 } : undefined}
+              >
+                {isDesktop ? <motion.span className="dashboard-toggle-glyph" initial={false} animate={{ rotate: sidebarCollapsed ? 180 : 0 }} transition={{ duration: motionDuration }}><ChevronLeft size={20} /></motion.span> : <Menu size={21} />}
+              </motion.button>
+              <div className="dashboard-breadcrumb"><span>Workspace</span><span className="text-slate-300">/</span><strong>{page}</strong></div>
             </div>
+            <div className="flex items-center gap-3 sm:gap-5">
+              {showBalance && <Link to="/dashboard/billing" className="dashboard-header-balance" aria-label="View wallet and billing"><Wallet size={18} /><span>{isPending ? <InlineSkeleton width={90} height={18} label="Loading balance" /> : isError ? "Balance unavailable" : `₦${formatNaira(data)}`}</span></Link>}
+              <Link to="/dashboard/sms" className="dashboard-button dashboard-button-primary"><Plus size={18} /><span className="hidden sm:inline">Send message</span><span className="sr-only sm:hidden">Send message</span></Link>
+            </div>
+          </header>
+          <main id="dashboard-content" tabIndex={-1} className="dashboard-content">{children}</main>
         </div>
-    )
+      </div>
+    </MotionConfig>
+  );
 }

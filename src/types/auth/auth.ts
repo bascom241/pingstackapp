@@ -4,20 +4,20 @@ export interface LoginType {
 }
 
 export interface RegisterType {
-  firstName: "";
-  email: "";
-  password: "";
-  lastName: "";
-  phoneNumber: any;
-  companyName: "";
-  sector: "";
-  creatorRole: "";
-  source: "";
-   countryCode: ""
+  firstName: string;
+  email: string;
+  password: string;
+  lastName: string;
+  phoneNumber: string;
+  companyName: string;
+  sector: string;
+  creatorRole: string;
+  source: string;
+  countryCode: string;
 }
 
 export interface ForgotPassword {
-  email: ""
+  email: string
 }
 
 export interface ResetPassword {

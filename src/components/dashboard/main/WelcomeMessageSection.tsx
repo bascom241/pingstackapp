@@ -1,42 +1,27 @@
-import { Wallet, ArrowRight, LineChart, Loader2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { InlineSkeleton } from "../../../ui/Skeleton";
+import { Link } from "react-router-dom";
+import { Wallet, Plus, ArrowUpRight, ShieldCheck } from "../../../ui/icons";
 import { useBalance } from "../../../features/wallet/hooks/useBalance";
 import { formatNaira } from "../../../utils/currency";
-const WelcomeMessageSection = () => {
-  const navigate = useNavigate();
-  const { data, isLoading, error } = useBalance();
+
+export default function WelcomeMessageSection() {
+  const { data, isPending, isError, refetch } = useBalance();
   return (
-    <div className="flex flex-col gap-4 w-full bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-      {/* 1. Header Row */}
-      <div className="flex gap-2 items-center text-gray-500">
-        <Wallet size={16} className="text-[#004aad] shrink-0" />
-        <p className="text-sm sm:text-base font-medium">Hi Edulink, Welcome to your dashboard</p>
+    <div className="dashboard-card overview-wallet">
+      <div className="flex items-center justify-between gap-3 mb-5">
+        <div className="flex items-center gap-2.5"><span className="text-[#004aad]"><Wallet size={21} /></span><h2 className="dashboard-card-title">Your wallet</h2></div>
+        <Link to="/dashboard/billing" className="dashboard-text-link">View wallet <ArrowUpRight size={16} /></Link>
       </div>
-
-      {/* 2. Balance & Action Row (Stacks vertically on small phones, side-by-side on larger screens) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100 sm:bg-transparent sm:p-0 sm:border-none">
-        <div className="flex items-baseline gap-1 text-slate-900">
-
-          {
-            isLoading ? <Loader2 className="animate-spin text-emerald-600" /> : <><span className="relative -top-2 text-sm font-extrabold text-emerald-600 select-none">₦</span> <span className="text-4xl font-extrabold tracking-tight text-emerald-600">{error ? "--" : formatNaira(data)}</span></>
-          }
-
+      <p className="dashboard-card-description mb-2!">Available balance</p>
+      <div className="flex flex-wrap items-center justify-between gap-5">
+        <div className="overview-wallet-amount" aria-live="polite">
+          {isPending ? <InlineSkeleton width={190} height={46} label="Loading wallet balance" /> : isError ? <span className="text-lg text-slate-500">Balance unavailable</span> : <><span className="text-slate-400 font-normal mr-1">₦</span>{formatNaira(data)}</>}
         </div>
-
-        <button onClick={() => navigate("/dashboard/billing")} className="w-full sm:w-fit bg-[#004aad] hover:bg-blue-700 text-white font-semibold text-sm py-2.5 px-4 rounded-xl sm:rounded-full transition-all shadow-sm active:scale-[0.98] flex items-center justify-center gap-2 group cursor-pointer">
-          <Wallet size={16} className="shrink-0" />
-          <span>Fund wallet</span>
-          <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform shrink-0" />
-        </button>
+        <Link to="/dashboard/billing" className="dashboard-button dashboard-button-primary"><Plus size={18} />Fund wallet</Link>
       </div>
-
-      {/* 3. Subtext / Indicator Row */}
-      <div className="flex gap-2 items-center mt-2 text-slate-500 bg-slate-50 p-3 rounded-xl sm:bg-transparent sm:p-0 border border-slate-100 sm:border-none">
-        <LineChart size={18} className="text-[#004aad] shrink-0" />
-        <p className="text-xs sm:text-sm font-medium">All channels performance</p>
+      <div className="overview-wallet-footer">
+        {isError ? <button onClick={() => void refetch()} className="dashboard-text-link">Try loading your balance again</button> : <><ShieldCheck size={16} /><span>One wallet for your messaging needs.</span></>}
       </div>
     </div>
   );
-};
-
-export default WelcomeMessageSection;
+}

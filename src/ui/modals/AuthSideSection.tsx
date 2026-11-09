@@ -1,3 +1,4 @@
+import Brand from "../../components/brand/Brand";
 import React from 'react';
 
 type AuthVariant = 'login' | 'register' | 'forgot-password';
@@ -64,6 +65,8 @@ const AuthSideSection = ({ variant = 'login' }: AuthSideSectionProps) => {
           backgroundSize: '24px 24px',
         }}
       />
+
+      <div className="relative z-10 mb-8"><Brand light size={48} /></div>
 
       {/* Top Corner: Brand Heading Indicator */}
       <div className="relative z-10 flex items-center gap-2">

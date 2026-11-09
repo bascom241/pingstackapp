@@ -1,149 +1,46 @@
-import React from "react";
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from "recharts";
-import { TrendingUp } from "lucide-react";
+import { DataSkeleton } from "../../../ui/Skeleton";
+import { useId } from "react";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { useReducedMotion } from "framer-motion";
+import { LineChart } from "../../../ui/icons";
 import { useOrderChat } from "../../../features/wallet/hooks/useChart";
 
-// 1. Temporary Mock Data
-const mockApiData = [
-  { timestamp: "2026-06-01T00:00:00Z", value: 120 },
-  { timestamp: "2026-06-05T00:00:00Z", value: 340 },
-  { timestamp: "2026-06-10T00:00:00Z", value: 210 },
-  { timestamp: "2026-06-15T00:00:00Z", value: 580 },
-  { timestamp: "2026-06-20T00:00:00Z", value: 490 },
-  { timestamp: "2026-06-25T00:00:00Z", value: 820 },
-  { timestamp: "2026-06-30T00:00:00Z", value: 950 },
-];
+function formatDate(value: unknown): string {
+  const date = new Date(String(value));
+  return Number.isNaN(date.getTime()) ? String(value ?? "") : date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
 
-export default function AnalyticsChart({
- 
-  title = "Transaction Volume",
-}) {
-
-  const {data} = useOrderChat()
-  // Helper to format API dates dynamically (e.g., '2026-06-25...' becomes 'Jun 25')
-  const formatDate = (isoString: any) => {
-    try {
-      const date = new Date(isoString);
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      });
-    } catch {
-      return isoString;
-    }
-  };
-
-  
-
+export default function AnalyticsChart({ title = "Transaction activity" }: { title?: string }) {
+  const { data, isPending, isError, refetch } = useOrderChat();
+  const reducedMotion = useReducedMotion();
+  const gradientId = useId().replace(/:/g, "");
+  const points: { timestamp: string; value: number }[] = Array.isArray(data) ? data.filter((point: unknown): point is { timestamp: string; value: number } => {
+    if (!point || typeof point !== "object") return false;
+    const record = point as Record<string, unknown>;
+    return typeof record.timestamp === "string" && typeof record.value === "number" && Number.isFinite(record.value);
+  }) : [];
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-6 shadow-sm w-full mt-4 sm:mt-8">
-      {/* Chart Header */}
-      <div className="flex justify-between items-center mb-6 gap-2">
-        <div className="min-w-0">
-          <p className="text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wider">
-            Analytics
-          </p>
-          <h3 className="text-base sm:text-lg font-bold text-gray-800 truncate">
-            {title}
-          </h3>
-        </div>
-
-        {/* Metric badge */}
-        <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0">
-          <TrendingUp className="w-3.5 h-3.5" />
-          <span>Live</span>
-        </div>
+    <div className="dashboard-card">
+      <div className="dashboard-card-heading">
+        <div><h2 className="dashboard-card-title">{title}</h2><p className="dashboard-card-description">A closer look at your wallet transactions over time.</p></div>
+        <span className="rounded-xl bg-blue-50 p-2 text-[#004aad]"><LineChart size={21} /></span>
       </div>
-
-      {/* Chart Canvas Container - Fixed Heights for Mobile vs Desktop */}
-      <div className="w-full h-56 sm:h-64 text-[10px] sm:text-xs font-medium text-gray-400 select-none">
-        <ResponsiveContainer width="100%" height="100%">
-          {/* Responsive margins: Left margin altered from -20 to -10 to prevent digit clipping on mobile */}
-          <AreaChart
-            data={data}
-            margin={{ top: 10, right: 5, left: -10, bottom: 0 }}
-          >
-            <defs>
-              {/* Using your Brand Color: #004aad */}
-              <linearGradient id="brandGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#004aad" stopOpacity={0.15} />
-                <stop offset="95%" stopColor="#004aad" stopOpacity={0.0} />
-              </linearGradient>
-            </defs>
-
-            {/* Light horizontal grid lines */}
-            <CartesianGrid
-              strokeDasharray="3 3"
-              vertical={false}
-              stroke="#f1f5f9"
-            />
-
-            <XAxis
-              dataKey="timestamp"
-              axisLine={false}
-              tickLine={false}
-              dy={10}
-              stroke="#94a3b8"
-              tickFormatter={formatDate}
-              // Automatically drops intermediate labels on smaller devices to avoid overlaps
-              interval="preserveStartEnd"
-              minTickGap={25}
-            />
-
-            <YAxis axisLine={false} tickLine={false} dx={5} stroke="#94a3b8" />
-
-            {/* Custom Hover Tooltip */}
-            {/* Custom Hover Tooltip */}
-            <Tooltip
-              labelFormatter={formatDate}
-              contentStyle={{
-                backgroundColor: "#ffffff",
-                border: "1px solid #f1f5f9",
-                borderRadius: "12px",
-                boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.05)",
-                fontSize: "12px",
-              }}
-              labelStyle={{
-                fontWeight: "600",
-                color: "#1e293b",
-                marginBottom: "4px",
-              }}
-              // FIXED: Changed paddingVertical to standard web styles
-              itemStyle={{
-                color: "#004aad",
-                fontWeight: "500",
-                paddingTop: "2px",
-                paddingBottom: "2px",
-              }}
-            />
-
-            {/* Interactive Data Area */}
-            <Area
-              type="monotone"
-              dataKey="value"
-              name="Transactions"
-              stroke="#004aad"
-              strokeWidth={2.5}
-              fillOpacity={1}
-              fill="url(#brandGradient)"
-              activeDot={{
-                r: 5,
-                stroke: "#ffffff",
-                strokeWidth: 2,
-                fill: "#004aad",
-              }}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
+      {isPending ? <DataSkeleton layout="chart" label="Loading transaction activity" />
+        : isError ? <div className="dashboard-empty h-64" role="status"><strong>Activity could not be loaded</strong><span>Try again to see your latest transactions.</span><button className="dashboard-button" onClick={() => void refetch()}>Try again</button></div>
+        : points.length === 0 ? <div className="dashboard-empty h-64"><span className="dashboard-empty-icon"><LineChart size={24} /></span><strong>Your activity starts here</strong><span>Once you make a transaction, you will see your history over time.</span></div>
+        : <div className="h-64 sm:h-72 w-full min-w-0 text-xs" role="img" aria-label={`Transaction activity chart with ${points.length} data points. Latest value: ${points[points.length - 1].value}.`}>
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={points} margin={{ top: 12, right: 12, left: -18, bottom: 8 }} accessibilityLayer>
+              <defs><linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#004aad" stopOpacity={0.16} /><stop offset="100%" stopColor="#004aad" stopOpacity={0.01} /></linearGradient></defs>
+              <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#edf1f5" />
+              <XAxis dataKey="timestamp" axisLine={false} tickLine={false} dy={10} tick={{ fill: "#64748b", fontSize: 11 }} tickFormatter={formatDate} interval="preserveStartEnd" minTickGap={35} />
+              <YAxis axisLine={false} tickLine={false} allowDecimals={false} tick={{ fill: "#64748b", fontSize: 11 }} />
+              <Tooltip labelFormatter={formatDate} contentStyle={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 12, fontSize: 12, padding: "12px 16px" }} labelStyle={{ color: "#64748b", marginBottom: 5 }} itemStyle={{ color: "#004aad" }} />
+              <Area type="monotone" dataKey="value" name="Transactions" stroke="#004aad" strokeWidth={2.5} fill={`url(#${gradientId})`} isAnimationActive={!reducedMotion} animationDuration={650} activeDot={{ r: 5, stroke: "white", strokeWidth: 3 }} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>}
+      <div className="flex items-center gap-2 text-xs text-slate-500 border-t border-slate-100 pt-4 mt-5"><span className="w-2 h-2 rounded-full bg-[#004aad]" />Wallet transactions</div>
     </div>
   );
 }

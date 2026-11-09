@@ -1,202 +1,109 @@
-import React, { useState } from "react";
-import { Terminal, ShieldCheck, Copy, Check, Code2, Cpu, ArrowRight, Play, RefreshCw, KeyRound } from "lucide-react";
-import { motion } from "framer-motion";
-import { AnimatePresence } from "framer-motion";
-type Language = "curl" | "node" | "python";
+﻿import { useState, type FormEvent } from 'react'
+import { Info, Play, ArrowRight } from '../../ui/icons'
+import { DeveloperPage, DeveloperCard, DeveloperNote, DeveloperLink, CodeBlock } from '../../components/developers/DeveloperUI'
+
+type Language = 'curl' | 'node' | 'python'
+type Operation = 'send' | 'verify'
+type SimulationResult = { simulated: true; operation: Operation; status: string; reference: string }
 
 export default function OtpGuide() {
-  const [activeLang, setActiveLang] = useState<Language>("curl");
-  const [copied, setCopied] = useState(false);
-  const [simulatedPhone, setSimulatedPhone] = useState("+234 803 111 2222");
-  const [isLoadingTest, setIsLoadingTest] = useState(false);
-  const [testResponse, setTestResponse] = useState<any>(null);
+    const [language, setLanguage] = useState<Language>('curl')
+    const [operation, setOperation] = useState<Operation>('send')
+    const [phone, setPhone] = useState('+2348031112222')
+    const [code, setCode] = useState('')
+    const [hasSimulatedSend, setHasSimulatedSend] = useState(false)
+    const [result, setResult] = useState<SimulationResult | null>(null)
+    const [phoneError, setPhoneError] = useState('')
+    const payload = operation === 'send' ? { to: phone, senderId: 'Pingstack', expiry: 300, digits: 6 } : { pinId: 'otp_example_reference', code: '123456' }
+    const json = JSON.stringify(payload, null, 2)
+    const exampleUrl = `https://api.example.com/v1/otp/${operation}`
+    const snippets: Record<Language, string> = {
+        curl: `curl --request POST '${exampleUrl}' \\
+  --header "Authorization: Bearer $PINGSTACK_API_KEY" \\
+  --header 'Content-Type: application/json' \\
+  --data '${json.replaceAll("'", "'\"'\"'")}'`,
+        node: `const response = await fetch('${exampleUrl}', {
+  method: 'POST',
+  headers: {
+    Authorization: \`Bearer \${process.env.PINGSTACK_API_KEY}\`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(${json}),
+});
 
-  const codeSnippets: Record<Language, string> = {
-    curl: `curl -X POST "https://v1.api.pingstack.com/v1/otp/send" \\
-  -H "Authorization: Bearer TLXPUNKAKDhaHEE..." \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "to": "${simulatedPhone}",
-    "senderId": "Pingstack",
-    "expiry": 300,
-    "digits": 6
-  }'`,
-    node: `const axios = require('axios');
-
-axios.post('https://v1.api.pingstack.com/v1/otp/send', {
-  to: '${simulatedPhone}',
-  senderId: 'Pingstack',
-  expiry: 300,
-  digits: 6
-}, {
-  headers: { 'Authorization': 'Bearer TLXPUNKAKDhaHEE...' }
-})
-.then(res => console.log(res.data));`,
-    python: `import requests
-
-payload = {
-    "to": "${simulatedPhone}",
-    "senderId": "Pingstack",
-    "expiry": 300,
-    "digits": 6
+if (!response.ok) {
+  throw new Error(\`Request failed: \${response.status}\`);
 }
-headers = {"Authorization": "Bearer TLXPUNKAKDhaHEE..."}
+console.log(await response.json());`,
+        python: `import os
+import requests
 
-response = requests.post("https://v1.api.pingstack.com/v1/otp/send", json=payload, headers=headers)
-print(response.json())`
-  };
+payload = ${json}
+response = requests.post(
+    '${exampleUrl}',
+    headers={
+        'Authorization': f"Bearer {os.environ['PINGSTACK_API_KEY']}"
+    },
+    json=payload,
+    timeout=30,
+)
+response.raise_for_status()
+print(response.json())`,
+    }
+    const simulateSend = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault()
+        if (!/^\+[1-9]\d{7,14}$/.test(phone)) { setPhoneError('Use international format, for example +2348031112222.'); return }
+        setHasSimulatedSend(true)
+        setCode('')
+        setResult({ simulated: true, operation: 'send', status: 'awaiting_verification', reference: 'otp_demo_local' })
+    }
+    const simulateVerify = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault()
+        setResult({ simulated: true, operation: 'verify', status: code === '123456' ? 'verified' : 'invalid_code', reference: 'otp_demo_local' })
+    }
 
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(codeSnippets[activeLang]);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const triggerSandboxOtp = () => {
-    setIsLoadingTest(true);
-    setTimeout(() => {
-      setTestResponse({
-        status: "success",
-        pinId: "pin_dev_89ab32c0f9",
-        smsStatus: "DELIVERED",
-        carrier: "MTN Nigeria",
-        timestamp: new Date().toISOString()
-      });
-      setIsLoadingTest(false);
-    }, 1100);
-  };
-
-  return (
-    <div className="w-full max-w-5xl mx-auto space-y-6">
-      
-      {/* Page Context Meta */}
-      <div>
-        <h1 className="text-xl font-bold text-gray-900 tracking-tight">One-Time Password (OTP) Orchestration</h1>
-        <p className="text-xs text-gray-500 mt-0.5">
-          Integrate dynamic fallback mechanics, automated channel routing, and crypto-secure multi-factor tokens.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        
-        {/* API Token Framework Docs (Left) */}
-        <div className="lg:col-span-2 space-y-6">
-          
-          {/* Section A: Dynamic Workflow Flowchart Block */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-4">
-            <div className="flex items-center gap-2.5 pb-2 border-b border-gray-50">
-              <div className="p-1.5 bg-blue-50 text-[#004aad] rounded-lg">
-                <Cpu size={15} />
-              </div>
-              <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wide">Infrastructure Pipeline Flow</h2>
+    return <DeveloperPage title="OTP integration guide" description="Understand the send-and-verify flow, explore request examples, and try the interaction locally." action={<span className="dev-badge">Integration guide</span>}>
+        <div className="dev-layout">
+            <div className="dev-stack">
+                <DeveloperCard id="otp-overview" title="How verification works" description="Keep code creation and verification on your server.">
+                    <div className="dev-card-body dev-steps">{[
+                        { title: 'Request a code', text: 'Your server requests an OTP for a phone number and stores the returned reference.' },
+                        { title: 'Collect the code', text: 'Your application asks the recipient to enter the code they received.' },
+                        { title: 'Verify the result', text: 'Your server submits the code and reference, then handles the verification result.' },
+                    ].map((step, index) => <div key={step.title}><span className="dev-step-number">0{index + 1}</span><h3>{step.title}</h3><p>{step.text}</p></div>)}</div>
+                </DeveloperCard>
+                <DeveloperCard id="otp-examples" title="Request examples" description="Illustrative requests for your server-side integration." action={<span className="dev-badge">Example schema</span>}>
+                    <div className="dev-card-body">
+                        <div className="dev-inline-note mb-6"><Info size={18} /><p>Replace the example host and confirm routes, fields, and authentication in your API reference. These examples do not make live requests.</p></div>
+                        <div className="dev-segments" aria-label="Example operation">{(['send', 'verify'] as const).map(value => <button type="button" key={value} aria-pressed={operation === value} onClick={() => setOperation(value)}>{value === 'send' ? 'Send OTP' : 'Verify OTP'}</button>)}</div>
+                        <div className="dev-endpoint"><span className="dev-method">POST</span><code>/v1/otp/{operation}</code></div>
+                        <div className="dev-segments" aria-label="Code language">{(['curl', 'node', 'python'] as const).map(value => <button type="button" key={value} aria-pressed={language === value} onClick={() => setLanguage(value)}>{value === 'curl' ? 'cURL' : value === 'node' ? 'Node.js' : 'Python'}</button>)}</div>
+                        <CodeBlock code={snippets[language]} title={`${language === 'node' ? 'JavaScript' : language === 'python' ? 'Python' : 'Shell'} · ${operation === 'send' ? 'Send' : 'Verify'} example`} />
+                    </div>
+                </DeveloperCard>
+                <DeveloperCard id="otp-reference" title="Example field reference" description="Fields used by the illustrative send-and-verify examples above.">
+                    <div className="dev-table-scroll"><table className="dev-table"><thead><tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Purpose</th></tr></thead><tbody>{[
+                        { field: 'to', type: 'string', description: 'Recipient phone number in international format.' },
+                        { field: 'senderId', type: 'string', description: 'Sender identity used for the message.' },
+                        { field: 'expiry', type: 'integer', description: 'Example code lifetime in seconds: 300.' },
+                        { field: 'digits', type: 'integer', description: 'Example code length: 6 digits.' },
+                        { field: 'pinId', type: 'string', description: 'Reference returned by the send request, used when verifying.' },
+                        { field: 'code', type: 'string', description: 'Code entered by the recipient. Preserve leading zeros.' },
+                    ].map(row => <tr key={row.field}><td><code>{row.field}</code></td><td><span className="dev-badge">{row.type}</span></td><td>{row.description}</td></tr>)}</tbody></table></div>
+                </DeveloperCard>
+                <DeveloperCard id="otp-simulation" title="Try the verification flow" description="A local simulation. No SMS is sent and no credits are used." action={<span className="dev-badge">Simulation</span>}>
+                    <div className="dev-card-body">
+                        <form onSubmit={simulateSend}><div className="dev-field"><label htmlFor="otp-test-phone">Test phone number</label><div className="dev-input-row"><input id="otp-test-phone" type="tel" autoComplete="tel" required value={phone} onChange={event => { setPhone(event.target.value); setPhoneError(''); setResult(null); setHasSimulatedSend(false); setCode('') }} className="dev-input dev-mono" aria-invalid={Boolean(phoneError)} aria-describedby="otp-phone-help" /><button type="submit" className="dev-button is-primary"><Play size={16} />Simulate send</button></div><p id="otp-phone-help" className="dev-helper">{phoneError || 'Use international format without spaces, for example +2348031112222.'}</p></div></form>
+                        {hasSimulatedSend && <form onSubmit={simulateVerify} className="mt-6"><div className="dev-field"><label htmlFor="otp-test-code">Verification code</label><div className="dev-input-row"><input id="otp-test-code" type="text" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={event => setCode(event.target.value)} className="dev-input dev-mono" placeholder="Enter 6 digits" aria-describedby="otp-code-help" /><button type="submit" className="dev-button">Verify code<ArrowRight size={16} /></button></div><p id="otp-code-help" className="dev-helper">Use demo code <code>123456</code> to simulate a successful verification. Any other six digits will simulate an invalid code.</p></div></form>}
+                        {result && <div className="dev-response"><p className="dev-helper mb-3" role="status">{result.operation === 'send' ? 'Simulated send complete. Enter the demo code below to verify.' : result.status === 'verified' ? 'Demo code accepted. Simulation complete.' : 'Demo code did not match. Try 123456.'}</p><CodeBlock code={JSON.stringify(result, null, 2)} title="Simulated response" /></div>}
+                    </div>
+                </DeveloperCard>
             </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-              {[
-                { step: "01", name: "Token Request", desc: "Your backend hits our node endpoint with target payload constraints." },
-                { step: "02", name: "Dynamic Delivery", desc: "Pingstack optimizes carrier pathways using automated retry loops." },
-                { step: "03", name: "Validation Hook", desc: "Customer inputs code; verification resolves inside our hardware safely." }
-              ].map((item, i) => (
-                <div key={i} className="bg-gray-50 border border-gray-100/70 p-3.5 rounded-xl relative group">
-                  <span className="text-[10px] font-black font-mono text-[#004aad]/30 absolute top-2 right-3">{item.step}</span>
-                  <p className="text-xs font-bold text-gray-800">{item.name}</p>
-                  <p className="text-[11px] text-gray-400 mt-1 leading-normal">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Section B: Polyglot Multi-language Code Block */}
-          <div className="bg-[#0f172a] rounded-2xl overflow-hidden shadow-xl border border-slate-800 flex flex-col">
-            <div className="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-slate-800">
-              <div className="flex items-center gap-1.5">
-                <Code2 size={13} className="text-blue-400" />
-                <span className="text-[11px] font-mono font-bold text-slate-300">POST /v1/otp/send</span>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <div className="flex bg-slate-800 p-0.5 rounded-lg border border-slate-700">
-                  {(["curl", "node", "python"] as Language[]).map((lang) => (
-                    <button
-                      key={lang}
-                      onClick={() => setActiveLang(lang)}
-                      className={`px-2.5 py-1 rounded-md text-[10px] font-mono font-bold cursor-pointer transition-all ${
-                        activeLang === lang ? "bg-[#004aad] text-white" : "text-slate-400 hover:text-slate-200"
-                      }`}
-                    >
-                      {lang === "node" ? "Node.js" : lang === "python" ? "Python" : "cURL"}
-                    </button>
-                  ))}
-                </div>
-                
-                <button 
-                  onClick={handleCopyCode}
-                  className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer border border-slate-700"
-                >
-                  {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                </button>
-              </div>
-            </div>
-
-            <div className="p-4 overflow-x-auto font-mono text-xs text-blue-300/90 leading-relaxed bg-slate-950/40">
-              <pre><code>{codeSnippets[activeLang]}</code></pre>
-            </div>
-          </div>
-
+            <aside className="dev-sidebar">
+                <DeveloperNote title="On this page"><nav className="dev-anchor-list" aria-label="OTP guide contents"><a href="#otp-overview">Verification flow</a><a href="#otp-examples">Request examples</a><a href="#otp-reference">Example field reference</a><a href="#otp-simulation">Local simulation</a></nav></DeveloperNote>
+                <DeveloperNote title="Before you integrate"><p>Keep API credentials on your server. The credentials screen currently manages email API keys; confirm the appropriate authentication for your OTP integration.</p><DeveloperLink to="/dashboard/api-keys">API keys & sandbox</DeveloperLink></DeveloperNote>
+                <DeveloperNote title="Handle every outcome"><ul><li>Show clear feedback for an invalid or expired code.</li><li>Offer a way to correct the recipient’s number.</li><li>Control resend frequency and verification attempts on your server.</li><li>Never treat a local simulation as a verified user.</li></ul></DeveloperNote>
+            </aside>
         </div>
-
-        {/* Live Playground Sandbox Right Panel */}
-        <div className="space-y-6">
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm space-y-4">
-            <div className="flex items-center gap-2.5 pb-2 border-b border-gray-50">
-              <div className="p-1.5 bg-amber-50 text-amber-600 rounded-lg">
-                <Terminal size={15} />
-              </div>
-              <h2 className="text-xs font-bold text-gray-800 uppercase tracking-wide">Interactive Sandbox</h2>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold uppercase text-gray-400">Target Test Sequence</label>
-                <input 
-                  type="text"
-                  value={simulatedPhone}
-                  onChange={(e) => setSimulatedPhone(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-mono text-gray-700 outline-none focus:ring-2 focus:ring-[#004aad]/10"
-                />
-              </div>
-
-              <button
-                type="button"
-                onClick={triggerSandboxOtp}
-                disabled={isLoadingTest}
-                className="w-full bg-[#004aad] hover:bg-[#003985] disabled:opacity-50 text-white font-semibold text-xs py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                {isLoadingTest ? <RefreshCw size={13} className="animate-spin" /> : <Play size={13} />}
-                <span>Fire Test Request</span>
-              </button>
-            </div>
-
-            {/* Test Node Response Wrapper */}
-            <AnimatePresence>
-              {testResponse && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-2 font-mono text-[10px]"
-                >
-                  <span className="text-emerald-400 font-bold block">HTTP/1.1 200 OK</span>
-                  <pre className="text-slate-300 leading-normal overflow-x-auto whitespace-pre-wrap">
-                    {JSON.stringify(testResponse, null, 2)}
-                  </pre>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-
-      </div>
-
-    </div>
-  );
+    </DeveloperPage>
 }

@@ -1,0 +1,26 @@
+﻿.app-skeleton { display: inline-block; flex-shrink: 0; vertical-align: middle; border-radius: 6px; background: #e9edf2; animation: app-skeleton-pulse 1.8s ease-in-out infinite; }
+.app-skeleton-inline { display: inline-flex; align-items: center; vertical-align: middle; max-width: 100%; }
+.app-data-skeleton { width: 100%; min-width: 0; }
+.app-skeleton-list { display: grid; gap: 8px; }
+.app-skeleton-list-row { display: flex; align-items: center; gap: 14px; padding: 18px 4px; border-bottom: 1px solid #f0f2f5; }
+.app-skeleton-list-row > div { flex: 1; min-width: 0; display: grid; gap: 10px; }
+.app-skeleton-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.app-skeleton-card { display: grid; gap: 17px; padding: 22px; background: #fff; border: 1px solid #e7ebf0; border-radius: 12px; }
+.app-skeleton-table { min-height: 240px; }
+.app-skeleton-table-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 24px; padding: 22px 12px; border-bottom: 1px solid #edf0f3; }
+.app-skeleton-table-head { padding-block: 15px; background: #fafbfc; }
+.app-skeleton-form { display: grid; gap: 25px; }
+.app-skeleton-form > div { display: grid; gap: 12px; }
+.app-skeleton-chart { display: flex; gap: 24px; height: 256px; padding: 18px 8px 22px; }
+.app-skeleton-chart-axis { display: flex; flex-direction: column; justify-content: space-between; }
+.app-skeleton-chart-bars { display: flex; align-items: flex-end; gap: 16px; flex: 1; min-width: 0; border-bottom: 1px solid #e7ebf0; }
+.app-skeleton-chart-bars > span { width: auto !important; flex: 1; border-radius: 6px 6px 0 0; }
+.app-skeleton-detail-top { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+.app-skeleton-detail-grid { display: grid; grid-template-columns: minmax(180px, .65fr) minmax(0, 1.35fr); gap: 28px; }
+.app-skeleton-detail-side { display: grid; align-content: start; gap: 26px; }
+.app-page-skeleton { width: 100%; max-width: 1320px; margin: 0 auto; padding: 8px 0; }
+.app-page-skeleton-heading { display: grid; gap: 16px; padding-bottom: 30px; margin-bottom: 28px; border-bottom: 1px solid #e7ebf0; }
+@keyframes app-skeleton-pulse { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
+.dashboard-shell.is-reduced-motion .app-skeleton { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .app-skeleton { animation: none; } }
+@media (max-width: 640px) { .app-skeleton-cards, .app-skeleton-detail-grid { grid-template-columns: minmax(0, 1fr); } .app-skeleton-table-row { gap: 14px; padding-inline: 4px; } .app-skeleton-card { padding: 18px; } }

@@ -1,0 +1,6 @@
+﻿.app-brand { display: inline-flex; align-items: center; gap: 11px; color: #172b4d; white-space: nowrap; vertical-align: middle; }
+.app-brand-logo { display: block; flex-shrink: 0; object-fit: contain; border-radius: 8px; }
+.app-brand-name { font-family: inherit; font-size: 22px; line-height: 1.2; letter-spacing: -.7px; font-weight: 650; }
+.app-brand-stacked { flex-direction: column; gap: 12px; color: #004aad; }
+.app-brand-stacked .app-brand-name { font-size: 18px; letter-spacing: -.35px; }
+.app-brand-light { color: #fff; }

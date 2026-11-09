@@ -1,5 +1,5 @@
 import { axiosInstance } from "../../../api/axios";
-import type { CreateSubscriber, UpdateSubscriber, DeleteRequest } from "../../../types/contacts/contactTypes";
+import type { CreateSubscriber, UpdateSubscriber } from "../../../types/contacts/contactTypes";
 import type { UploadFileRequest } from "../../../types/upload/uploadFileTypes";
 
 export const createSubscriber = async (data: CreateSubscriber) => {
@@ -44,4 +44,3 @@ export const deleteSubscriber = async (subscriberId: string, audienceId: string)
         }
     });
 }
-

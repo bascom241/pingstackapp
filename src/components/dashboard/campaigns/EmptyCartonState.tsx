@@ -1,34 +1,18 @@
-import carton from "../../../assets/empty.png"
-
+﻿import { ArrowRight, Mail } from '../../../ui/icons'
 
 interface EmptyCartonStateProps {
     isOpen: boolean
-    setIsOpen:(val: boolean) => void
+    setIsOpen: (value: boolean) => void
 }
 
-const EmptyCartonState = ({isOpen, setIsOpen}: EmptyCartonStateProps) => {
+export default function EmptyCartonState({ setIsOpen }: EmptyCartonStateProps) {
     return (
-        <main className="flex items-center justify-center w-full mt-16">
-            <div className="flex flex-col items-center gap-2">
-                <img
-                    src={carton}
-                    className="w-36 h-36"
-
-                />
-
-                <h1 className=" text-center sm:text-start font-bold sm:text-2xl text-xl"> You have not created any email campaigns yet</h1>
-                <h2 className=" text-center sm:text-start text-[12px] sm:text-base">Click on "Create campaign" and start designing your first email campaign.</h2>
-                <button
-                    type="button"
-                    className="w-[60%] md:w-[50%] sm:w-[35%] mt-2 bg-[#004aad] hover:bg-blue-700 text-white font-bold text-sm py-3.5 px-4 rounded-xl transition-all shadow-sm shadow-blue-900/10 flex items-center justify-center gap-2 group cursor-pointer"
-
-                    onClick={()=> setIsOpen(true )}
-                >
-                    Create campaign
-                </button>
-            </div>
-        </main>
+        <section className="flex min-h-[400px] flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white px-6 py-16 text-center sm:py-20">
+            <span className="mb-7 flex h-20 w-20 items-center justify-center rounded-3xl border border-blue-100 bg-blue-50 text-[#004aad]"><Mail size={34} /></span>
+            <p className="messaging-eyebrow">Your next connection starts here</p>
+            <h2 className="max-w-lg text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Make your first campaign count.</h2>
+            <p className="mt-4 max-w-md text-base leading-7 text-slate-500">Share an announcement, introduce something new, or simply say hello. Your audience is waiting to hear from you.</p>
+            <button type="button" onClick={() => setIsOpen(true)} className="messaging-primary mt-8">Create your first campaign <ArrowRight size={18} /></button>
+        </section>
     )
 }
-
-export default EmptyCartonState
