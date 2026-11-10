@@ -7,7 +7,7 @@ import TransactionHistory from "../../components/dashboard/main/TransactionHisto
 import { Send, Users, Mail, ArrowUpRight, ShieldCheck, ArrowRight } from "../../ui/icons";
 
 const actions = [
-  { title: "Send a message", description: "Reach your customers with SMS", path: "/dashboard/sms", icon: Send },
+  { title: "Create automation", description: "Automate your SMS and email messages", path: "/dashboard/automations", icon: Send },
   { title: "Manage contacts", description: "Keep your audience organized", path: "/dashboard/contacts", icon: Users },
   { title: "Create a campaign", description: "Make your next email count", path: "/dashboard/campaigns/create", icon: Mail },
 ];

@@ -9,12 +9,12 @@ import { LayoutDashboard, MessageSquare, Send, Radio, Globe, CreditCard, Setting
 import { useBalance } from "../../features/wallet/hooks/useBalance";
 import { formatNaira } from "../../utils/currency";
 import "./dashboard.css";
+import { useLogout } from "../../features/auth/hooks/useLogout";
 
 type NavItem = { label: string; path: string };
 type NavGroup = { label: string; icon: ComponentType<IconProps>; items: NavItem[] };
 const groups: NavGroup[] = [
   { label: "Messaging", icon: MessageSquare, items: [
-    { label: "Send messages", path: "/dashboard/sms" },
     { label: "Message activity", path: "/dashboard/message-activity" },
     { label: "Automations", path: "/dashboard/automations" },
     { label: "Contacts & lists", path: "/dashboard/contacts" },
@@ -84,6 +84,7 @@ function Sidebar({ close, collapsed = false, expand }: { close?: () => void; col
 }
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
+  const { logout, isPending: loggingOut } = useLogout();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { sidebarCollapsed, reduceMotion, showBalance, update, toggleSidebar } = useInterfaceSettings();
   const isDesktop = useMediaQuery("(min-width: 1024px)");
@@ -154,7 +155,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
             <div className="flex items-center gap-3 sm:gap-5">
               {showBalance && <Link to="/dashboard/billing" className="dashboard-header-balance" aria-label="View wallet and billing"><Wallet size={18} /><span>{isPending ? <InlineSkeleton width={90} height={18} label="Loading balance" /> : isError ? "Balance unavailable" : `₦${formatNaira(data)}`}</span></Link>}
-              <Link to="/dashboard/sms" className="dashboard-button dashboard-button-primary"><Plus size={18} /><span className="hidden sm:inline">Send message</span><span className="sr-only sm:hidden">Send message</span></Link>
+              <button type="button" className="dashboard-button" onClick={() => void logout()} disabled={loggingOut}>{loggingOut ? "Signing out..." : "Sign out"}</button>
+              <Link to="/dashboard/automations" className="dashboard-button dashboard-button-primary"><Plus size={18} /><span className="hidden sm:inline">Create automation</span><span className="sr-only sm:hidden">Create automation</span></Link>
             </div>
           </header>
           <main id="dashboard-content" tabIndex={-1} className="dashboard-content">{children}</main>

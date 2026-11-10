@@ -1,15 +1,14 @@
 import { DataSkeleton } from "../../ui/Skeleton";
 import { useState, type FormEvent, type ReactNode } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { jwtDecode } from 'jwt-decode'
-import { useQueryClient } from '@tanstack/react-query'
 import { ArrowRight, Building2, User, Settings, ShieldCheck, Bell, Loader2, Mail, CreditCard, Globe, KeyRound } from '../../ui/icons'
 import Brand from '../../components/brand/Brand'
 import { useInterfaceSettings } from '../../features/settings/store/useInterfaceSettings'
 import { useGetEmailConfig } from '../../features/email/config/hooks/useEmailConfig'
 import { useForgotPasword } from '../../features/auth/hooks/useAuth'
-import { useLoginStore } from '../../features/auth/store/useLoginStore'
-import { getAccessToken, clearAuthSession } from '../../../utils/authToken'
+import { useLogout } from '../../features/auth/hooks/useLogout'
+import { getAccessToken } from '../../../utils/authToken'
 import { getApiErrorMessage } from '../../utils/apiError'
 import TrackOptions from '../../ui/modals/TrackOptions'
 import './settings.css'
@@ -84,18 +83,14 @@ function SecuritySettings({ identity }: { identity: Identity }) {
     const [email, setEmail] = useState(identity.email)
     const [feedback, setFeedback] = useState('')
     const { mutate, isPending } = useForgotPasword()
-    const navigate = useNavigate()
-    const queryClient = useQueryClient()
-    const logout = useLoginStore(state => state.logout)
-    const resetForm = useLoginStore(state => state.resetForm)
+    const { logout: signOut, isPending: signingOut } = useLogout()
     const sendReset = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault()
         if (isPending || !email.trim()) return
         setFeedback('')
         mutate({ email: email.trim() }, { onSuccess: () => setFeedback('If this email matches an account, a password reset link will be sent.'), onError: error => setFeedback(getApiErrorMessage(error, 'Unable to send a reset link. Please try again.')) })
     }
-    const signOut = () => { clearAuthSession(); logout(); resetForm(); queryClient.clear(); navigate('/login', { replace: true }) }
-    return <div className="settings-stack"><form onSubmit={sendReset}><SettingsCard title="Password" description="Request a reset link to change your account password." footer={<><p role="status">{feedback || 'Use the email address associated with your account.'}</p><button type="submit" className="settings-button is-primary" disabled={isPending || !email.trim()}>{isPending && <Loader2 size={16} className="animate-spin" />}{isPending ? 'Sending…' : 'Send reset link'}</button></>}><div className="settings-field"><label htmlFor="settings-reset-email">Account email</label><input id="settings-reset-email" type="email" name="email" autoComplete="email" required value={email} disabled={isPending} placeholder="you@company.com" onChange={event => { setEmail(event.target.value); setFeedback('') }} /></div></SettingsCard></form><SettingsCard title="Sign-in session" description="Manage access from the browser you’re using now."><div className="settings-session"><div><h3>This browser</h3><p>Sign out and clear your saved authentication on this device.</p></div><button type="button" className="settings-button" onClick={signOut}>Sign out</button></div><p className="settings-help mt-5">Signing out here does not revoke sessions on other devices. Two-factor authentication and remote session management are not available here yet.</p></SettingsCard><SettingsCard title="Account management" description="Account-wide changes require connected account management."><div className="settings-session"><div><h3>Delete account</h3><p>Account deletion is not available from this application yet.</p></div><span className="settings-tag">Unavailable</span></div></SettingsCard></div>
+    return <div className="settings-stack"><form onSubmit={sendReset}><SettingsCard title="Password" description="Request a reset link to change your account password." footer={<><p role="status">{feedback || 'Use the email address associated with your account.'}</p><button type="submit" className="settings-button is-primary" disabled={isPending || !email.trim()}>{isPending && <Loader2 size={16} className="animate-spin" />}{isPending ? 'Sending…' : 'Send reset link'}</button></>}><div className="settings-field"><label htmlFor="settings-reset-email">Account email</label><input id="settings-reset-email" type="email" name="email" autoComplete="email" required value={email} disabled={isPending} placeholder="you@company.com" onChange={event => { setEmail(event.target.value); setFeedback('') }} /></div></SettingsCard></form><SettingsCard title="Sign-in session" description="Manage access from the browser you’re using now."><div className="settings-session"><div><h3>This browser</h3><p>Sign out and clear your saved authentication on this device.</p></div><button type="button" className="settings-button" onClick={() => void signOut()} disabled={signingOut}>{signingOut ? "Signing out..." : "Sign out"}</button></div><p className="settings-help mt-5">Signing out revokes your active session and clears saved data on this device.</p></SettingsCard><SettingsCard title="Account management" description="Account-wide changes require connected account management."><div className="settings-session"><div><h3>Delete account</h3><p>Account deletion is not available from this application yet.</p></div><span className="settings-tag">Unavailable</span></div></SettingsCard></div>
 }
 
 export default function SettingsPage() {

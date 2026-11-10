@@ -36,6 +36,7 @@ export default function Login() {
             <AuthField label="Email address" type="email" name="email" autoComplete="username" required maxLength={254} placeholder="you@company.com" value={formData.email} disabled={isPending} onChange={event => { setFormData({ email: event.target.value }); setError('') }} />
             <AuthPassword label="Password" name="password" autoComplete="current-password" required placeholder="Enter your password" value={formData.password} disabled={isPending} onChange={event => { setFormData({ password: event.target.value }); setError('') }} />
             <div className="auth-password-link"><Link to="/forgot-password" className="auth-text-link">Forgot your password?</Link></div>
+            {params.get("logout") === "local-only" && <p role="status">Signed out on this device. Server confirmation was unavailable.</p>}
             <AuthError message={error} />
             <AuthSubmit pending={isPending} pendingText="Signing in…">Sign in</AuthSubmit>
         </form>

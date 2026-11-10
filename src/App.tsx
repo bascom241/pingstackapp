@@ -1,5 +1,5 @@
 import SettingsPage from "./pages/settings/Settings";
-import { Routes, Route, Outlet } from "react-router-dom";
+import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import DashboardLayout from "./components/layout/DashboardLayout";
@@ -7,7 +7,6 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import Wallet from "./pages/dashboard/Wallet";
 import { ProtectedRoute } from "./utils/ProtectedRoute";
 import SenderId from "./pages/dashboard/SenderId";
-import Sms from "./pages/messages/Sms";
 import MessageActivity from "./pages/messages/MessageActivity";
 import Automations from "./pages/automations/Automations";
 import ContactList from "./pages/contacts/ContactList"
@@ -42,7 +41,7 @@ const App = () => {
       <Route path="/dashboard/*" element={<ProtectedRoute />}>
         <Route element={<DashboardLayout><Outlet /></DashboardLayout>}>
           <Route index element={<Dashboard />} />
-          <Route path="sms" element={<Sms />} />
+          <Route path="sms" element={<Navigate to="/dashboard/automations" replace />} />
           <Route path="message-activity" element={<MessageActivity />} />
           <Route path="automations" element={<Automations />} />
           <Route path="contacts" element={<ContactList />} />

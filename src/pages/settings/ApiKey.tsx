@@ -49,7 +49,7 @@ export default function ApiKeysPlayground() {
                 </DeveloperCard>
             </div>
             <aside className="dev-sidebar">
-                <DeveloperNote title="Credential scope"><p>These keys authenticate messaging, automation, event, and OTP requests. Account and Gmail connection management require your login session. Only the key prefix can be retrieved after generation.</p><DeveloperLink to="/dashboard/message-activity">Message activity</DeveloperLink></DeveloperNote>
+                <DeveloperNote title="Credential scope"><p>These keys authenticate messaging, automation, event, and OTP requests. Account management requires your login session. Only the key prefix can be retrieved after generation.</p><DeveloperLink to="/dashboard/message-activity">Message activity</DeveloperLink></DeveloperNote>
                 <DeveloperNote title="Integration checklist"><ul><li>Store credentials in your server environment.</li><li>Use your configured API host and documented routes.</li><li>Handle error responses before retrying.</li><li>Rotate credentials when access changes.</li></ul></DeveloperNote>
                 <DeveloperNote title="Continue building"><p>Prepare an event receiver or explore the OTP integration flow.</p><DeveloperLink to="/dashboard/webhooks">Configure webhooks</DeveloperLink><br /><DeveloperLink to="/dashboard/otp-guide">Read the OTP guide</DeveloperLink></DeveloperNote>
             </aside>

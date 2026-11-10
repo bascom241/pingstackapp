@@ -1,6 +1,5 @@
 export type AutomationStep = {
   channel: "EMAIL" | "SMS";
-  provider: "BREVO" | "GMAIL";
   recipient: string;
   sender: string;
   subject: string;
@@ -14,6 +13,8 @@ export type Automation = {
   id: string;
   name: string;
   enabled: boolean;
+  lastError?: string;
+  lastRunAt?: string;
   eventName?: string;
   nextRunAt?: string;
   repeatSeconds?: number;
@@ -25,8 +26,7 @@ export type CreateAutomationRequest = {
   eventName?: string;
   nextRunAt?: string;
   repeatSeconds?: number;
-  steps: Array<Omit<AutomationStep, "sender" | "provider"> & {
+  steps: Array<Omit<AutomationStep, "sender"> & {
     sender?: string;
-    provider?: AutomationStep["provider"];
   }>;
 };
