@@ -156,7 +156,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <div className="flex items-center gap-3 sm:gap-5">
               {showBalance && <Link to="/dashboard/billing" className="dashboard-header-balance" aria-label="View wallet and billing"><Wallet size={18} /><span>{isPending ? <InlineSkeleton width={90} height={18} label="Loading balance" /> : isError ? "Balance unavailable" : `₦${formatNaira(data)}`}</span></Link>}
               <button type="button" className="dashboard-button" onClick={() => void logout()} disabled={loggingOut}>{loggingOut ? "Signing out..." : "Sign out"}</button>
-              <Link to="/dashboard/automations" className="dashboard-button dashboard-button-primary"><Plus size={18} /><span className="hidden sm:inline">Create automation</span><span className="sr-only sm:hidden">Create automation</span></Link>
+              <Link to="/dashboard/automations" className="dashboard-button dashboard-button-subtle"><Plus size={18} /><span className="hidden sm:inline">Create automation</span><span className="sr-only sm:hidden">Create automation</span></Link>
             </div>
           </header>
           <main id="dashboard-content" tabIndex={-1} className="dashboard-content">{children}</main>

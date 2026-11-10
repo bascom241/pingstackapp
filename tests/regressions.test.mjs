@@ -161,3 +161,42 @@ test('deletion sends the explicit subscriber and audience IDs for each call', as
   await deleteSubscriber('second', 'audience-B');
   assert.deepEqual(deleted, [{ subscriberId: 'first', audienceId: 'audience-A' }, { subscriberId: 'second', audienceId: 'audience-B' }]);
 });
+
+
+test('refresh accepts the backend top-level session response', async () => {
+  const { refreshSession } = await import('../src/api/axios.ts');
+  dispatch = async config => response(config, { accessToken: 'plain-access', refreshToken: 'plain-refresh' });
+  assert.equal(await refreshSession(), 'plain-access');
+  assert.equal(storage.get('refreshToken'), 'plain-refresh');
+});
+
+test('temporary refresh failure preserves the saved session', async () => {
+  const { refreshSession } = await import('../src/api/axios.ts');
+  dispatch = config => fail(config, 503);
+  await assert.rejects(refreshSession());
+  assert.equal(storage.get('refreshToken'), 'refresh');
+  assert.equal(window.location.href, '');
+});
+
+test('logout clears tokens immediately and pending refresh cannot restore them', async () => {
+  const { refreshSession, logoutSession } = await import('../src/api/axios.ts');
+  let release;
+  const pending = new Promise(resolve => { release = resolve; });
+  let started;
+  const began = new Promise(resolve => { started = resolve; });
+  dispatch = async config => {
+    if (config.url === '/auth/refresh') { started(); await pending; return response(config, { accessToken: 'late-access', refreshToken: 'late-refresh' }); }
+    assert.equal(config.url, '/auth/logout');
+    return response(config, null);
+  };
+  const refreshing = refreshSession();
+  const rejected = assert.rejects(refreshing);
+  await began;
+  const logout = logoutSession();
+  assert.equal(storage.get('accessToken'), undefined);
+  assert.equal(storage.get('refreshToken'), undefined);
+  release();
+  await Promise.all([logout, rejected]);
+  assert.equal(storage.get('accessToken'), undefined);
+  assert.equal(storage.get('refreshToken'), undefined);
+});

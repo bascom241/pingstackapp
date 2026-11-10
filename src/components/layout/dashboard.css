@@ -207,3 +207,5 @@
 @media (forced-colors: active) {
   .dashboard-navigation { scrollbar-color: auto; scrollbar-width: auto; }
 }
+
+.dashboard-button.dashboard-button-subtle { min-height: 34px; padding: 7px 11px; font-size: 12px; border-radius: 8px; color: var(--ds-primary); background: var(--ds-primary-soft); border: 1px solid #d8e6fa; box-shadow: none; }

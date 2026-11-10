@@ -11,13 +11,13 @@ export function useLogout() {
   const logout = async () => {
     if (isPending) return;
     setPending(true);
-    const remote = logoutSession(); // Clears local tokens immediately and invalidates pending refreshes.
+    const remote = logoutSession().then(() => true, () => false); // Clears local tokens immediately and invalidates pending refreshes.
     useLoginStore.getState().logout();
     useLoginStore.getState().resetForm();
     await cache.cancelQueries();
     cache.clear();
     let confirmed = true;
-    try { await remote; } catch { confirmed = false; }
+    try { confirmed = await remote; } catch { confirmed = false; }
     finally {
       cache.clear();
       navigate(confirmed ? "/login" : "/login?logout=local-only", { replace: true });
