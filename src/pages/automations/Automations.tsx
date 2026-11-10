@@ -1,3 +1,4 @@
+import { useAssistantDraft } from "../../features/assistant/store/useAssistantDraft";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -24,6 +25,8 @@ function automationStatus(item: Automation) {
 }
 export default function Automations() {
     const cache = useQueryClient();
+    const pendingDraft = useAssistantDraft(state => state.pending);
+    const clearDraft = useAssistantDraft(state => state.clearDraft);
     const [building, setBuilding] = useState(false);
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState("");
@@ -36,7 +39,7 @@ export default function Automations() {
     const items = list.data ?? [];
     const filtered = items.filter(item => item.name.toLowerCase().includes(search.toLowerCase()) && (!status || automationStatus(item) === status));
     return <ThemeProvider theme={automationTheme}><Box sx={{ maxWidth: 1200, mx: "auto", color: "text.primary", pb: 3 }}>
-    {building ? <AutomationBuilder onClose={() => setBuilding(false)} onCreated={() => { setBuilding(false); setFeedback("Automation activated. Follow its deliveries in Message activity."); }}/> : <Stack spacing={3}>
+    {building || pendingDraft ? <AutomationBuilder key={pendingDraft?.id ?? "manual"} initialDraft={pendingDraft?.draft} onClose={() => { setBuilding(false); clearDraft(); }} onCreated={() => { clearDraft(); setBuilding(false); setFeedback("Automation activated. Follow its deliveries in Message activity."); }}/> : <Stack spacing={3}>
       <Stack direction={{ xs: "column", sm: "row" }} sx={{ justifyContent: "space-between", alignItems: { sm: "center" }, gap: 2 }}><div><Typography component="h1" variant="h5" sx={{ fontWeight: 700 }}>Automations</Typography><Typography variant="body2" color="text.secondary" sx={{ mt: .75 }}>Build customer journeys with the right message at the right time.</Typography></div><Button variant="contained" startIcon={<Plus size={16}/>} onClick={() => { setFeedback(""); setBuilding(true); }}>New automation</Button></Stack>
       {feedback && <Alert severity="success" onClose={() => setFeedback("")}>{feedback}</Alert>}
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(4, 1fr)" }, gap: 2 }}>{[

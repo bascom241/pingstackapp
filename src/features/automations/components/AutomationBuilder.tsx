@@ -2,18 +2,19 @@ import { useRef, useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Alert, Box, Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, Divider, List, ListItemButton, ListItemText, Stack, Step, StepLabel, Stepper, Typography } from "@mui/material";
 import { createAutomation } from "../api/automationService";
-import { newAutomationDraft, newMessageStep, toAutomationRequest, validateMessage, validateTrigger } from "../utils/automationDraft";
+import { type AutomationDraft, newAutomationDraft, newMessageStep, toAutomationRequest, validateMessage, validateTrigger } from "../utils/automationDraft";
 import { AutomationTrigger } from "./AutomationTrigger";
 import { AutomationMessageEditor } from "./AutomationMessageEditor";
 import { AutomationReview } from "./AutomationReview";
 import { getApiErrorMessage } from "../../../utils/apiError";
 import { ArrowLeft, ArrowRight, Plus } from "../../../ui/icons";
 type Props = {
+    initialDraft?: AutomationDraft;
     onClose: () => void;
     onCreated: () => void;
 };
-export function AutomationBuilder({ onClose, onCreated }: Props) {
-    const [draft, setDraft] = useState(newAutomationDraft);
+export function AutomationBuilder({ onClose, onCreated, initialDraft }: Props) {
+    const [draft, setDraft] = useState(() => initialDraft ?? newAutomationDraft());
     const [stage, setStage] = useState(0);
     const [messageIndex, setMessageIndex] = useState(0);
     const [error, setError] = useState("");

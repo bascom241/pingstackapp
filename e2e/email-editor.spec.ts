@@ -23,8 +23,8 @@ test("automation editor exports HTML and editable design before activation", asy
   await page.getByLabel("Automation name").fill("Welcome journey");
   await page.getByLabel("Event name").fill("user.created");
   await page.getByRole("button", { name: "Continue", exact: true }).click();
-  await page.getByLabel("Recipients", { exact: true }).fill("{{email}}");
-  await page.getByLabel("Subject", { exact: true }).fill("Welcome {{name}}");
+  await page.getByRole("textbox", { name: /^Recipients/ }).fill("{{email}}");
+  await page.getByRole("textbox", { name: /^Subject/ }).fill("Welcome {{name}}");
   await page.getByRole("button", { name: "Design email", exact: true }).click();
   await page.locator(".tiptap").fill("Hello {{name}}, welcome to Pingstack!");
   await page.getByRole("button", { name: "Preview", exact: true }).click();

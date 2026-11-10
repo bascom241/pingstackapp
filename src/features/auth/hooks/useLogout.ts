@@ -1,3 +1,4 @@
+import { useAssistantDraft } from "../../assistant/store/useAssistantDraft";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +14,7 @@ export function useLogout() {
     setPending(true);
     const remote = logoutSession().then(() => true, () => false); // Clears local tokens immediately and invalidates pending refreshes.
     useLoginStore.getState().logout();
+    useAssistantDraft.getState().clearDraft();
     useLoginStore.getState().resetForm();
     await cache.cancelQueries();
     cache.clear();
