@@ -5,6 +5,7 @@ import { DeveloperPage, DeveloperCard, DeveloperNote, DeveloperLink, CodeBlock }
 import { useGetEmailConfig } from '../../features/email/config/hooks/useEmailConfig'
 import { useEmailConfigStore } from '../../features/email/config/store/useEmailConfigStore'
 import ApiKeyModal from '../../ui/modals/ApiKeyModa'
+import { apiUrl } from '../../api/config'
 
 const initialPayload = JSON.stringify({ to: '+2348031112222', senderId: 'Pingstack', message: 'Hello from Pingstack.' }, null, 2)
 
@@ -13,7 +14,7 @@ export default function ApiKeysPlayground() {
     const { setApiPrefix } = useEmailConfigStore()
     const [payload, setPayload] = useState(initialPayload)
     const [validation, setValidation] = useState<{ valid: boolean; message: string } | null>(null)
-    const requestCode = `curl --request POST 'https://api.example.com/v1/sms/send' \\
+    const requestCode = `curl --request POST '${apiUrl("/v1/sms/send")}' \\
   --header "Authorization: Bearer $PINGSTACK_API_KEY" \\
   --header 'Content-Type: application/json' \\
   --data '${payload.replaceAll("'", "'\"'\"'")}'`
@@ -32,7 +33,7 @@ export default function ApiKeysPlayground() {
                 {isPending ? <DeveloperCard title="API credentials"><div className="dev-card-body"><DataSkeleton layout="form" rows={1} label="Loading API credentials" /></div></DeveloperCard> : isError || !data ? <DeveloperCard title="API credentials"><div className="dev-empty" role="alert"><h3>Couldn’t load credentials</h3><p>Try again to view your email API key prefix.</p><button type="button" className="dev-button" onClick={() => void refetch()}>Try again</button></div></DeveloperCard> : <div className="dev-credentials"><ApiKeyModal apiPrefix={data.apiKeyPrefix} setApiPrex={setApiPrefix} /></div>}
                 <DeveloperCard id="request-builder" title="Request builder" description="Edit a sample request body and check its JSON syntax." action={<span className="dev-badge">Local sandbox</span>}>
                     <div className="dev-card-body">
-                        <div className="dev-inline-note"><Info size={18} /><p>This is an illustrative SMS request. Replace the example host and confirm the route and fields against your API reference before using it.</p></div>
+                        <div className="dev-inline-note"><Info size={18} /><p>This illustrative SMS request uses your configured API host. Confirm the route and fields against your API reference before using it.</p></div>
                         <div className="dev-field mt-6"><label htmlFor="sandbox-request-body">Request body</label><textarea id="sandbox-request-body" value={payload} onChange={event => { setPayload(event.target.value); setValidation(null) }} spellCheck={false} className="dev-input dev-mono min-h-52 !text-sm !leading-7" aria-describedby="request-body-help" /><p id="request-body-help" className="dev-helper">Use a JSON object. This sandbox does not send messages or consume credits.</p></div>
                         {validation && <div className="dev-inline-note mt-5" role="status">{validation.valid ? <Check size={18} /> : <Info size={18} />}<p>{validation.message}</p></div>}
                     </div>

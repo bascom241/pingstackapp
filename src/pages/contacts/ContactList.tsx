@@ -101,11 +101,10 @@ export default function Contacts() {
     setPage(0); // Reset page to zero when switching databases
   };
 
-  const { mutate: deleteSub } = useDeleteSubscriber(subscriberId, idToFetch);
+  const { mutate: deleteSub } = useDeleteSubscriber();
 
   const handleDeleteSubsciber = (id:string) => {
-    setSubsriberId(id)
-    deleteSub(undefined, {
+    deleteSub({ subscriberId: id, audienceId: idToFetch }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: AUDIENCE_QUERY_KEY });
         queryClient.invalidateQueries({ queryKey: SUBSCIBERS_QUERY_KEY });

@@ -32,7 +32,8 @@ import {
 import { useGetAllDomains } from "../../features/email/config/hooks/useDomain";
 import { useGetEmailConfig } from "../../features/email/config/hooks/useEmailConfig";
 import { useGetAllAudience } from "../../features/contacts/hooks/useAudience";
-import { useGetAllSubscibers } from "../../features/contacts/hooks/useSubsciber";
+import { useEntireAudience } from "../../features/contacts/hooks/useSubsciber";
+import { calculateSmsSegments } from "../../utils/smsSegments";
 import UploadCsv from "../../ui/modals/Upload";
 
 type Template = {
@@ -56,13 +57,6 @@ type TemplateApiItem = {
 type TemplateDetails = {
   subject: string;
   htmlContent: string;
-};
-
-type SubscriberApiItem = {
-  name?: string;
-  destinationNumber?: string;
-  orderCreator?: string;
-  transactionNumber?: string;
 };
 
 const categoryLabels: Record<TemplateApiItem["category"], Template["category"]> = {
@@ -118,17 +112,14 @@ export default function Sms() {
   const { data: audiences = [], isPending: isAudiencesPending } = useGetAllAudience();
   const {
     data: subscriberData,
-    isLoading: isSubscribersPending,
+    isFetching: isSubscribersPending,
     isError: isSubscribersError,
-  } = useGetAllSubscibers(
+  } = useEntireAudience(
     selectedAudienceId,
-    "",
-    0,
-    20,
     channel === "sms",
   );
 
-  const subscribers = (subscriberData?.content ?? []) as SubscriberApiItem[];
+  const subscribers = subscriberData ?? [];
   const selectedAudience = audiences.find((audience) => audience.id === selectedAudienceId);
 
   const templates: Template[] = ((templateData as TemplateApiItem[] | undefined) ?? []).map(
@@ -172,8 +163,7 @@ export default function Sms() {
     "Welcome to Pingstack! Your workspace is ready.",
   ]);
 
-  const charCount = message.length;
-  const smsPages = charCount <= 160 ? 1 : Math.ceil(charCount / 153);
+  const sms = calculateSmsSegments(message);
 
   // Apply selected template (Email Channel)
   const handleSelectTemplate = (tpl: Template) => {
@@ -182,9 +172,10 @@ export default function Sms() {
   };
 
   const handleUseAudience = () => {
-    const phoneNumbers = subscribers
-      .map((subscriber) => subscriber.destinationNumber ?? subscriber.transactionNumber)
-      .filter((phoneNumber): phoneNumber is string => Boolean(phoneNumber));
+    if (isSubscribersPending || isSubscribersError) return;
+    const phoneNumbers = [...new Set(subscribers
+      .map((subscriber) => (subscriber.destinationNumber ?? subscriber.transactionNumber)?.trim())
+      .filter((phoneNumber): phoneNumber is string => Boolean(phoneNumber)))];
 
     setRecipients(phoneNumbers.join(", "));
   };
@@ -389,7 +380,7 @@ export default function Sms() {
                   <button
                     type="button"
                     onClick={handleUseAudience}
-                    disabled={!selectedAudienceId || isSubscribersPending || subscribers.length === 0}
+                    disabled={!selectedAudienceId || isSubscribersPending || isSubscribersError || subscribers.length === 0}
                     className="rounded-lg bg-[#004aad] px-3 py-2 text-sm font-bold text-white transition hover:bg-[#003985] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {isSubscribersPending ? <InlineSkeleton width={85} height={16} label="Loading audience subscribers" /> : "Use audience"}
@@ -446,8 +437,8 @@ export default function Sms() {
                 {channel === "sms" ? "Message" : "Email content"}
               </label>
               {channel === "sms" && (
-                <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${charCount > 160 ? 'bg-amber-50 text-amber-600' : 'bg-gray-50 text-gray-500'}`}>
-                  {charCount} / {smsPages} SMS Unit{smsPages > 1 && 's'}
+                <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${sms.segments > 1 ? 'bg-amber-50 text-amber-600' : 'bg-gray-50 text-gray-500'}`}>
+                  {sms.characters} characters · {sms.encoding} · {sms.segments} SMS Unit{sms.segments !== 1 && 's'}
                 </span>
               )}
             </div>

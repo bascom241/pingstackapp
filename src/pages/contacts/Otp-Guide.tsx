@@ -1,6 +1,7 @@
 ﻿import { useState, type FormEvent } from 'react'
 import { Info, Play, ArrowRight } from '../../ui/icons'
 import { DeveloperPage, DeveloperCard, DeveloperNote, DeveloperLink, CodeBlock } from '../../components/developers/DeveloperUI'
+import { apiUrl } from '../../api/config'
 
 type Language = 'curl' | 'node' | 'python'
 type Operation = 'send' | 'verify'
@@ -16,7 +17,7 @@ export default function OtpGuide() {
     const [phoneError, setPhoneError] = useState('')
     const payload = operation === 'send' ? { to: phone, senderId: 'Pingstack', expiry: 300, digits: 6 } : { pinId: 'otp_example_reference', code: '123456' }
     const json = JSON.stringify(payload, null, 2)
-    const exampleUrl = `https://api.example.com/v1/otp/${operation}`
+    const exampleUrl = apiUrl(`/v1/otp/${operation}`)
     const snippets: Record<Language, string> = {
         curl: `curl --request POST '${exampleUrl}' \\
   --header "Authorization: Bearer $PINGSTACK_API_KEY" \\
@@ -74,7 +75,7 @@ print(response.json())`,
                 </DeveloperCard>
                 <DeveloperCard id="otp-examples" title="Request examples" description="Illustrative requests for your server-side integration." action={<span className="dev-badge">Example schema</span>}>
                     <div className="dev-card-body">
-                        <div className="dev-inline-note mb-6"><Info size={18} /><p>Replace the example host and confirm routes, fields, and authentication in your API reference. These examples do not make live requests.</p></div>
+                        <div className="dev-inline-note mb-6"><Info size={18} /><p>Examples use your configured API host. Confirm routes, fields, and authentication in your API reference. These examples do not make live requests.</p></div>
                         <div className="dev-segments" aria-label="Example operation">{(['send', 'verify'] as const).map(value => <button type="button" key={value} aria-pressed={operation === value} onClick={() => setOperation(value)}>{value === 'send' ? 'Send OTP' : 'Verify OTP'}</button>)}</div>
                         <div className="dev-endpoint"><span className="dev-method">POST</span><code>/v1/otp/{operation}</code></div>
                         <div className="dev-segments" aria-label="Code language">{(['curl', 'node', 'python'] as const).map(value => <button type="button" key={value} aria-pressed={language === value} onClick={() => setLanguage(value)}>{value === 'curl' ? 'cURL' : value === 'node' ? 'Node.js' : 'Python'}</button>)}</div>

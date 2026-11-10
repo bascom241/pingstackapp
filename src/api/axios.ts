@@ -1,121 +1,62 @@
-import axios from "axios";
-import {
-  getAccessToken,
-  getRefreshToken,
-  clearAuthSession,
-  saveAuthSession,
-} from "../../utils/authToken";
+import axios, { type InternalAxiosRequestConfig } from "axios";
+import { API_BASE_URL } from "./config";
+import { getAccessToken, getRefreshToken, clearAuthSession, saveAuthSession } from "../../utils/authToken";
 
-const baseURL = import.meta.env.VITE_API_URL;
-console.log("API Base URL:", baseURL);
-console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
-export const axiosInstance = axios.create({
-  baseURL,
-});
-
+export const axiosInstance = axios.create({ baseURL: API_BASE_URL });
+// Refresh requests bypass the authenticated response interceptor.
+const refreshClient = axios.create({ baseURL: API_BASE_URL });
 const publicUrls = ["/auth/login", "/auth/register", "/auth/refresh", "/auth/forgot-password", "/auth/reset-password"];
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const isPublic = publicUrls.some((url) => config.url?.includes(url));
-    if (!isPublic) {
-      const token = getAccessToken();
-
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-    return config;
-  },
-  (error) => Promise.reject(error),
-);
-
-let isRefreshing = false;
-let failedQueue: any[] = [];
-
-const processQueue = (error: any, token: string | null = null) => {
-  failedQueue.forEach((prom: any) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
-
-  failedQueue = [];
+const isPublicUrl = (url?: string) => {
+  const path = (url ?? "").split(/[?#]/)[0].replace(/\/+$/, "");
+  return publicUrls.some((route) => path.endsWith(route));
 };
 
-axios.interceptors.response.use(
+axiosInstance.interceptors.request.use((config) => {
+  if (!isPublicUrl(config.url)) {
+    const token = getAccessToken();
+    if (token) config.headers.set("Authorization", `Bearer ${token}`);
+    else config.headers.delete("Authorization");
+  }
+  return config;
+});
+
+let refreshPromise: Promise<string> | null = null;
+function expireSession() {
+  clearAuthSession();
+  window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+}
+
+async function refreshAccessToken(): Promise<string> {
+  try {
+    const token = getRefreshToken();
+    if (!token) throw new Error("No refresh token available");
+    const res = await refreshClient.post("/auth/refresh", { token });
+    const session = res.data?.data;
+    if (typeof session?.accessToken !== "string" || !session.accessToken) throw new Error("Invalid refresh response");
+    saveAuthSession({ accessToken: session.accessToken, refreshToken: session.refreshToken || token });
+    return session.accessToken;
+  } catch (error) {
+    expireSession();
+    throw error;
+  }
+}
+
+axiosInstance.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error?.config || {};
-    const isPublicRoute = publicUrls.some((url) => {
-      originalRequest.includes(url);
-    });
-    if (isPublicRoute) {
-      return Promise.reject(error);
+  async (error: unknown) => {
+    if (!axios.isAxiosError(error)) throw error;
+    const request = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
+    const expired = error.response?.status === 401 || error.response?.data?.message === "jwt expired";
+    // Ordinary permission-denied responses must not refresh or log the user out.
+    if (!request || isPublicUrl(request.url) || !expired) throw error;
+    if (request._retry) { expireSession(); throw error; }
+    request._retry = true;
+    const currentToken = getAccessToken();
+    // Late responses may have used a token already replaced by another refresh.
+    if (!currentToken || request.headers.get("Authorization") === `Bearer ${currentToken}`) {
+      if (!refreshPromise) refreshPromise = refreshAccessToken().finally(() => { refreshPromise = null; });
+      await refreshPromise;
     }
-    if (
-      error.response &&
-      (error.response.status === 401 ||
-        error.response.status === 403 ||
-        error.response.data.message === "jwt expired") &&
-      !originalRequest._retry
-    ) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        }).then((token) => {
-          originalRequest.headers = originalRequest.headers || {};
-          originalRequest.headers.Authorization = "Bearer " + token;
-          return axiosInstance(originalRequest);
-        });
-      }
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        const refreshToken = getRefreshToken();
-        if (!refreshToken) {
-          clearAuthSession();
-          window.location.href = `/login?redirect=${encodeURIComponent(
-            window.location.pathname + window.location.search,
-          )}`;
-          return Promise.reject(error);
-        }
-
-        const res = await axios.post(`${baseURL}/auth/refresh`, {
-          token: refreshToken,
-        });
-
-        const newAccessToken = res.data.data.accessToken;
-        const newRefreshToken = res.data.data.refreshToken;
-
-        saveAuthSession({
-          accessToken: newAccessToken,
-          refreshToken: newRefreshToken,
-        });
-
-        axiosInstance.defaults.headers.Authorization =
-          "Bearer " + newAccessToken;
-
-        processQueue(null, newAccessToken);
-
-        return axiosInstance(originalRequest);
-      } catch (err) {
-        processQueue(err, null);
-
-        clearAuthSession();
-
-        window.location.href = `/login?redirect=${encodeURIComponent(
-          window.location.pathname + window.location.search,
-        )}`;
-
-        return Promise.reject(err);
-      } finally {
-        isRefreshing = false;
-      }
-    }
-
-    return Promise.reject(error);
+    return axiosInstance(request);
   },
 );

@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Key, Copy, Check, ArrowUpRight, Code2 } from "../../../ui/icons";
 
-const baseUrl = "https://v1.api.pingstack.com";
+import { apiUrl } from "../../../api/config";
+const baseUrl = apiUrl("").replace(/\/$/, "");
 
 export default function DeveloperSettings() {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");

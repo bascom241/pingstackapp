@@ -88,7 +88,9 @@ Source: `src/pages/contacts/ContactList.tsx`.
 
 The Filter button has no implemented action.
 
-## Existing issues to fix first
+## Issues identified in the original review
+
+All five issues below were addressed on November 10, 2026. The shared Axios client now handles refresh with one in-flight refresh for concurrent failures; audience selection loads all pages; deletion takes explicit IDs; SMS counting accounts for GSM extension characters and Unicode; and API addresses share `VITE_API_URL`. Regression tests cover these changes. This does not implement the missing send, OTP, webhook, or KYC integrations described above.
 
 1. **Token refresh is attached to the wrong Axios client.** In `src/api/axios.ts`, the response interceptor attaches to global `axios`, while feature requests use `axiosInstance`. The public-route check also calls `.includes()` on the request configuration object and returns no boolean. Refresh handling needs correction.
 2. **Use audience only includes the first 20 contacts.** The SMS composer fetches page zero with size 20, then copies those numbers into the recipients field. Larger audiences would be incomplete.

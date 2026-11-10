@@ -1,7 +1,14 @@
 import { createSubscriber, getAllSubscribers , getSingleSubscriber, updateSubscriber, uploadSubscribers, deleteSubscriber} from "../api/subscriber";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { getEntireAudience } from "../api/subscriber";
 
 export const SUBSCIBERS_QUERY_KEY = ["subscibers"]
+
+export const useEntireAudience = (listId: string, enabled: boolean) => useQuery({
+    queryKey: [...SUBSCIBERS_QUERY_KEY, listId, "entire-audience"],
+    queryFn: ({ signal }) => getEntireAudience(listId, signal),
+    enabled: enabled && Boolean(listId),
+});
 
 
 export const useCreateSubcriber = () => {
@@ -50,9 +57,9 @@ export const useGetSingSubscriber = (id: string) => {
 }
 
 
-export const useDeleteSubscriber = (subscriberId: string, audienceId: string) => {
+export const useDeleteSubscriber = () => {
     return useMutation({
-        mutationFn:() =>  deleteSubscriber(subscriberId, audienceId)
+        mutationFn: ({ subscriberId, audienceId }: { subscriberId: string; audienceId: string }) => deleteSubscriber(subscriberId, audienceId)
     })
 }
 
