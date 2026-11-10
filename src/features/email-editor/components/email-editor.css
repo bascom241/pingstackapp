@@ -1,0 +1,9 @@
+.pingstack-email-editor { --re-bg: #fff; --re-text: #172b4d; --re-text-muted: #64748b; --re-border: #e2e8f0; --re-hover: #edf4ff; --re-active: #edf4ff; --re-pressed: #dbeafe; --re-separator: #e2e8f0; --re-radius: 10px; font-family: "Plus Jakarta Sans", sans-serif; }
+.pingstack-email-workspace { min-height: 65vh; align-items: flex-start; max-width: 1280px; margin: auto; gap: 24px; }
+.pingstack-email-canvas { flex: 1; min-width: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px; }
+.pingstack-email-canvas .tiptap { min-height: 55vh; outline: none; overflow-wrap: anywhere; }
+.pingstack-email-canvas .tiptap img { max-width: 100%; }
+.pingstack-email-canvas .tiptap p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; height: 0; pointer-events: none; color: #94a3b8; }
+.pingstack-email-inspector { width: 280px; flex-shrink: 0; max-height: 72vh; overflow-y: auto; background: white; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; }
+[data-re-bubble-menu], [data-re-slash-command], [data-re-node-selector-content], [data-re-link-selector-form] { z-index: 1600; }
+@media (max-width: 850px) { .pingstack-email-workspace { flex-direction: column; } .pingstack-email-inspector { width: 100%; max-height: 300px; } .pingstack-email-canvas { width: 100%; padding: 20px; } }

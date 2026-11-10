@@ -1,22 +1,22 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Alert, Box, Button, Card, CardActionArea, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, Stack, TextField, Typography } from "@mui/material";
-import { getTemplates, getSingleTemplate } from "../../templates/api/templateService";
+import { getTemplates, getSingleTemplate } from "../api/templateService";
 import type { EmailTemplateResponse } from "../../../types/templates/EmailTemplateResponse";
-import { previewDocument } from "../utils/emailPreview";
+import { emailPreviewHtml } from "../../email-editor/utils/emailDesign";
 import { getApiErrorMessage } from "../../../utils/apiError";
 type Props = {
     open: boolean;
     onClose: () => void;
     onApply: (template: EmailTemplateResponse, name: string) => void;
 };
-export function AutomationTemplatePicker({ open, onClose, onApply }: Props) {
+export function EmailTemplatePicker({ open, onClose, onApply }: Props) {
     const [search, setSearch] = useState("");
     const [selection, setSelection] = useState<{
         id: string;
         name: string;
     } | null>(null);
-    const templates = useQuery({ queryKey: ["automation-templates"], queryFn: getTemplates, enabled: open });
+    const templates = useQuery({ queryKey: ["email-templates"], queryFn: getTemplates, enabled: open });
     const detail = useMutation({ mutationFn: getSingleTemplate });
     const choose = (id: string, name: string) => { setSelection({ id, name }); detail.mutate(id); };
     const close = () => { detail.reset(); setSelection(null); setSearch(""); onClose(); };
@@ -30,7 +30,7 @@ export function AutomationTemplatePicker({ open, onClose, onApply }: Props) {
       {templates.data && !templates.data.some(t => t.status !== "ARCHIVED" && `${t.name} ${t.description}`.toLowerCase().includes(search.toLowerCase())) && <Alert severity="info">No matching templates. Create one in Templates, or compose your message from scratch.</Alert>}
       {detail.isPending && <LinearProgress aria-label="Loading template content"/>}
       {detail.isError && <Alert severity="error">{getApiErrorMessage(detail.error, "Could not load this template. Select it to try again.")}</Alert>}
-      {detail.data && detail.isSuccess && <><Typography variant="subtitle2">{detail.data.subject || "No subject"}</Typography><iframe title="Selected email template preview" sandbox="" referrerPolicy="no-referrer" srcDoc={previewDocument(detail.data.htmlContent)} style={{ width: "100%", height: 240, border: "1px solid #e2e8f0", borderRadius: 8, background: "white" }}/></>}
+      {detail.data && detail.isSuccess && <><Typography variant="subtitle2">{detail.data.subject || "No subject"}</Typography><iframe title="Selected email template preview" sandbox="" referrerPolicy="no-referrer" srcDoc={emailPreviewHtml(detail.data.htmlContent)} style={{ width: "100%", height: 240, border: "1px solid #e2e8f0", borderRadius: 8, background: "white" }}/></>}
     </Stack></DialogContent>
     <DialogActions><Button onClick={close} disabled={detail.isPending}>Cancel</Button><Button variant="contained" disabled={!detail.isSuccess || !detail.data?.htmlContent || !detail.data.subject || !selection} onClick={() => { if (detail.data && selection) {
         onApply(detail.data, selection.name);

@@ -1,14 +1,6 @@
 export const EMPTY_EMAIL_DESIGN = {
-    body: {
-        rows: [],
-    },
+    editor: "react-email",
+    version: 1,
+    document: { type: "doc", content: [{ type: "paragraph" }] },
 };
-
-export const EMPTY_EMAIL_HTML = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-</head>
-<body>
-</body>
-</html>`;
+export const EMPTY_EMAIL_HTML = "";

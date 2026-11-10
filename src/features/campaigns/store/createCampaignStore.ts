@@ -51,6 +51,8 @@ export const useCreateCampaignStore = create<CreateCampaignStore>()(
           formData: {
             ...state.formData,
             templateId,
+            htmlContent: undefined,
+            designJson: undefined,
           },
         })),
 

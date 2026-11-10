@@ -115,7 +115,7 @@ export default function EmailTemplates() {
      *
      * We create the template as a DRAFT first.
      * After successful creation, we take the user
-     * directly to the Unlayer editor.
+     * directly to the visual email editor.
      */
    const handleCreate = (data: {
     name: string;

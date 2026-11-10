@@ -10,6 +10,8 @@ export interface AddRecipientRequest {
 }
 
 export interface CreateCampaignRequest {
+  htmlContent?: string;
+  designJson?: string;
   name: string;
   templateId?: string;
   subject: string;

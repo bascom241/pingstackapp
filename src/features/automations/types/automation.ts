@@ -4,6 +4,7 @@ export type AutomationStep = {
   sender: string;
   subject: string;
   body: string;
+  designJson?: string;
   delaySeconds: number;
   transactional: boolean;
   condition: string;

@@ -1,90 +1,31 @@
-import { DataSkeleton } from "../../../../ui/Skeleton";
-import { ArrowLeft, ArrowRight, Check } from "../../../../ui/icons";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Alert, Button, Card, CardContent, CircularProgress, Stack, TextField, Typography } from "@mui/material";
 import { useCreateCampaignStore } from "../../../../features/campaigns/store/createCampaignStore";
-import { useGetTemplateForUser } from "../../../../features/templates/hooks/useTemplate";
+import { getSingleTemplate } from "../../../../features/templates/api/templateService";
+import { EmailTemplatePicker } from "../../../../features/templates/components/EmailTemplatePicker";
+import { EmailContentEditor } from "../../../../features/email-editor/components/EmailContentEditor";
+import { hasEmailContent } from "../../../../features/email-editor/utils/emailDesign";
+import { getApiErrorMessage } from "../../../../utils/apiError";
 
-const CampaignTemplate = () => {
-  const { formData, setTemplateId, currentStep, setCurrentStep, goToPreviousStep } = useCreateCampaignStore();
-  const { data: templates = [], isPending, isError, refetch } = useGetTemplateForUser();
-
-  const selectedTemplate = templates.find((template) => template.templateId === formData.templateId);
-  const hasTemplate = Boolean(formData.templateId || selectedTemplate);
-
-  const handleContinue = () => {
-    if (!hasTemplate) return;
+export default function CampaignTemplate() {
+  const { formData, setFormData, setCurrentStep, currentStep, goToPreviousStep } = useCreateCampaignStore();
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [error, setError] = useState("");
+  const template = useQuery({ queryKey: ["email-templates", "single", formData.templateId], queryFn: () => getSingleTemplate(formData.templateId!), enabled: Boolean(formData.templateId) && formData.htmlContent === undefined });
+  const content = { html: formData.htmlContent ?? template.data?.htmlContent ?? "", designJson: formData.designJson ?? template.data?.designJson };
+  const subject = formData.subject || template.data?.subject || "";
+  const continueFlow = () => {
+    if (!formData.templateId || !hasEmailContent(content.html) || !subject.trim()) { setError("Choose a template and add an email subject and content before continuing."); return; }
+    setFormData({ htmlContent: content.html, designJson: content.designJson, subject });
     setCurrentStep(currentStep + 1);
   };
-
-  return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-4 sm:px-6">
-      <div className="mb-6 space-y-2 text-center sm:text-left">
-        <div className="inline-flex items-center gap-2 rounded-full border border-[#004aad]/20 bg-[#004aad]/5 px-3 py-1 text-sm font-semibold text-[#004aad]">
-        
-          <span>Step 2 of 4 · Template</span>
-        </div>
-
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-          Choose a campaign template
-        </h1>
-
-        <p className="text-sm leading-relaxed text-slate-500 sm:text-base">
-          Select the design that best fits your message and brand style.
-        </p>
-      </div>
-
-      <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-8">
-        {isPending ? <DataSkeleton layout="cards" rows={3} label="Loading campaign templates" /> : isError ? <div role="alert" className="dashboard-empty"><strong>Templates could not be loaded.</strong><button type="button" className="dashboard-button" onClick={() => void refetch()}>Try again</button></div> : templates.length === 0 ? <p className="text-sm text-slate-500">No email templates yet. Create a template before continuing.</p> : <div className="grid gap-4 md:grid-cols-3">
-          {templates.map((template) => {
-            const isSelected = formData.templateId === template.templateId || selectedTemplate?.templateId === template.templateId;
-
-            return (
-              <button
-                key={template.templateId}
-                type="button"
-                onClick={() => setTemplateId(template.templateId)}
-                className={`group rounded-2xl border p-4 text-left transition-all duration-200 ${
-                  isSelected
-                    ? "border-[#004aad] bg-[#eff6ff] shadow-[0_14px_30px_rgba(0,74,173,0.08)]"
-                    : "border-slate-200 bg-slate-50 hover:border-[#93c5fd] hover:bg-white"
-                }`}
-              >
-              
-                <div className="mb-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                   
-                    <span className="text-xl sm:text-2xl font-semibold text-slate-800">{template.name}</span>
-                  </div>
-                  {isSelected && <Check size={16} className="text-[#004aad]" />}
-                </div>
-                <p className="text-base leading-relaxed text-slate-500">{template.description}</p>
-              </button>
-            );
-          })}
-        </div>}
-
-        <div className="mt-6 flex items-center justify-between border-t border-slate-200 pt-5">
-          <button
-            type="button"
-            onClick={goToPreviousStep}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-base font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
-          >
-            <ArrowLeft size={16} />
-            Back
-          </button>
-
-          <button
-            type="button"
-            onClick={handleContinue}
-            disabled={!hasTemplate || isPending || isError}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#004aad] px-5 py-3.5 text-base font-semibold text-white shadow-[0_12px_30px_rgba(0,74,173,0.08)] transition hover:bg-[#003985] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
-          >
-            Continue
-            <ArrowRight size={16} />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default CampaignTemplate;
+  return <Stack spacing={3} sx={{ py: 3 }}><Stack direction={{ xs: "column", sm: "row" }} sx={{ justifyContent: "space-between", gap: 2 }}><div><Typography variant="h6">Design your campaign email</Typography><Typography variant="body2" color="text.secondary">Choose a template and customize a copy for this campaign.</Typography></div><Button variant="outlined" onClick={() => setPickerOpen(true)}>{formData.templateId ? "Change template" : "Choose template"}</Button></Stack>
+    {error && <Alert severity="error">{error}</Alert>}
+    {formData.templateId && template.isFetching && <CircularProgress size={22} aria-label="Loading campaign template"/>}
+    {template.isError && formData.htmlContent === undefined && <Alert severity="error" action={<Button onClick={() => void template.refetch()}>Retry</Button>}>{getApiErrorMessage(template.error)}</Alert>}
+    {formData.templateId ? <><Card variant="outlined"><CardContent><TextField required fullWidth label="Subject" value={subject} onChange={e => setFormData({ subject: e.target.value })} slotProps={{ htmlInput: { maxLength: 998 } }}/></CardContent></Card><EmailContentEditor key={formData.templateId} value={content} disabled={formData.htmlContent === undefined && !template.data} onChange={next => setFormData({ htmlContent: next.html, designJson: next.designJson })}/></> : <Alert severity="info">Choose a saved template to start. Editing here keeps your original template unchanged.</Alert>}
+    <Stack direction="row" sx={{ justifyContent: "space-between" }}><Button onClick={goToPreviousStep}>Back</Button><Button variant="contained" disableElevation disabled={!formData.templateId || (formData.htmlContent === undefined && !template.data)} onClick={continueFlow}>Continue to recipients</Button></Stack>
+    <EmailTemplatePicker open={pickerOpen} onClose={() => setPickerOpen(false)} onApply={selected => { setFormData({ templateId: selected.templateId, subject: formData.subject || selected.subject, htmlContent: selected.htmlContent, designJson: selected.designJson }); setError(""); }}/>
+  </Stack>;
+}

@@ -1,3 +1,4 @@
+import { hasEmailContent } from "../../email-editor/utils/emailDesign";
 import type { AutomationStep, CreateAutomationRequest } from "../types/automation";
 
 export type AutomationDraft = {
@@ -26,7 +27,7 @@ export function validateMessage(step: AutomationStep, index: number, draft: Auto
   if (!step.recipient.trim()) return prefix + "add at least one recipient.";
   if (step.channel === "SMS" && !step.sender.trim()) return prefix + "enter an approved sender ID.";
   if (step.channel === "EMAIL" && (!step.subject.trim() || step.subject.length > 998)) return prefix + "enter a subject of 998 characters or fewer.";
-  if (!step.body.trim()) return prefix + "write your message or choose a template.";
+  if (!step.body.trim() || (step.channel === "EMAIL" && !hasEmailContent(step.body))) return prefix + "write your message or choose a template.";
   if (!Number.isInteger(step.delaySeconds) || step.delaySeconds < 0 || step.delaySeconds > 31536000) return prefix + "enter a valid delay in whole seconds.";
   if (draft.trigger !== "event" && /\{\{\s*[a-zA-Z0-9_.]+\s*}}/.test([step.recipient, step.subject, step.body].join(" "))) return prefix + "replace template variables with actual values, or use an event trigger to supply them.";
   if (index > 0 && step.condition !== "ALWAYS") {
