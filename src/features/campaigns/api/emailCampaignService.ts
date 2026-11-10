@@ -28,6 +28,10 @@ export const createCampaign = async (data: CreateCampaignRequest): Promise<Creat
   return res.data;
 };
 
+export const processCampaign = async (campaignId: string): Promise<void> => {
+  await axiosInstance.put(`/campaign/${campaignId}/process`);
+};
+
 export const addRecipients = async(data: AddRecipientRequest): Promise<void> => {
     const {campaignId, recipient} = data
     const res = await axiosInstance.put(`/campaign/${campaignId}/add-recipient`,recipient);

@@ -1,6 +1,6 @@
 import { DataSkeleton, InlineSkeleton } from "../../ui/Skeleton";
 import MessagingHeader from '../../components/messaging/MessagingHeader';
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Send,
   Upload,
@@ -35,6 +35,11 @@ import { useGetAllAudience } from "../../features/contacts/hooks/useAudience";
 import { useEntireAudience } from "../../features/contacts/hooks/useSubsciber";
 import { calculateSmsSegments } from "../../utils/smsSegments";
 import UploadCsv from "../../ui/modals/Upload";
+
+import { sendMessages } from "../../features/messaging/api/messageService";
+import { getGmailStatus, connectGmail } from "../../features/email/gmail/api/gmailService";
+import { getApiErrorMessage } from "../../utils/apiError";
+import { Link } from "react-router-dom";
 
 type Template = {
   templateId: string;
@@ -78,7 +83,15 @@ export default function Sms() {
   const [channel, setChannel] = useState<"sms" | "email">("sms");
 
   // Form States
-  const [senderId, setSenderId] = useState("Pingstack");
+  const [senderId, setSenderId] = useState("");
+  const [provider, setProvider] = useState<"BREVO" | "GMAIL">("BREVO");
+  const [scheduledAt, setScheduledAt] = useState("");
+  const [transactional, setTransactional] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const [gmail, setGmail] = useState<{ connected: boolean; email?: string }>({ connected: false });
+  const requestRef = useRef<{ fingerprint: string; key: string } | null>(null);
+  const submittingRef = useRef(false);
+  useEffect(() => { getGmailStatus().then(setGmail).catch(() => {}); }, []);
   const [senderEmail, setSenderEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [recipients, setRecipients] = useState("");
@@ -102,6 +115,9 @@ export default function Sms() {
   const { data, isError, isPending } = useGetApprovedIds(page, size);
   const approvedSenderIds = data?.content || [];
   const totalPages = data?.totalPages || 1;
+  useEffect(() => {
+    if (!senderId && approvedSenderIds.length) setSenderId(approvedSenderIds[0].senderId);
+  }, [approvedSenderIds, senderId]);
 
   const { data: templateData, isPending: isTemplatesPending, isError: isTemplatesError } =
     useGetTemplateForUser();
@@ -180,22 +196,35 @@ export default function Sms() {
     setRecipients(phoneNumbers.join(", "));
   };
 
-  const handleLaunchCampaign = (e: React.FormEvent) => {
+  const handleLaunchCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) return;
-    if (channel === "sms" && (!senderId || !recipients || !message)) return;
-    if (channel === "email" && (!senderEmail || !subject || !recipients || !message)) return;
-
-    setIsSubmitting(true);
-    setIsAnimatingTransmission(true);
-
-    setTimeout(() => {
-      if (channel === "sms") {
-        setSmsPreviewFeed((prev) => [...prev, message]);
-      }
-      setIsSubmitting(false);
-      setIsAnimatingTransmission(false);
-    }, 2800);
+    if (submittingRef.current) return;
+    const recipientList = [...new Set(recipients.split(/[,;\n]+/).map(value => value.trim()).filter(Boolean))];
+    if (!recipientList.length || !message.trim()) { setFeedback("Add recipients and a message."); return; }
+    if (channel === "sms" && !approvedSenderIds.some((item: { senderId: string }) => item.senderId === senderId)) { setFeedback("Choose an approved sender ID."); return; }
+    if (channel === "email" && provider === "GMAIL" && !gmail.connected) { setFeedback("Connect your Gmail account first."); return; }
+    if (scheduledAt && new Date(scheduledAt).getTime() <= Date.now()) { setFeedback("Choose a future sending time."); return; }
+    const request = {
+      channel: channel === "sms" ? "SMS" as const : "EMAIL" as const,
+      provider: channel === "email" ? provider : undefined,
+      recipients: recipientList,
+      sender: channel === "sms" ? senderId : provider === "GMAIL" ? gmail.email : senderEmail,
+      subject: channel === "email" ? subject : undefined,
+      body: message, transactional,
+      scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
+    };
+    const fingerprint = JSON.stringify(request);
+    if (requestRef.current?.fingerprint !== fingerprint) requestRef.current = { fingerprint, key: crypto.randomUUID() };
+    submittingRef.current = true;
+    setIsSubmitting(true); setIsAnimatingTransmission(true); setFeedback("");
+    try {
+      const jobs = await sendMessages(request, requestRef.current.key);
+      const queued = jobs.filter(job => job.status === "QUEUED").length;
+      const suppressed = jobs.filter(job => job.status === "SUPPRESSED").length;
+      setFeedback(`${queued} message${queued === 1 ? "" : "s"} queued${suppressed ? `; ${suppressed} suppressed` : ""}. Track delivery in Message activity.`);
+      if (channel === "sms") setSmsPreviewFeed(previous => [...previous, message]);
+    } catch (error) { setFeedback(getApiErrorMessage(error, "Could not queue messages.")); }
+    finally { submittingRef.current = false; setIsSubmitting(false); setIsAnimatingTransmission(false); }
   };
 
   const filteredTemplates = templates.filter((t) => {
@@ -218,6 +247,17 @@ export default function Sms() {
       />
       <div className="messaging-composer-grid">
       <form onSubmit={handleLaunchCampaign} className="min-w-0 space-y-6">
+        <div className="messaging-panel space-y-4">
+          <Link to="/dashboard/message-activity" className="text-blue-700 underline">Message activity and Gmail connection</Link>
+          <label className="block text-sm font-semibold">Send at (optional, your local time)
+            <input type="datetime-local" value={scheduledAt} onChange={event => setScheduledAt(event.target.value)} className="block w-full rounded-xl border border-gray-200 p-3 mt-2" />
+          </label>
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={transactional} onChange={event => setTransactional(event.target.checked)} />Transactional message</label>
+          {channel === "email" && <div className="space-y-3">
+            <label className="block text-sm font-semibold">Email provider<select value={provider} onChange={event => setProvider(event.target.value as "BREVO" | "GMAIL")} className="block w-full rounded-xl border border-gray-200 p-3 mt-2"><option value="BREVO">Brevo ? verified sending domain</option><option value="GMAIL">Connected Gmail account</option></select></label>
+            {provider === "GMAIL" && (gmail.connected ? <p className="text-sm">Sending through {gmail.email}</p> : <button type="button" className="messaging-primary" onClick={async () => { try { const result = await connectGmail(); window.location.assign(result.authorizationUrl); } catch (error) { setFeedback(getApiErrorMessage(error)); } }}>Connect Gmail</button>)}
+          </div>}
+        </div>
         <div className="messaging-panel space-y-7">
           <div className="messaging-panel-heading">
             <h2>{channel === "sms" ? "Compose your SMS" : "Compose your email"}</h2>
@@ -271,7 +311,7 @@ export default function Sms() {
               >
                 {isError && <option>Error loading Sender IDs</option>}
                 {!isPending && approvedSenderIds.length === 0 && (
-                  <option>No approved Sender IDs found</option>
+                  <option value="">No approved Sender IDs found</option>
                 )}
 
                 {approvedSenderIds.map((item: any, index: number) => {
@@ -317,8 +357,9 @@ export default function Sms() {
               {!senderEmail && (isEmailConfigPending || isDomainsPending) ? <InlineSkeleton width="100%" height={52} label="Loading sender email" /> : <input
                 type="email"
                 id="message-sender-email"
-                value={senderEmail}
+                value={provider === "GMAIL" ? gmail.email ?? "" : senderEmail}
                 onChange={(e) => setSenderEmail(e.target.value)}
+                disabled={provider === "GMAIL"}
                 placeholder="noreply@yourdomain.com"
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-3.5 text-sm font-mono text-gray-700 outline-none focus:ring-2 focus:ring-[#004aad]/20 focus:border-[#004aad] transition-all"
                 required
@@ -473,11 +514,11 @@ export default function Sms() {
           ) : (
             <>
               <Send size={14} />
-              <span>Preview {channel === "sms" ? "SMS" : "email"} message</span>
+              <span>{scheduledAt ? "Schedule" : "Send"} {channel === "sms" ? "SMS" : "email"} message</span>
             </>
           )}
         </button>
-        <p className="text-center text-sm leading-6 text-slate-500">This composer is a preview. Messages are not sent from this screen.</p>
+        <p role="status" className="text-center text-sm leading-6 text-slate-600">{feedback || "Messages are queued for delivery when you submit."}</p>
       </form>
 
       {/* Real-Time Live Preview Display */}

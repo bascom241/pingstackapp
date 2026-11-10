@@ -13,7 +13,7 @@ import {
 } from "../../ui/icons";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useSnackbar } from "notistack";
-import { useAddRecipient, useSingleCampaign } from "../../features/campaigns/hooks/useEmailCampaign";
+import { useAddRecipient, useSingleCampaign, useProcessCampaign } from "../../features/campaigns/hooks/useEmailCampaign";
 import type {
   CampaignSummary,
   EmailRecipientRequest,
@@ -101,6 +101,7 @@ const CampaignDetailPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
+  const processing = useProcessCampaign();
 
   const [recipients, setRecipients] = useState<EmailRecipientRequest[]>([]);
   const [recipientName, setRecipientName] = useState("");
@@ -126,14 +127,10 @@ const CampaignDetailPage = () => {
   console.log(campaign)
 
   const addRecipients = (newRecipients: EmailRecipientRequest[]) => {
-    console.log(recipients)
-    setRecipients((current) => [...current, ...newRecipients]);
-
-    console.log(recipients)
-    enqueueSnackbar(
-      `${newRecipients.length} recipient${newRecipients.length === 1 ? "" : "s"} added locally. No changes were sent to the server.`,
-      { variant: "success" },
-    );
+    mutate({ campaignId, recipient: newRecipients }, {
+      onSuccess: () => { setRecipients(current => [...current, ...newRecipients]); enqueueSnackbar("Recipients imported successfully.", { variant: "success" }); },
+      onError: error => enqueueSnackbar(getApiErrorMessage(error), { variant: "error" }),
+    });
   };
 
   const handleAddRecipient = () => {
@@ -271,6 +268,10 @@ const CampaignDetailPage = () => {
           <h1 className="text-3xl font-black tracking-tight text-gray-900 sm:text-4xl">
             {campaign.name}
           </h1>
+          {campaign.status === "QUEUED" && <button className="messaging-primary mt-4" disabled={processing.isPending} onClick={() => processing.mutate(campaignId, {
+            onSuccess: () => enqueueSnackbar("Campaign queued for delivery. Track messages in Message activity.", { variant: "success" }),
+            onError: error => enqueueSnackbar(getApiErrorMessage(error), { variant: "error" }),
+          })}>{processing.isPending ? "Queueing…" : "Send campaign"}</button>}
           <p className="mt-2 break-all text-base text-gray-500">
             Campaign ID: {campaign.campaignId}
           </p>
@@ -365,7 +366,7 @@ const CampaignDetailPage = () => {
               <div>
                 <h2 className="font-bold text-gray-900">Add recipients</h2>
                 <p className="text-sm text-gray-500">
-                  Add recipients individually or import multiple recipients with a CSV file. Changes are local only for now.
+                  Add recipients individually or import multiple recipients with a CSV file. Recipients are saved to this campaign before sending.
                 </p>
               </div>
             </div>

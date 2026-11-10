@@ -8,6 +8,8 @@ import Wallet from "./pages/dashboard/Wallet";
 import { ProtectedRoute } from "./utils/ProtectedRoute";
 import SenderId from "./pages/dashboard/SenderId";
 import Sms from "./pages/messages/Sms";
+import MessageActivity from "./pages/messages/MessageActivity";
+import Automations from "./pages/automations/Automations";
 import ContactList from "./pages/contacts/ContactList"
 import EmailConfig from "./pages/contacts/Email-Config";
 import OtpGuide from "./pages/contacts/Otp-Guide";
@@ -41,6 +43,8 @@ const App = () => {
         <Route element={<DashboardLayout><Outlet /></DashboardLayout>}>
           <Route index element={<Dashboard />} />
           <Route path="sms" element={<Sms />} />
+          <Route path="message-activity" element={<MessageActivity />} />
+          <Route path="automations" element={<Automations />} />
           <Route path="contacts" element={<ContactList />} />
           <Route path="kyc" element={<KycVerification/>}/>
           <Route path="api-keys" element={<ApiKeysPlayground/>} />

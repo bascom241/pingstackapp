@@ -15,6 +15,8 @@ type NavGroup = { label: string; icon: ComponentType<IconProps>; items: NavItem[
 const groups: NavGroup[] = [
   { label: "Messaging", icon: MessageSquare, items: [
     { label: "Send messages", path: "/dashboard/sms" },
+    { label: "Message activity", path: "/dashboard/message-activity" },
+    { label: "Automations", path: "/dashboard/automations" },
     { label: "Contacts & lists", path: "/dashboard/contacts" },
     { label: "Email configuration", path: "/dashboard/email-config" },
   ] },

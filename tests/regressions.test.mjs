@@ -15,6 +15,7 @@ let dispatch;
 axios.defaults.adapter = config => dispatch(config);
 const { axiosInstance } = await import('../src/api/axios.ts');
 const { getEntireAudience, deleteSubscriber } = await import('../src/features/contacts/api/subscriber.ts');
+const { sendMessages, getMessages, messageAction } = await import('../src/features/messaging/api/messageService.ts');
 const response = (config, data) => ({ config, data, status: 200, statusText: 'OK', headers: {} });
 const fail = (config, status = 401, data = {}) => Promise.reject(new axios.AxiosError('Request failed', 'ERR_BAD_REQUEST', config, null, { config, status, data, headers: {}, statusText: 'Error' }));
 beforeEach(() => {
@@ -22,6 +23,27 @@ beforeEach(() => {
   storage.set('accessToken', 'old');
   storage.set('refreshToken', 'refresh');
   window.location.href = '';
+});
+
+test('message submission preserves the idempotency key and scheduled provider request', async () => {
+  const payload = { channel: 'EMAIL', provider: 'GMAIL', recipients: ['recipient@example.com'], subject: 'Hello', body: '<p>Hello</p>', transactional: true, scheduledAt: '2027-01-15T16:00:00Z' };
+  dispatch = async config => {
+    assert.equal(config.url, '/messages');
+    assert.equal(config.headers.get('Idempotency-Key'), 'stable-request-001');
+    assert.deepEqual(JSON.parse(config.data), payload);
+    return response(config, [{ id: 'job-1', status: 'QUEUED' }]);
+  };
+  assert.deepEqual(await sendMessages(payload, 'stable-request-001'), [{ id: 'job-1', status: 'QUEUED' }]);
+});
+
+test('message history sends filters and controls call the corresponding API', async () => {
+  const calls = [];
+  dispatch = async config => { calls.push(config); return response(config, config.method === 'get' ? { content: [], totalPages: 0 } : { id: 'job-1', status: 'PAUSED' }); };
+  await getMessages(2, 'recipient@example.com', 'FAILED');
+  await messageAction('job-1', 'pause');
+  assert.deepEqual(calls[0].params, { page: 2, size: 20, search: 'recipient@example.com', status: 'FAILED' });
+  assert.equal(calls[1].method, 'post');
+  assert.equal(calls[1].url, '/messages/job-1/pause');
 });
 
 test('SMS counts GSM boundaries, extension characters, Unicode, emoji and empty input', () => {
