@@ -49,7 +49,7 @@ function Sidebar({ close, collapsed = false, expand }: { close?: () => void; col
         <span className="dashboard-workspace-avatar"><MessageSquare size={22} /></span>
         <div><strong>Your workspace</strong><span>Messaging workspace</span></div>
       </div>
-      <nav className="dashboard-navigation" aria-label="Main navigation">
+      <nav className="dashboard-navigation" tabIndex={0} aria-label="Main navigation">
         <p className="dashboard-nav-caption">Workspace</p>
         <NavLink end to="/dashboard" aria-label="Overview" title={collapsed ? "Overview" : undefined} onClick={close} className={({ isActive }) => `dashboard-nav-link ${isActive ? "is-active" : ""}`}><LayoutDashboard /><span>Overview</span></NavLink>
         {groups.map(({ label, icon: Icon, items }, index) => {
