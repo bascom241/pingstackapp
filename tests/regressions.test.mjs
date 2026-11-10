@@ -200,3 +200,24 @@ test('logout clears tokens immediately and pending refresh cannot restore them',
   assert.equal(storage.get('accessToken'), undefined);
   assert.equal(storage.get('refreshToken'), undefined);
 });
+
+test('an existing template can be fetched and copied into an automation request', async () => {
+  const { getSingleTemplate } = await import('../src/features/templates/api/templateService.ts');
+  const { createAutomation } = await import('../src/features/automations/api/automationService.ts');
+  const { newAutomationDraft, toAutomationRequest } = await import('../src/features/automations/utils/automationDraft.ts');
+  const calls = [];
+  dispatch = async config => {
+    calls.push(config);
+    if (config.method === 'get') return response(config, { templateId: 'template-1', subject: 'Welcome {{name}}', htmlContent: '<h1>{{name}}</h1>', version: 2 });
+    const payload = JSON.parse(config.data);
+    assert.equal(payload.steps[0].body, '<h1>{{name}}</h1>');
+    assert.equal(payload.steps[0].subject, 'Welcome {{name}}');
+    return response(config, { id: 'automation-1', ...payload });
+  };
+  const template = await getSingleTemplate('template-1');
+  const draft = newAutomationDraft();
+  draft.name = 'Welcome'; draft.eventName = 'user.created';
+  draft.steps[0] = { ...draft.steps[0], recipient: '{{email}}', subject: template.subject, body: template.htmlContent };
+  assert.equal((await createAutomation(toAutomationRequest(draft))).id, 'automation-1');
+  assert.deepEqual(calls.map(config => config.url), ['/email-template/template-1', '/automations']);
+});
